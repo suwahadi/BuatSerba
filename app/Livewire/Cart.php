@@ -46,7 +46,7 @@ class Cart extends Component
 
     public function getTotalProperty()
     {
-        return $this->subtotal + $this->shippingCost + $this->serviceFee - $this->discount;
+        return $this->subtotal + $this->serviceFee - $this->discount;
     }
 
     public function updateQuantity($cartItemId, $quantity)
@@ -178,11 +178,7 @@ class Cart extends Component
     public function calculateShipping()
     {
         // Simple shipping calculation based on subtotal
-        if ($this->subtotal >= 500000) {
-            $this->shippingCost = 0; // Free shipping
-        } else {
-            $this->shippingCost = 25000; // Standard shipping
-        }
+        $this->shippingCost = 25000; // Standard shipping
     }
 
     public function checkout()

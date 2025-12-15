@@ -50,6 +50,11 @@ class Checkout extends Component
     // Available Options (Will be populated with dynamic options)
     public $shippingMethods = [];
     
+    // Branch Selection
+    public $branches = [];
+    public $selectedBranchId = null;
+    public $showBranchModal = true;
+    
     #[Computed]
     public function paymentMethods()
     {
@@ -77,8 +82,17 @@ class Checkout extends Component
     
     // Selected branch for shipping origin
     #[Computed]
+    public function activeBranches()
+    {
+        return Branch::where('is_active', true)->orderBy('priority')->get()->toArray();
+    }
+    
+    #[Computed]
     public function selectedBranch()
     {
+        if ($this->selectedBranchId) {
+            return Branch::find($this->selectedBranchId);
+        }
         return Branch::where('is_active', true)->orderBy('priority')->first();
     }
     
@@ -118,6 +132,9 @@ class Checkout extends Component
         // Load provinces - convert to array to avoid serialization issues
         $this->provinces = Province::pluck('name', 'code')->toArray();
         
+        // Load active branches for selection
+        $this->branches = Branch::where('is_active', true)->orderBy('priority')->get()->toArray();
+        
         // Initialize with empty shipping methods - will be populated when district is selected
         $this->shippingMethods = [];
         
@@ -125,6 +142,20 @@ class Checkout extends Component
         if ($this->cartItems->isEmpty()) {
             session()->flash('error', 'Keranjang belanja Anda kosong.');
             return redirect()->route('cart');
+        }
+        
+        // Show branch selection modal on initial load
+        $this->showBranchModal = true;
+    }
+
+    public function selectBranch($branchId)
+    {
+        $this->selectedBranchId = $branchId;
+        $this->showBranchModal = false;
+        
+        // Recalculate shipping cost with new branch origin if district is already selected
+        if ($this->districtCode) {
+            $this->calculateShippingCost();
         }
     }
 
@@ -196,12 +227,6 @@ class Checkout extends Component
 
     protected function updateShippingCost()
     {
-        // Check for free shipping eligibility
-        if ($this->subtotal >= 500000) {
-            $this->shippingCost = 0;
-            return;
-        }
-
         // Find selected shipping method
         $method = collect($this->shippingMethods)->firstWhere('id', $this->shippingMethod);
         
@@ -210,21 +235,11 @@ class Checkout extends Component
         }
     }
 
-    /**
-     * Calculate shipping cost using Rajaongkir API
-     */
     public function calculateShippingCost()
     {
-        // Only calculate if we have district code
-        if (!$this->districtCode) {
+        // Only calculate if we have district code and selected branch
+        if (!$this->districtCode || !$this->selectedBranch) {
             // Clear shipping methods if district not selected
-            $this->shippingMethods = [];
-            return;
-        }
-
-        // Check for free shipping eligibility
-        if ($this->subtotal >= 500000) {
-            $this->shippingCost = 0;
             $this->shippingMethods = [];
             return;
         }
@@ -246,24 +261,51 @@ class Checkout extends Component
                 return ($item->sku->weight ?? 1000) * $item->quantity;
             });
             
+            // Use selected branch's subdistrict_id as origin
+            $originDistrictId = $this->selectedBranch->subdistrict_id;
+            
+            // Log the parameters for debugging
+            \Log::info('Shipping Cost Calculation', [
+                'origin_district_id' => $originDistrictId,
+                'origin_branch' => $this->selectedBranch->name,
+                'destination_district_id' => $destinationDistrict->id,
+                'destination_district_code' => $this->districtCode,
+                'total_weight' => $totalWeight,
+            ]);
+            
+            // Check if origin is null
+            if (!$originDistrictId) {
+                \Log::warning('Origin district ID is null. Selected branch subdistrict_id is not set.');
+                $this->shippingMethods = [];
+                return;
+            }
+            
             // Prepare parameters for shipping cost calculation using district-level API
             $params = [
-                'origin' => '1391', // Example origin (should be replaced with actual warehouse location)
+                'origin' => $originDistrictId, // Origin from selected branch
                 'destination' => $destinationDistrict->id, // Destination (user district)
-                'weight' => max(1000, $totalWeight), // Weight in grams, minimum 1000
-                'courier' => 'jne:sicepat:ide:sap:jnt:ninja:tiki:lion:anteraja:pos:ncs:rex:rpx:sentral:star:wahana:dse',
+                'weight' => max(200, $totalWeight), // Weight in grams, minimum 200
+                'courier' => 'jne:sicepat:jnt:ninja:anteraja:pos:wahana',
                 'price' => 'lowest'
             ];
             
             // Calculate shipping cost
             $shippingResults = $rajaongkir->calculateShippingCost($params);
             
+            // Log API response for debugging
+            \Log::info('Rajaongkir API Response', [
+                'results_count' => count($shippingResults),
+                'results' => $shippingResults,
+            ]);
+            
             // Process results and update shipping options
             $this->processShippingResults($shippingResults);
             
         } catch (\Exception $e) {
             // Log error but don't break the flow
-            \Log::error('Shipping cost calculation error: ' . $e->getMessage());
+            \Log::error('Shipping cost calculation error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
             // Clear shipping methods on error
             $this->shippingMethods = [];
         }

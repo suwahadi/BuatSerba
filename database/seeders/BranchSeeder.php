@@ -20,6 +20,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 151,
                 'city_name' => 'Jakarta Pusat',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 2779, // Cempaka Putih, Jakarta Pusat
+                'subdistrict_name' => 'Cempaka Putih',
                 'postal_code' => '10110',
                 'full_address' => 'Jl. Sudirman No. 123, Jakarta Pusat',
                 'is_active' => true,
@@ -35,6 +37,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 23,
                 'city_name' => 'Bandung',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 3265, // Andir, Bandung
+                'subdistrict_name' => 'Andir',
                 'postal_code' => '40111',
                 'full_address' => 'Jl. Dago No. 456, Bandung',
                 'is_active' => true,
@@ -50,6 +54,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 444,
                 'city_name' => 'Surabaya',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 3696, // Bubutan, Surabaya
+                'subdistrict_name' => 'Bubutan',
                 'postal_code' => '60111',
                 'full_address' => 'Jl. Tunjungan No. 789, Surabaya',
                 'is_active' => true,
@@ -65,6 +71,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 501,
                 'city_name' => 'Yogyakarta',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 5571, // Jetis, Yogyakarta
+                'subdistrict_name' => 'Jetis',
                 'postal_code' => '55111',
                 'full_address' => 'Jl. Malioboro No. 101, Yogyakarta',
                 'is_active' => true,
@@ -80,6 +88,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 151,
                 'city_name' => 'Medan',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 1392, // Medan Merdeka, Medan
+                'subdistrict_name' => 'Medan Merdeka',
                 'postal_code' => '20111',
                 'full_address' => 'Jl. Gatot Subroto No. 202, Medan',
                 'is_active' => true,
@@ -95,6 +105,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 397,
                 'city_name' => 'Makassar',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 6761, // Makassar, Makassar
+                'subdistrict_name' => 'Makassar',
                 'postal_code' => '90111',
                 'full_address' => 'Jl. Ahmad Yani No. 303, Makassar',
                 'is_active' => true,
@@ -110,6 +122,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 114,
                 'city_name' => 'Denpasar',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 1309, // Denpasar Selatan, Denpasar
+                'subdistrict_name' => 'Denpasar Selatan',
                 'postal_code' => '80111',
                 'full_address' => 'Jl. Sunset Road No. 404, Denpasar',
                 'is_active' => true,
@@ -125,6 +139,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 232,
                 'city_name' => 'Semarang',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 4436, // Semarang Tengah, Semarang
+                'subdistrict_name' => 'Semarang Tengah',
                 'postal_code' => '50111',
                 'full_address' => 'Jl. Pemuda No. 505, Semarang',
                 'is_active' => true,
@@ -140,6 +156,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 350,
                 'city_name' => 'Palembang',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 7391, // Ilir Barat I, Palembang
+                'subdistrict_name' => 'Ilir Barat I',
                 'postal_code' => '30111',
                 'full_address' => 'Jl. Sudirman No. 606, Palembang',
                 'is_active' => true,
@@ -155,6 +173,8 @@ class BranchSeeder extends Seeder
                 'city_id' => 38,
                 'city_name' => 'Batam',
                 'city_type' => 'Kota',
+                'subdistrict_id' => 1779, // Nongsa, Batam
+                'subdistrict_name' => 'Nongsa',
                 'postal_code' => '29411',
                 'full_address' => 'Jl. Engku Putri No. 707, Batam',
                 'is_active' => true,

@@ -1,4 +1,27 @@
 <div class="bg-gray-50">
+    <!-- Branch Selection Modal -->
+    @if($showBranchModal && count($branches) > 0)
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" style="display: flex;">
+        <div class="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Pilih Cabang/Gudang</h2>
+                <p class="text-gray-600 mt-2">Lokasi ini akan digunakan untuk menghitung ongkos kirim</p>
+            </div>
+            
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+                @foreach($branches as $branch)
+                <button 
+                    wire:click="selectBranch({{ $branch['id'] }})" 
+                    class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-left {{ $selectedBranchId == $branch['id'] ? 'border-green-600 bg-green-50' : '' }}">
+                    <p class="font-semibold text-gray-900">{{ $branch['name'] }}</p>
+                    <p class="text-sm text-gray-600 mt-1">{{ $branch['city_name'] }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ $branch['full_address'] }}</p>
+                </button>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
     <!-- Navigation -->
     <nav class="glass-nav fixed top-0 w-full z-50 border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -223,13 +246,32 @@
                         Metode Pengiriman
                     </h2>
                     
-                    @if($this->subtotal >= 500000)
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    <!-- Selected Branch Info -->
+                    @if($this->selectedBranch)
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
-                            <span class="text-sm font-medium text-green-800">Selamat! Anda mendapat GRATIS ONGKIR</span>
+                            <div class="flex-1">
+                                <p class="font-semibold text-blue-900">Pengiriman dari: {{ $this->selectedBranch->name }}</p>
+                                <p class="text-sm text-blue-700 mt-1">{{ $this->selectedBranch->city_name }}</p>
+                                <button wire:click="$set('showBranchModal', true)" class="text-sm text-blue-600 hover:text-blue-800 mt-2 underline flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    Ubah cabang
+                                </button>
+                            </div>
+                            @if($districtCode)
+                            <div wire:loading wire:target="selectBranch" class="ml-4">
+                                <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                            @endif
                         </div>
                     </div>
                     @endif
@@ -262,7 +304,7 @@
                             @forelse($shippingMethods as $method)
                             <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all {{ $shippingMethod === $method['id'] ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300' }}" wire:key="shipping-{{ $method['id'] }}">
                                 <input type="radio" wire:model.live="shippingMethod" value="{{ $method['id'] }}" 
-                                       class="text-green-600 focus:ring-green-500" {{ $this->subtotal >= 500000 ? 'disabled' : '' }}>
+                                       class="text-green-600 focus:ring-green-500">
                                 <div class="ml-3 flex-1">
                                     <div class="flex items-center justify-between">
                                         <div>
@@ -271,12 +313,7 @@
                                             <p class="text-xs text-gray-500 mt-1">Estimasi: {{ $method['estimatedDays'] }} hari</p>
                                         </div>
                                         <div class="text-right">
-                                            @if($this->subtotal >= 500000)
-                                            <p class="font-bold text-green-600">GRATIS</p>
-                                            <p class="text-xs text-gray-500 line-through">{{ format_rupiah($method['cost']) }}</p>
-                                            @else
                                             <p class="font-bold text-gray-900">{{ format_rupiah($method['cost']) }}</p>
-                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -371,7 +408,7 @@
                                 @if($shippingCost > 0)
                                     {{ format_rupiah($shippingCost) }}
                                 @else
-                                    <span class="text-green-600 font-semibold">GRATIS</span>
+                                    <span class="text-gray-500 italic">Menunggu data pengiriman</span>
                                 @endif
                             </span>
                         </div>

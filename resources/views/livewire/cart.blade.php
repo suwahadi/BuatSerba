@@ -204,17 +204,8 @@
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Ongkos Kirim</span>
-                            <span>{{ $shippingCost > 0 ? format_rupiah($shippingCost) : 'GRATIS' }}</span>
+                            <span class="text-gray-500 italic">Dihitung saat checkout</span>
                         </div>
-                        @if($shippingCost == 0 && $subtotal > 0)
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-2">
-                            <p class="text-xs text-green-700">🎉 Selamat! Anda mendapat gratis ongkir</p>
-                        </div>
-                        @elseif($subtotal > 0 && $subtotal < 500000)
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2">
-                            <p class="text-xs text-blue-700">Belanja {{ format_rupiah(500000 - $subtotal) }} lagi untuk gratis ongkir!</p>
-                        </div>
-                        @endif
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Biaya Layanan</span>
                             <span>{{ format_rupiah($serviceFee) }}</span>
