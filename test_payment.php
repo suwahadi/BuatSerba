@@ -2,8 +2,8 @@
 
 require_once 'vendor/autoload.php';
 
-use App\Models\Payment;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\User;
 
 // Bootstrap Laravel
@@ -18,7 +18,7 @@ $user = User::factory()->create();
 $order = Order::factory()->create([
     'user_id' => $user->id,
     'total' => 100000,
-    'payment_method' => 'bank-transfer-bca'
+    'payment_method' => 'bank-transfer-bca',
 ]);
 
 // Create a payment record
@@ -31,13 +31,13 @@ $payment = Payment::create([
     'payment_type' => 'bank_transfer',
     'payment_channel' => 'bca',
     'gross_amount' => 100000,
-    'currency' => 'IDR'
+    'currency' => 'IDR',
 ]);
 
 echo "Payment created successfully!\n";
-echo "Payment ID: " . $payment->id . "\n";
-echo "Order ID: " . $payment->order->id . "\n";
-echo "Transaction Status: " . $payment->transaction_status . "\n";
+echo 'Payment ID: '.$payment->id."\n";
+echo 'Order ID: '.$payment->order->id."\n";
+echo 'Transaction Status: '.$payment->transaction_status."\n";
 
 // Test updating payment from notification
 $notification = [
@@ -45,7 +45,7 @@ $notification = [
     'fraud_status' => 'accept',
     'status_code' => '200',
     'status_message' => 'Success, transaction is found',
-    'signature_key' => 'sample_signature_key'
+    'signature_key' => 'sample_signature_key',
 ];
 
 $payment->updateFromMidtransNotification($notification);
@@ -55,8 +55,8 @@ $payment->refresh();
 $order->refresh();
 
 echo "After notification update:\n";
-echo "Payment Status: " . $payment->transaction_status . "\n";
-echo "Order Payment Status: " . $order->payment_status . "\n";
-echo "Order Status: " . $order->status . "\n";
+echo 'Payment Status: '.$payment->transaction_status."\n";
+echo 'Order Payment Status: '.$order->payment_status."\n";
+echo 'Order Status: '.$order->status."\n";
 
 echo "Test completed successfully!\n";

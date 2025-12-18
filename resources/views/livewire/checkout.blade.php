@@ -23,44 +23,7 @@
     </div>
     @endif
     <!-- Navigation -->
-    <nav class="glass-nav fixed top-0 w-full z-50 border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-green-600">BuatSerba</a>
-                </div>
-                
-                <!-- Search Bar -->
-                <div class="flex-1 max-w-2xl mx-8">
-                    <div class="relative">
-                        <input type="text" placeholder="Cari produk, brand, atau kategori..." 
-                               class="w-full px-4 py-2 pl-10 pr-4 text-gray-700 bg-white border border-gray-300 rounded-full focus:outline-none focus:border-green-500">
-                        <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-                
-                <!-- Navigation Links -->
-                <div class="flex items-center space-x-6">
-                    <a href="/" class="text-gray-700 hover:text-green-600 font-medium">Beranda</a>
-                    <a href="/catalog" class="text-gray-700 hover:text-green-600 font-medium">Katalog</a>
-                    <a href="/cart" class="text-gray-700 hover:text-green-600 font-medium relative">
-                        Keranjang
-                        @if($this->cartItems->count() > 0)
-                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                            {{ $this->cartItems->count() }}
-                        </span>
-                        @endif
-                    </a>
-                    <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                        Masuk
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <x-navbar :cartCount="$this->cartItems->count()" />
 
     <!-- Breadcrumb -->
     <div class="pt-20 pb-4 bg-white border-b">
@@ -80,24 +43,25 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Checkout Steps -->
         <div class="mb-8">
-            <div class="flex items-center justify-center space-x-4 md:space-x-8">
+            <div class="flex items-center justify-center space-x-8">
                 <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-green-600 text-white">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                    </div>
-                    <span class="text-sm font-medium hidden md:inline">Keranjang</span>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-green-600 text-white">1</div>
+                    <span class="text-sm font-medium">Keranjang</span>
                 </div>
-                <div class="w-8 md:w-16 h-1 bg-green-600"></div>
+                <div class="w-16 h-1 bg-green-600"></div>
                 <div class="flex items-center space-x-2">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-green-600 text-white">2</div>
-                    <span class="text-sm font-medium hidden md:inline">Checkout</span>
+                    <span class="text-sm font-medium">Checkout</span>
                 </div>
-                <div class="w-8 md:w-16 h-1 bg-gray-200"></div>
+                <div class="w-16 h-1 bg-gray-200"></div>
                 <div class="flex items-center space-x-2">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-gray-200 text-gray-600">3</div>
-                    <span class="text-sm font-medium text-gray-600 hidden md:inline">Selesai</span>
+                    <span class="text-sm font-medium text-gray-600">Pembayaran</span>
+                </div>
+                <div class="w-16 h-1 bg-gray-200"></div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-gray-200 text-gray-600">4</div>
+                    <span class="text-sm font-medium text-gray-600">Selesai</span>
                 </div>
             </div>
         </div>
@@ -284,7 +248,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">Pilih kecamatan terlebih dahulu</h3>
                         <p class="mt-1 text-sm text-gray-500">Lengkapi alamat pengiriman untuk melihat opsi pengiriman</p>
                     </div>
                     @else
@@ -503,9 +466,6 @@
         </div>
     </footer>
 
-    <style>
-        .glass-nav { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.9); }
-    </style>
     <script>
         document.addEventListener('livewire:init', function() {
             Livewire.on('validation-failed', () => {

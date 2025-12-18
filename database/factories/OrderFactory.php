@@ -13,7 +13,7 @@ class OrderFactory extends Factory
     public function definition()
     {
         return [
-            'order_number' => 'ORD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6)),
+            'order_number' => 'ORD-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -6)),
             'user_id' => User::factory(),
             'session_id' => uniqid(),
             'customer_name' => $this->faker->name,

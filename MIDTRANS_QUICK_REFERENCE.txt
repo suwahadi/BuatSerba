@@ -1,0 +1,241 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                   MIDTRANS CORE API - QUICK REFERENCE CARD                    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+📌 KEY ENDPOINTS
+════════════════════════════════════════════════════════════════════════════════
+
+POST   /midtrans/notification        ← Webhook from Midtrans (CRITICAL)
+GET    /midtrans/finish              ← User returns after payment (Core API)
+GET    /midtrans/unfinish            ← User returns, payment pending
+GET    /midtrans/error               ← User returns, payment failed
+
+GET    /payment/{code}               ← Customer views payment instructions
+GET    /order/{orderNumber}          ← Customer views order details
+
+
+🔄 PAYMENT STATUS FLOW
+════════════════════════════════════════════════════════════════════════════════
+
+Order Created
+    ↓ payment_status: 'pending'
+    ↓ status: 'pending'
+
+Payment Created via Core API
+    ↓ payment.transaction_status: 'pending'
+
+Customer Pays at Bank
+    ↓ Midtrans sends webhook
+
+Order Updated (On Webhook)
+    ↓ IF transaction_status = 'settlement' OR 'capture' AND fraud_status = 'accept':
+    │  └─ payment_status: 'paid'
+    │  └─ status: 'processing'
+    │  └─ paid_at: NOW()
+    │
+    ↓ IF transaction_status = 'deny' OR 'cancel' OR 'expire':
+       └─ payment_status: 'failed'
+       └─ status: 'payment_failed'
+
+
+💾 CRITICAL DATABASE TABLES
+════════════════════════════════════════════════════════════════════════════════
+
+ORDERS
+  ├─ order_number ..................... 'ORD-20251216-ABC123'
+  ├─ payment_status ................... 'pending' | 'paid' | 'failed'
+  ├─ status ........................... 'pending' | 'processing' | 'payment_failed'
+  ├─ paid_at .......................... DateTime when payment confirmed
+  └─ (other fields...)
+
+PAYMENTS
+  ├─ order_id ......................... FK to orders
+  ├─ transaction_id ................... From Midtrans
+  ├─ transaction_status ............... 'pending'|'settlement'|'capture'|'deny'|'cancel'|'expire'
+  ├─ fraud_status ..................... 'accept'|'deny'|null
+  ├─ payment_type ..................... 'bank_transfer'|'echannel'|'gopay'|etc
+  ├─ payment_channel .................. 'bca'|'bni'|'bri'|'gopay'|etc
+  ├─ gross_amount ..................... Transaction amount in IDR
+  ├─ midtrans_response ................ Full JSON from Midtrans
+  ├─ signature_key .................... For webhook validation
+  └─ (other fields...)
+
+PAYMENT_NOTIFICATIONS
+  ├─ payment_id ....................... FK to payments
+  ├─ order_id ......................... From notification order_id
+  ├─ transaction_status ............... Notification status
+  ├─ notification_body ................ Full webhook JSON
+  ├─ processed ........................ Boolean flag
+  └─ processed_at ..................... DateTime when processed
+
+
+🔐 WEBHOOK SIGNATURE VALIDATION
+════════════════════════════════════════════════════════════════════════════════
+
+Every notification from Midtrans includes:
+  • order_id
+  • status_code
+  • gross_amount
+  • signature_key
+
+Validation Formula:
+  SIGNATURE = SHA512(order_id + status_code + gross_amount + SERVER_KEY)
+  
+  If SIGNATURE != provided signature_key:
+    ✗ REJECT notification
+    ✓ LOG warning
+  Else:
+    ✓ ACCEPT and process
+
+
+⚡ PAYMENT INSTRUCTION TYPES
+════════════════════════════════════════════════════════════════════════════════
+
+Virtual Account (bank_transfer)
+  ├─ bank: 'bca' | 'bni' | 'bri' | 'mandiri'
+  ├─ va_number: '12345678901234567890'
+  └─ instructions: Step-by-step payment guide
+
+E-Channel (echannel)
+  ├─ bill_key: '...'
+  ├─ biller_code: '...'
+  └─ instructions: Mandiri-specific steps
+
+QRIS (qris)
+  ├─ qr_string: '<base64 encoded QR>'
+  ├─ expiry_time: DateTime
+  └─ actions: Array of provider actions
+
+E-Wallet (gopay, shopeepay, dana, ovo, linkaja)
+  ├─ provider: 'gopay' | 'shopeepay' | etc
+  ├─ actions: Array of deeplinks
+  └─ instructions: Provider-specific steps
+
+Credit Card (credit_card)
+  └─ instructions: CVV, 3D Secure info
+
+
+🔧 COMMON OPERATIONS
+════════════════════════════════════════════════════════════════════════════════
+
+Check Payment Status:
+  $midtransService = new MidtransService();
+  $result = $midtransService->getTransactionStatus('ORD-20251216-ABC123');
+
+Create Payment:
+  $result = $midtransService->createTransaction($order, 'bank-transfer-bca');
+  
+  Response:
+  {
+    "success": true,
+    "data": { /* Midtrans response */ },
+    "payment_instructions": { /* Formatted for UI */ },
+    "payment_id": 123,
+    "redirect_url": "..."
+  }
+
+Update Payment from Notification:
+  $payment->updateFromMidtransNotification($notificationArray);
+  // Automatically updates order status too
+
+Check if Payment Successful:
+  if ($payment->isSuccessful()) {
+    // Mark order as paid
+  }
+
+Verify Order is Paid:
+  if ($order->isPaid()) {
+    // Process fulfillment
+  }
+
+
+🚨 ERROR SCENARIOS
+════════════════════════════════════════════════════════════════════════════════
+
+Server Key Missing:
+  Problem: MIDTRANS_SERVER_KEY not in .env
+  Solution: Add to .env and run `php artisan config:cache`
+
+Invalid Signature:
+  Problem: Signature validation fails
+  Solution: Verify MIDTRANS_SERVER_KEY matches Midtrans dashboard
+  Check: Logs show "Invalid Midtrans signature"
+
+Webhook Not Received:
+  Problem: notification_url not publicly accessible
+  Solution: For local dev, use ngrok: ngrok http 8000
+  Then set: MIDTRANS_NOTIFICATION_URL=https://your-ngrok-id.ngrok.io/midtrans/notification
+
+Order Not Found:
+  Problem: webhook has wrong order_id
+  Solution: Verify order_number format matches what was sent to Midtrans
+
+Payment Not Updating:
+  Problem: transaction_status not 'settlement' or 'capture'
+  Solution: Check fraud_status is 'accept' or null
+  Verify: SELECT * FROM payments WHERE order_id = ?
+
+Order Status Stuck on 'pending':
+  Problem: Webhook processed but order not updated
+  Solution: Check Payment::updateFromMidtransNotification() was called
+  Check: Logs show "Payment updated from notification"
+
+
+📋 LOGGING KEYWORDS
+════════════════════════════════════════════════════════════════════════════════
+
+Search logs for:
+  ✓ "Midtrans Core API Request"      → Payment creation started
+  ✓ "Midtrans Core API Response"     → Payment creation succeeded
+  ✓ "Payment notification created"   → Webhook received
+  ✓ "Payment updated from notification" → Status update succeeded
+  ✓ "Invalid Midtrans signature"     → Security issue detected
+  ✓ "Order not found"                → Data mismatch
+  ✓ "Midtrans notification processing error" → Something went wrong
+
+
+📞 ROUTES
+════════════════════════════════════════════════════════════════════════════════
+
+Web Routes (in routes/web.php):
+  
+  Route::post('/midtrans/notification', ...) → MidtransController@notification
+  Route::get('/midtrans/finish', ...)         → MidtransController@finish
+  Route::get('/midtrans/unfinish', ...)       → MidtransController@unfinish
+  Route::get('/midtrans/error', ...)          → MidtransController@error
+  
+  Route::get('/payment/{code}', ...)          → Payment Livewire
+  Route::get('/order/{orderNumber}', ...)     → OrderDetail Livewire
+
+
+🎯 ENVIRONMENT VARIABLES
+════════════════════════════════════════════════════════════════════════════════
+
+Required:
+  MIDTRANS_SERVER_KEY                      (from Midtrans dashboard)
+  MIDTRANS_CLIENT_KEY                      (from Midtrans dashboard)
+  MIDTRANS_IS_PRODUCTION                   (false for sandbox, true for live)
+
+Optional:
+  MIDTRANS_NOTIFICATION_URL                (default: /midtrans/notification)
+  MIDTRANS_CURRENCY                        (default: IDR)
+  MIDTRANS_TRANSACTION_TIMEOUT             (default: 30 minutes)
+
+
+🏁 NEXT STEPS
+════════════════════════════════════════════════════════════════════════════════
+
+1. Add credentials to .env file
+2. Run: php artisan config:cache
+3. Test order creation through checkout
+4. Verify payment record created
+5. Simulate webhook notification
+6. Verify order marked as paid
+7. Deploy to production with live credentials
+8. Monitor logs for first 24 hours
+9. Set up error tracking (Sentry, etc.)
+
+═══════════════════════════════════════════════════════════════════════════════
+Last Updated: December 16, 2025
+Version: 1.0 - Core API Only
+═══════════════════════════════════════════════════════════════════════════════

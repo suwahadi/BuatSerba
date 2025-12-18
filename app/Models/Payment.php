@@ -68,7 +68,6 @@ class Payment extends Model
             'status_message' => $notification['status_message'] ?? $this->status_message,
             'signature_key' => $notification['signature_key'] ?? $this->signature_key,
             'midtrans_response' => $notification,
-            'paid_at' => ($notification['transaction_status'] ?? null) === 'settlement' ? now() : $this->paid_at,
         ]);
 
         // Update order status based on payment status
@@ -82,7 +81,8 @@ class Payment extends Model
      */
     protected function updateOrderStatusFromPayment()
     {
-        if ($this->transaction_status === 'settlement' && $this->fraud_status === 'accept') {
+        // Payment is considered paid when status is settlement/capture AND fraud_status is accept
+        if (in_array($this->transaction_status, ['settlement', 'capture']) && ($this->fraud_status === 'accept' || $this->fraud_status === null)) {
             $this->order->update([
                 'payment_status' => 'paid',
                 'status' => 'processing',
@@ -101,7 +101,8 @@ class Payment extends Model
      */
     public function isSuccessful(): bool
     {
-        return $this->transaction_status === 'settlement' && $this->fraud_status === 'accept';
+        return in_array($this->transaction_status, ['settlement', 'capture']) &&
+               ($this->fraud_status === 'accept' || $this->fraud_status === null);
     }
 
     /**

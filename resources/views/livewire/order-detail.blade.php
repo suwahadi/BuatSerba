@@ -48,7 +48,7 @@
                                      alt="{{ $item->product->name }}" 
                                      class="w-12 h-12 object-contain">
                             @else
-                                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-12 h-12" />
+                                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-12 h-12"></div>
                             @endif
                         </div>
                         <div class="flex-grow">

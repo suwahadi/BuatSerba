@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Check if table already exists before creating it
-        if (!Schema::hasTable('order_shipping_info')) {
+        if (! Schema::hasTable('order_shipping_info')) {
             Schema::create('order_shipping_info', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('order_id')->constrained()->cascadeOnDelete();

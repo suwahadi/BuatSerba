@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Services\RajaongkirService;
+use Illuminate\Console\Command;
 
 class TestBekasiShipping extends Command
 {
@@ -34,7 +34,7 @@ class TestBekasiShipping extends Command
         // Test 1: Get provinces
         $this->info('1. Getting provinces...');
         $provinces = $rajaongkir->getProvinces();
-        $this->info('Found ' . count($provinces) . ' provinces');
+        $this->info('Found '.count($provinces).' provinces');
 
         // Find West Java province (ID 5 based on our debug output)
         $westJava = null;
@@ -45,17 +45,18 @@ class TestBekasiShipping extends Command
             }
         }
 
-        if (!$westJava) {
+        if (! $westJava) {
             $this->error('Could not find West Java province');
+
             return 1;
         }
 
-        $this->info('West Java Province: ' . ($westJava['name'] ?? '') . ' (ID: ' . ($westJava['id'] ?? '') . ')');
+        $this->info('West Java Province: '.($westJava['name'] ?? '').' (ID: '.($westJava['id'] ?? '').')');
 
         // Test 2: Get cities in West Java
         $this->info('2. Getting cities in West Java...');
         $cities = $rajaongkir->getCities($westJava['id']);
-        $this->info('Found ' . count($cities) . ' cities');
+        $this->info('Found '.count($cities).' cities');
 
         // Find Bekasi city
         $becakasi = null;
@@ -68,8 +69,9 @@ class TestBekasiShipping extends Command
             }
         }
 
-        if (!$becakasi) {
+        if (! $becakasi) {
             $this->error('Could not find Bekasi city');
+
             return 1;
         }
 
@@ -81,12 +83,13 @@ class TestBekasiShipping extends Command
         // Test 3: Get districts in Bekasi
         $this->info('3. Getting districts in Bekasi...');
         $districts = $rajaongkir->getDistricts($cityId);
-        $this->info('Found ' . count($districts) . ' districts');
+        $this->info('Found '.count($districts).' districts');
 
         // Take the first district as an example
         $district = $districts[0] ?? null;
-        if (!$district) {
+        if (! $district) {
             $this->error('Could not find any districts in Bekasi');
+
             return 1;
         }
 
@@ -102,12 +105,12 @@ class TestBekasiShipping extends Command
             'destination' => $districtId,
             'weight' => '1000',
             'courier' => 'jne:sicepat:ide:sap:jnt:ninja:tiki:lion:anteraja:pos:ncs:rex:rpx:sentral:star:wahana:dse',
-            'price' => 'lowest'
+            'price' => 'lowest',
         ];
 
         $result = $rajaongkir->calculateShippingCost($params);
 
-        if (!empty($result)) {
+        if (! empty($result)) {
             $this->info('Shipping calculation successful!');
             $this->info('Results:');
             $this->line(print_r($result, true));
@@ -116,6 +119,7 @@ class TestBekasiShipping extends Command
         }
 
         $this->info('Test completed.');
+
         return 0;
     }
 }

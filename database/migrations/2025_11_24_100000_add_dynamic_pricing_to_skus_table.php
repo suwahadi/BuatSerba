@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::table('skus', function (Blueprint $table) {
             // Check if columns already exist before adding them
-            if (!Schema::hasColumn('skus', 'pricing_tiers')) {
+            if (! Schema::hasColumn('skus', 'pricing_tiers')) {
                 // Add JSON column for dynamic pricing tiers
                 $table->json('pricing_tiers')->nullable()->after('wholesale_min_quantity');
             }
-            
-            if (!Schema::hasColumn('skus', 'use_dynamic_pricing')) {
+
+            if (! Schema::hasColumn('skus', 'use_dynamic_pricing')) {
                 // Add a flag to enable/disable dynamic pricing
                 $table->boolean('use_dynamic_pricing')->default(false)->after('pricing_tiers');
             }
@@ -34,7 +34,7 @@ return new class extends Migration
             if (Schema::hasColumn('skus', 'pricing_tiers')) {
                 $table->dropColumn('pricing_tiers');
             }
-            
+
             if (Schema::hasColumn('skus', 'use_dynamic_pricing')) {
                 $table->dropColumn('use_dynamic_pricing');
             }

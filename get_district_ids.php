@@ -1,4 +1,5 @@
 <?php
+
 require_once 'vendor/autoload.php';
 $app = require_once 'bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
@@ -34,7 +35,7 @@ foreach ($surabaya_districts as $d) {
 // Get the first district for each (most common - city center)
 if ($jakarta_districts->isNotEmpty()) {
     echo "\n=== Recommended Origin IDs ===\n";
-    echo "Jakarta Pusat (default): " . $jakarta_districts->first()->id . "\n";
-    echo "Bandung (default): " . $bandung_districts->first()->id . "\n";
-    echo "Surabaya (default): " . $surabaya_districts->first()->id . "\n";
+    echo 'Jakarta Pusat (default): '.$jakarta_districts->first()->id."\n";
+    echo 'Bandung (default): '.$bandung_districts->first()->id."\n";
+    echo 'Surabaya (default): '.$surabaya_districts->first()->id."\n";
 }

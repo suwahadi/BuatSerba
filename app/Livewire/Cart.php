@@ -3,16 +3,17 @@
 namespace App\Livewire;
 
 use App\Models\CartItem;
-use App\Models\Product;
-use App\Models\Sku;
-use Livewire\Component;
 use Illuminate\Support\Facades\Session;
+use Livewire\Component;
 
 class Cart extends Component
 {
     public $promoCode = '';
+
     public $discount = 0;
+
     public $shippingCost = 0;
+
     public $serviceFee = 2000;
 
     protected $listeners = ['cartUpdated' => '$refresh'];
@@ -20,7 +21,7 @@ class Cart extends Component
     public function mount()
     {
         // Ensure session has an ID for guest users
-        if (!Session::has('cart_session_id')) {
+        if (! Session::has('cart_session_id')) {
             Session::put('cart_session_id', Session::getId());
         }
     }
@@ -28,10 +29,10 @@ class Cart extends Component
     public function getCartItemsProperty()
     {
         $sessionId = Session::get('cart_session_id');
-        
+
         return CartItem::with(['product', 'sku'])
             ->where('session_id', $sessionId)
-            ->when(auth()->check(), function($query) {
+            ->when(auth()->check(), function ($query) {
                 $query->orWhere('user_id', auth()->id());
             })
             ->get();
@@ -39,7 +40,7 @@ class Cart extends Component
 
     public function getSubtotalProperty()
     {
-        return $this->cartItems->sum(function($item) {
+        return $this->cartItems->sum(function ($item) {
             return $item->price * $item->quantity;
         });
     }
@@ -52,9 +53,10 @@ class Cart extends Component
     public function updateQuantity($cartItemId, $quantity)
     {
         $cartItem = CartItem::find($cartItemId);
-        
-        if (!$cartItem) {
+
+        if (! $cartItem) {
             session()->flash('error', 'Item tidak ditemukan di keranjang.');
+
             return;
         }
 
@@ -65,7 +67,8 @@ class Cart extends Component
 
         // Check stock availability
         if ($quantity > $cartItem->sku->stock_quantity) {
-            session()->flash('error', 'Stok tidak mencukupi. Tersedia: ' . $cartItem->sku->stock_quantity);
+            session()->flash('error', 'Stok tidak mencukupi. Tersedia: '.$cartItem->sku->stock_quantity);
+
             return;
         }
 
@@ -73,7 +76,7 @@ class Cart extends Component
         $cartItem->quantity = $quantity;
         $cartItem->price = $cartItem->sku->getPriceForQuantity($quantity);
         $cartItem->save();
-        
+
         session()->flash('message', 'Jumlah item berhasil diupdate.');
         $this->dispatch('cartUpdated');
     }
@@ -81,15 +84,16 @@ class Cart extends Component
     public function incrementQuantity($cartItemId)
     {
         $cartItem = CartItem::find($cartItemId);
-        
-        if (!$cartItem) {
+
+        if (! $cartItem) {
             return;
         }
 
         $newQuantity = $cartItem->quantity + 1;
-        
+
         if ($newQuantity > $cartItem->sku->stock_quantity) {
             session()->flash('error', 'Stok tidak mencukupi.');
+
             return;
         }
 
@@ -97,20 +101,20 @@ class Cart extends Component
         $cartItem->quantity = $newQuantity;
         $cartItem->price = $cartItem->sku->getPriceForQuantity($newQuantity);
         $cartItem->save();
-        
+
         $this->dispatch('cartUpdated');
     }
 
     public function decrementQuantity($cartItemId)
     {
         $cartItem = CartItem::find($cartItemId);
-        
-        if (!$cartItem) {
+
+        if (! $cartItem) {
             return;
         }
 
         $newQuantity = $cartItem->quantity - 1;
-        
+
         if ($newQuantity < 1) {
             return;
         }
@@ -119,14 +123,14 @@ class Cart extends Component
         $cartItem->quantity = $newQuantity;
         $cartItem->price = $cartItem->sku->getPriceForQuantity($newQuantity);
         $cartItem->save();
-        
+
         $this->dispatch('cartUpdated');
     }
 
     public function removeItem($cartItemId)
     {
         $cartItem = CartItem::find($cartItemId);
-        
+
         if ($cartItem) {
             $cartItem->delete();
             session()->flash('message', 'Item berhasil dihapus dari keranjang.');
@@ -137,13 +141,13 @@ class Cart extends Component
     public function clearCart()
     {
         $sessionId = Session::get('cart_session_id');
-        
+
         CartItem::where('session_id', $sessionId)
-            ->when(auth()->check(), function($query) {
+            ->when(auth()->check(), function ($query) {
                 $query->orWhere('user_id', auth()->id());
             })
             ->delete();
-        
+
         session()->flash('message', 'Keranjang berhasil dikosongkan.');
         $this->dispatch('cartUpdated');
     }
@@ -167,7 +171,7 @@ class Cart extends Component
                 // Fixed amount discount
                 $this->discount = $promoCodes[$code];
             }
-            
+
             session()->flash('message', 'Kode promo berhasil diterapkan!');
         } else {
             $this->discount = 0;
@@ -185,6 +189,7 @@ class Cart extends Component
     {
         if ($this->cartItems->isEmpty()) {
             session()->flash('error', 'Keranjang belanja Anda kosong.');
+
             return;
         }
 
@@ -194,7 +199,7 @@ class Cart extends Component
     public function render()
     {
         $this->calculateShipping();
-        
+
         return view('livewire.cart', [
             'cartItems' => $this->cartItems,
             'subtotal' => $this->subtotal,

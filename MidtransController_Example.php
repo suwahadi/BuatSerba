@@ -16,79 +16,79 @@ class MidtransController extends Controller
     {
         try {
             $notif = $request->all();
-            $orderId = $notif["order_id"] ?? null;
-            $transactionStatus = $notif["transaction_status"] ?? null;
-            
+            $orderId = $notif['order_id'] ?? null;
+            $transactionStatus = $notif['transaction_status'] ?? null;
+
             // Validate Midtrans signature for security
-            if (!$this->isValidSignature($notif)) {
-                return response()->json(["status" => "error", "message" => "Invalid signature"], 401);
+            if (! $this->isValidSignature($notif)) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 401);
             }
-            
-            if (!$orderId) {
-                return response()->json(["status" => "error", "message" => "Missing order_id"], 400);
+
+            if (! $orderId) {
+                return response()->json(['status' => 'error', 'message' => 'Missing order_id'], 400);
             }
 
             // Handle Midtrans test notification
             if (strpos($orderId, 'payment_notif_test_') === 0 || strpos($orderId, 'test_') === 0) {
                 return response()->json([
-                    "status" => "ok",
-                    "message" => "Test notification handled successfully"
+                    'status' => 'ok',
+                    'message' => 'Test notification handled successfully',
                 ]);
             }
 
-            $order = Order::where("order_number", $orderId)->first();
-            if (!$order) {
+            $order = Order::where('order_number', $orderId)->first();
+            if (! $order) {
                 return response()->json([
-                    "status" => "ok", 
-                    "message" => "Order not found but notification acknowledged"
+                    'status' => 'ok',
+                    'message' => 'Order not found but notification acknowledged',
                 ], 200);
             }
 
-            $payment = Payment::where("order_id", $order->id)->first();
-            
+            $payment = Payment::where('order_id', $order->id)->first();
+
             // Log the payment notification (only if payment record exists)
             if ($payment) {
                 PaymentLog::create([
-                    "payment_id" => $payment->id,
-                    "event_type" => "midtrans_notification",
-                    "request_data" => $notif,
-                    "response_data" => null,
-                    "ip_address" => $request->ip(),
-                    "user_agent" => $request->userAgent(),
+                    'payment_id' => $payment->id,
+                    'event_type' => 'midtrans_notification',
+                    'request_data' => $notif,
+                    'response_data' => null,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
                 ]);
             }
-            
+
             if ($payment) {
                 $payment->updateFromMidtransNotification($notif);
             } else {
                 $order->updatePaymentStatus($transactionStatus, $notif['fraud_status'] ?? null, $notif);
             }
-            
+
             // For any status update, store callback info for frontend polling
             $callbackData = [
                 'order_number' => $order->order_number,
-                'payment_status' => in_array($transactionStatus, ['settlement', 'capture']) && 
+                'payment_status' => in_array($transactionStatus, ['settlement', 'capture']) &&
                     ($notif['fraud_status'] ?? 'accept') === 'accept' ? 'paid' : $transactionStatus,
                 'transaction_status' => $transactionStatus,
-                'should_redirect' => in_array($transactionStatus, ['settlement', 'capture']) && 
+                'should_redirect' => in_array($transactionStatus, ['settlement', 'capture']) &&
                     ($notif['fraud_status'] ?? 'accept') === 'accept',
                 'timestamp' => now()->toISOString(),
-                'callback_data' => $notif
+                'callback_data' => $notif,
             ];
-            
+
             // Store in session
             session()->put("payment_callback_{$order->order_number}", $callbackData);
-            
+
             // Also store in cache for additional reliability (5 minutes)
             cache()->put("payment_callback_{$order->order_number}", $callbackData, 300);
 
-            return response()->json(["status" => "ok"]);
+            return response()->json(['status' => 'ok']);
 
         } catch (\Exception $e) {
             // Still return OK to Midtrans to prevent retry loops for invalid data
             return response()->json([
-                "status" => "ok", 
-                "message" => "Notification processed with error logged"
+                'status' => 'ok',
+                'message' => 'Notification processed with error logged',
             ], 200);
         }
     }
@@ -98,16 +98,16 @@ class MidtransController extends Controller
      */
     public function finish(Request $request)
     {
-        $orderId = $request->query("order_id");
-        
+        $orderId = $request->query('order_id');
+
         if ($orderId) {
-            $order = Order::where("order_number", $orderId)->first();
+            $order = Order::where('order_number', $orderId)->first();
             if ($order) {
-                return redirect()->route("payment.success", ["orderNumber" => $order->order_number]);
+                return redirect()->route('payment.success', ['orderNumber' => $order->order_number]);
             }
         }
-        
-        return redirect()->route("home")->with('error', 'Order not found');
+
+        return redirect()->route('home')->with('error', 'Order not found');
     }
 
     /**
@@ -115,16 +115,16 @@ class MidtransController extends Controller
      */
     public function unfinish(Request $request)
     {
-        $orderId = $request->query("order_id");
-        
+        $orderId = $request->query('order_id');
+
         if ($orderId) {
-            $order = Order::where("order_number", $orderId)->first();
+            $order = Order::where('order_number', $orderId)->first();
             if ($order) {
-                return redirect()->route("payment.show", ["orderNumber" => $order->order_number]);
+                return redirect()->route('payment.show', ['orderNumber' => $order->order_number]);
             }
         }
-        
-        return redirect()->route("home")->with('error', 'Order not found');
+
+        return redirect()->route('home')->with('error', 'Order not found');
     }
 
     /**
@@ -132,16 +132,16 @@ class MidtransController extends Controller
      */
     public function error(Request $request)
     {
-        $orderId = $request->query("order_id");
-        
+        $orderId = $request->query('order_id');
+
         if ($orderId) {
-            $order = Order::where("order_number", $orderId)->first();
+            $order = Order::where('order_number', $orderId)->first();
             if ($order) {
-                return redirect()->route("payment.failed", ["orderNumber" => $order->order_number]);
+                return redirect()->route('payment.failed', ['orderNumber' => $order->order_number]);
             }
         }
-        
-        return redirect()->route("home")->with('error', 'Order not found');
+
+        return redirect()->route('home')->with('error', 'Order not found');
     }
 
     /**
@@ -155,17 +155,17 @@ class MidtransController extends Controller
         }
 
         $serverKey = config('midtrans.server_key');
-        if (!$serverKey) {
+        if (! $serverKey) {
             return false;
         }
 
         $orderId = $notif['order_id'] ?? '';
         $statusCode = $notif['status_code'] ?? '';
         $grossAmount = $notif['gross_amount'] ?? '';
-        
-        $signature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+
+        $signature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
         $providedSignature = $notif['signature_key'] ?? '';
-        
+
         return hash_equals($signature, $providedSignature);
     }
 }

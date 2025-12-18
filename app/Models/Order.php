@@ -113,7 +113,8 @@ class Order extends Model
      */
     public function updatePaymentStatus($transactionStatus, $fraudStatus = null, $notificationData = [])
     {
-        if (($transactionStatus === 'settlement' || $transactionStatus === 'capture') && $fraudStatus === 'accept') {
+        // Payment is considered paid when status is settlement/capture AND fraud_status is accept or null
+        if (in_array($transactionStatus, ['settlement', 'capture']) && ($fraudStatus === 'accept' || $fraudStatus === null)) {
             $this->update([
                 'payment_status' => 'paid',
                 'status' => 'processing',

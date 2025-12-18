@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Product;
 use App\Models\Sku;
+use Illuminate\Database\Seeder;
 
 class DynamicPricingSeeder extends Seeder
 {
@@ -21,16 +20,16 @@ class DynamicPricingSeeder extends Seeder
                 [
                     'quantity' => 1,
                     'price' => 0, // Will be set to selling_price
-                    'label' => 'Eceran'
+                    'label' => 'Eceran',
                 ],
                 [
                     'quantity' => 100, // Based on the requirement: buy more than 100 pcs
                     'price' => 0, // Will be set to wholesale_price
-                    'label' => 'Grosir'
-                ]
-            ]
+                    'label' => 'Grosir',
+                ],
+            ],
         ]);
-        
+
         // Update the pricing tiers with actual prices
         Sku::where('use_dynamic_pricing', true)->each(function ($sku) {
             $pricingTiers = $sku->pricing_tiers;
@@ -39,7 +38,7 @@ class DynamicPricingSeeder extends Seeder
             $sku->pricing_tiers = $pricingTiers;
             $sku->save();
         });
-        
+
         // Create a sample product with more complex pricing tiers
         $product = Product::create([
             'category_id' => 1,
@@ -51,7 +50,7 @@ class DynamicPricingSeeder extends Seeder
             'is_active' => true,
             'is_featured' => true,
         ]);
-        
+
         $sku = new Sku([
             'sku' => 'PROD-DINAMIS-001',
             'base_price' => 100000,
@@ -64,26 +63,26 @@ class DynamicPricingSeeder extends Seeder
                 [
                     'quantity' => 1,
                     'price' => 90000,
-                    'label' => 'Eceran'
+                    'label' => 'Eceran',
                 ],
                 [
                     'quantity' => 10,
                     'price' => 85000,
-                    'label' => 'Reseller Kecil'
+                    'label' => 'Reseller Kecil',
                 ],
                 [
                     'quantity' => 50,
                     'price' => 80000,
-                    'label' => 'Reseller Menengah'
+                    'label' => 'Reseller Menengah',
                 ],
                 [
                     'quantity' => 100,
                     'price' => 75000,
-                    'label' => 'Grosir'
-                ]
-            ]
+                    'label' => 'Grosir',
+                ],
+            ],
         ]);
-        
+
         $product->skus()->save($sku);
     }
 }

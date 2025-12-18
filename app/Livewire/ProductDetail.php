@@ -2,32 +2,36 @@
 
 namespace App\Livewire;
 
-use App\Models\Product;
-use App\Models\Sku;
 use App\Models\Branch;
 use App\Models\BranchInventory;
+use App\Models\Product;
+use App\Models\Sku;
 use Livewire\Component;
 
 class ProductDetail extends Component
 {
     public $product;
+
     public $selectedSku;
+
     public $quantity = 1;
+
     public $selectedVariants = [];
+
     public $activeTab = 'description';
 
     public function mount($slug)
     {
-        $this->product = Product::with(['category', 'skus' => function($query) {
+        $this->product = Product::with(['category', 'skus' => function ($query) {
             $query->where('is_active', true);
         }])
-        ->where('slug', $slug)
-        ->where('is_active', true)
-        ->firstOrFail();
+            ->where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
 
         // Select first available SKU by default
         $this->selectedSku = $this->product->skus->first();
-        
+
         // Initialize selected variants based on first SKU
         if ($this->selectedSku) {
             $this->initializeVariants();
@@ -40,7 +44,7 @@ class ProductDetail extends Component
     protected function initializeVariants()
     {
         $attributes = $this->selectedSku->attributes ?? [];
-        
+
         foreach ($attributes as $key => $value) {
             $this->selectedVariants[$key] = $value;
         }
@@ -60,7 +64,7 @@ class ProductDetail extends Component
             $matches = true;
 
             foreach ($this->selectedVariants as $key => $value) {
-                if (!isset($skuAttributes[$key]) || $skuAttributes[$key] != $value) {
+                if (! isset($skuAttributes[$key]) || $skuAttributes[$key] != $value) {
                     $matches = false;
                     break;
                 }
@@ -68,6 +72,7 @@ class ProductDetail extends Component
 
             if ($matches) {
                 $this->selectedSku = $sku;
+
                 return;
             }
         }
@@ -99,8 +104,8 @@ class ProductDetail extends Component
     public function buyNow()
     {
         $this->addToCart();
-        
-        if (!session()->has('error')) {
+
+        if (! session()->has('error')) {
             return redirect()->route('cart');
         }
     }
@@ -109,25 +114,32 @@ class ProductDetail extends Component
     {
         // Set the quantity based on the tier clicked
         $this->quantity = $quantity;
-        
+
         // Add to cart
         $this->addToCart();
+
+        // Redirect to cart if no errors
+        if (! session()->has('error')) {
+            return redirect()->route('cart');
+        }
     }
 
     public function addToCart()
     {
-        if (!$this->selectedSku) {
+        if (! $this->selectedSku) {
             session()->flash('error', 'Silakan pilih variant produk terlebih dahulu.');
+
             return;
         }
 
         if ($this->selectedSku->stock_quantity < $this->quantity) {
             session()->flash('error', 'Stok tidak mencukupi.');
+
             return;
         }
 
         // Get or create session ID for cart
-        if (!session()->has('cart_session_id')) {
+        if (! session()->has('cart_session_id')) {
             session()->put('cart_session_id', session()->getId());
         }
 
@@ -136,7 +148,7 @@ class ProductDetail extends Component
         // Check if item already exists in cart
         $existingItem = \App\Models\CartItem::where('session_id', $sessionId)
             ->where('sku_id', $this->selectedSku->id)
-            ->when(auth()->check(), function($query) {
+            ->when(auth()->check(), function ($query) {
                 $query->orWhere('user_id', auth()->id());
             })
             ->first();
@@ -144,9 +156,10 @@ class ProductDetail extends Component
         if ($existingItem) {
             // Update quantity if item exists
             $newQuantity = $existingItem->quantity + $this->quantity;
-            
+
             if ($newQuantity > $this->selectedSku->stock_quantity) {
                 session()->flash('error', 'Jumlah melebihi stok yang tersedia.');
+
                 return;
             }
 
@@ -154,7 +167,7 @@ class ProductDetail extends Component
             $existingItem->quantity = $newQuantity;
             $existingItem->price = $this->selectedSku->getPriceForQuantity($newQuantity);
             $existingItem->save();
-            
+
             // Remove the flash message that was interfering with popup
             // session()->flash('message', 'Jumlah produk di keranjang berhasil diupdate!');
         } else {
@@ -167,7 +180,7 @@ class ProductDetail extends Component
                 'quantity' => $this->quantity,
                 'price' => $this->selectedSku->getPriceForQuantity($this->quantity),
             ]);
-            
+
             // Remove the flash message that was interfering with popup
             // session()->flash('message', 'Produk berhasil ditambahkan ke keranjang!');
         }
@@ -177,7 +190,7 @@ class ProductDetail extends Component
         $this->dispatch('showCartNotification', [
             'productName' => $this->product->name,
             'quantity' => $this->quantity,
-            'price' => $this->selectedSku->getPriceForQuantity($this->quantity)
+            'price' => $this->selectedSku->getPriceForQuantity($this->quantity),
         ]);
     }
 
@@ -200,28 +213,28 @@ class ProductDetail extends Component
     public function getAvailableVariantsProperty()
     {
         $variants = [];
-        
+
         foreach ($this->product->skus as $sku) {
             $attributes = $sku->attributes ?? [];
-            
+
             foreach ($attributes as $key => $value) {
-                if (!isset($variants[$key])) {
+                if (! isset($variants[$key])) {
                     $variants[$key] = [];
                 }
-                
-                if (!in_array($value, $variants[$key])) {
+
+                if (! in_array($value, $variants[$key])) {
                     $variants[$key][] = $value;
                 }
             }
         }
-        
+
         return $variants;
     }
 
     // Get branch inventory information for the selected SKU
     public function getBranchInventoryProperty()
     {
-        if (!$this->selectedSku) {
+        if (! $this->selectedSku) {
             return collect();
         }
 

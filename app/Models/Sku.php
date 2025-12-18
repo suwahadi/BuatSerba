@@ -55,17 +55,14 @@ class Sku extends Model
 
     /**
      * Get price based on quantity
-     * 
-     * @param int $quantity
-     * @return float
      */
     public function getPriceForQuantity(int $quantity): float
     {
         // If dynamic pricing is enabled, use the pricing tiers
-        if ($this->use_dynamic_pricing && !empty($this->pricing_tiers)) {
+        if ($this->use_dynamic_pricing && ! empty($this->pricing_tiers)) {
             // Sort tiers by quantity in descending order to find the best match
             $sortedTiers = collect($this->pricing_tiers)->sortByDesc('quantity');
-            
+
             // Find the tier that matches the quantity
             foreach ($sortedTiers as $tier) {
                 if ($quantity >= $tier['quantity']) {
@@ -73,7 +70,7 @@ class Sku extends Model
                 }
             }
         }
-        
+
         // Fallback to existing wholesale logic
         if ($this->wholesale_price && $quantity >= $this->wholesale_min_quantity) {
             return $this->wholesale_price;
@@ -81,37 +78,35 @@ class Sku extends Model
 
         return $this->selling_price;
     }
-    
+
     /**
      * Get all available pricing tiers for display
-     * 
-     * @return array
      */
     public function getPricingTiersForDisplay(): array
     {
         // If dynamic pricing is enabled and we have tiers, use them
-        if ($this->use_dynamic_pricing && !empty($this->pricing_tiers)) {
+        if ($this->use_dynamic_pricing && ! empty($this->pricing_tiers)) {
             return $this->pricing_tiers;
         }
-        
+
         // Otherwise, create a default structure with retail and wholesale
         $tiers = [
             [
                 'quantity' => 1,
                 'price' => $this->selling_price,
-                'label' => 'Eceran'
-            ]
+                'label' => 'Eceran',
+            ],
         ];
-        
+
         // Add wholesale tier if available
         if ($this->wholesale_price && $this->wholesale_min_quantity) {
             $tiers[] = [
                 'quantity' => $this->wholesale_min_quantity,
                 'price' => $this->wholesale_price,
-                'label' => 'Grosir'
+                'label' => 'Grosir',
             ];
         }
-        
+
         return $tiers;
     }
 }

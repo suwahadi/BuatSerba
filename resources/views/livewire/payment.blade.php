@@ -102,39 +102,6 @@
             </div>
             @endif
 
-            <!-- Snap Payment -->
-            @if($showSnap && $snapToken)
-            <div class="p-6 border-b border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-800 mb-3">Pembayaran Online</h3>
-                <div id="snap-container"></div>
-            </div>
-            
-            @push('scripts')
-            <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    snap.pay('{{ $snapToken }}', {
-                        onSuccess: function(result) {
-                            console.log('Payment success:', result);
-                            window.location.href = "{{ route('payment.success', ['orderNumber' => $order->order_number]) }}";
-                        },
-                        onPending: function(result) {
-                            console.log('Payment pending:', result);
-                            window.location.href = "{{ route('payment.pending', ['orderNumber' => $order->order_number]) }}";
-                        },
-                        onError: function(result) {
-                            console.log('Payment error:', result);
-                            window.location.href = "{{ route('payment.failed', ['orderNumber' => $order->order_number]) }}";
-                        },
-                        onClose: function() {
-                            console.log('Payment popup closed');
-                        }
-                    });
-                });
-            </script>
-            @endpush
-            @endif
-
             <!-- Actions -->
             <div class="p-6 flex flex-col sm:flex-row gap-3">
                 <a href="{{ route('home') }}" 

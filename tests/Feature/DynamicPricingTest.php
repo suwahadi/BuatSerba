@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\Sku;
+use Tests\TestCase;
 
 class DynamicPricingTest extends TestCase
 {
@@ -20,14 +20,14 @@ class DynamicPricingTest extends TestCase
                 [
                     'quantity' => 1,
                     'price' => 10000,
-                    'label' => 'Eceran'
+                    'label' => 'Eceran',
                 ],
                 [
                     'quantity' => 100,
                     'price' => 8000,
-                    'label' => 'Grosir'
-                ]
-            ]
+                    'label' => 'Grosir',
+                ],
+            ],
         ]);
 
         // Test retail price (quantity < 100)
@@ -45,7 +45,7 @@ class DynamicPricingTest extends TestCase
             'selling_price' => 10000,
             'wholesale_price' => 8000,
             'wholesale_min_quantity' => 100,
-            'use_dynamic_pricing' => false
+            'use_dynamic_pricing' => false,
         ]);
 
         // Test retail price (quantity < 100)
@@ -68,14 +68,14 @@ class DynamicPricingTest extends TestCase
                 [
                     'quantity' => 1,
                     'price' => 10000,
-                    'label' => 'Eceran'
+                    'label' => 'Eceran',
                 ],
                 [
                     'quantity' => 100,
                     'price' => 8000,
-                    'label' => 'Grosir'
-                ]
-            ]
+                    'label' => 'Grosir',
+                ],
+            ],
         ]);
 
         $tiers = $sku->getPricingTiersForDisplay();

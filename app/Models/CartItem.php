@@ -46,7 +46,7 @@ class CartItem extends Model
     {
         return $this->price * $this->quantity;
     }
-    
+
     // Set the price based on the quantity and SKU pricing rules
     public function setPriceFromSku()
     {
@@ -54,7 +54,7 @@ class CartItem extends Model
             $this->price = $this->sku->getPriceForQuantity($this->quantity);
         }
     }
-    
+
     // Update the price when quantity changes
     public function updatePriceForQuantity()
     {

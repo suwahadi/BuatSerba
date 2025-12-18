@@ -2,21 +2,19 @@
 
 namespace App\Services;
 
+use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\CartItem;
 use App\Models\Sku;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use Exception;
 
 class OrderService
 {
     /**
      * Create order from cart with race condition protection
-     * 
-     * @param array $data
-     * @return Order
+     *
      * @throws Exception
      */
     public function createOrder(array $data): Order
@@ -26,7 +24,7 @@ class OrderService
             $sessionId = Session::get('cart_session_id');
             $cartItems = CartItem::with(['product', 'sku'])
                 ->where('session_id', $sessionId)
-                ->when(auth()->check(), function($query) {
+                ->when(auth()->check(), function ($query) {
                     $query->orWhere('user_id', auth()->id());
                 })
                 ->lockForUpdate() // Lock rows to prevent race condition
@@ -39,8 +37,8 @@ class OrderService
             // Validate stock availability with lock
             foreach ($cartItems as $item) {
                 $sku = Sku::lockForUpdate()->find($item->sku_id);
-                
-                if (!$sku) {
+
+                if (! $sku) {
                     throw new Exception("Produk {$item->product->name} tidak ditemukan.");
                 }
 
@@ -50,7 +48,7 @@ class OrderService
             }
 
             // Calculate totals
-            $subtotal = $cartItems->sum(function($item) {
+            $subtotal = $cartItems->sum(function ($item) {
                 return $item->price * $item->quantity;
             });
 
@@ -109,7 +107,7 @@ class OrderService
 
             // Clear cart
             CartItem::where('session_id', $sessionId)
-                ->when(auth()->check(), function($query) {
+                ->when(auth()->check(), function ($query) {
                     $query->orWhere('user_id', auth()->id());
                 })
                 ->delete();
@@ -120,13 +118,11 @@ class OrderService
 
     /**
      * Generate unique order number
-     * 
-     * @return string
      */
     protected function generateOrderNumber(): string
     {
         do {
-            $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+            $orderNumber = 'ORD-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -6));
         } while (Order::where('order_number', $orderNumber)->exists());
 
         return $orderNumber;
@@ -134,10 +130,7 @@ class OrderService
 
     /**
      * Cancel order and restore stock
-     * 
-     * @param Order $order
-     * @param string|null $reason
-     * @return void
+     *
      * @throws Exception
      */
     public function cancelOrder(Order $order, ?string $reason = null): void

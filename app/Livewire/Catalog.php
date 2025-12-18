@@ -2,8 +2,8 @@
 
 namespace App\Livewire;
 
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -13,14 +13,23 @@ class Catalog extends Component
     use WithPagination;
 
     public $search = '';
+
     public $selectedCategories = [];
+
     public $selectedBrands = [];
+
     public $selectedRatings = [];
+
     public $minPrice = 0;
+
     public $maxPrice = 50000000;
+
     public $availability = [];
+
     public $sortBy = 'popularity';
+
     public $viewMode = 'grid';
+
     public $perPage = 12;
 
     protected $queryString = [
@@ -105,25 +114,25 @@ class Catalog extends Component
 
         // Search filter
         if ($this->search) {
-            $query->where(function($q) {
-                $q->where('products.name', 'like', '%' . $this->search . '%')
-                  ->orWhere('products.description', 'like', '%' . $this->search . '%')
-                  ->orWhereHas('category', function($catQuery) {
-                      $catQuery->where('categories.name', 'like', '%' . $this->search . '%');
-                  });
+            $query->where(function ($q) {
+                $q->where('products.name', 'like', '%'.$this->search.'%')
+                    ->orWhere('products.description', 'like', '%'.$this->search.'%')
+                    ->orWhereHas('category', function ($catQuery) {
+                        $catQuery->where('categories.name', 'like', '%'.$this->search.'%');
+                    });
             });
         }
 
         // Category filter
-        if (!empty($this->selectedCategories)) {
+        if (! empty($this->selectedCategories)) {
             $query->whereIn('products.category_id', $this->selectedCategories);
         }
 
         // Price filter (via SKU)
         if ($this->minPrice > 0 || $this->maxPrice < 50000000) {
-            $query->whereHas('skus', function($skuQuery) {
+            $query->whereHas('skus', function ($skuQuery) {
                 $skuQuery->whereBetween('skus.selling_price', [$this->minPrice, $this->maxPrice])
-                         ->where('skus.is_active', true);
+                    ->where('skus.is_active', true);
             });
         }
 
@@ -134,24 +143,24 @@ class Catalog extends Component
                 break;
             case 'price-low':
                 $query->join('skus', 'products.id', '=', 'skus.product_id')
-                      ->where('skus.is_active', true)
-                      ->select('products.*', \DB::raw('MIN(skus.selling_price) as min_price'))
-                      ->groupBy('products.id')
-                      ->orderBy('min_price', 'asc');
+                    ->where('skus.is_active', true)
+                    ->select('products.*', \DB::raw('MIN(skus.selling_price) as min_price'))
+                    ->groupBy('products.id')
+                    ->orderBy('min_price', 'asc');
                 break;
             case 'price-high':
                 $query->join('skus', 'products.id', '=', 'skus.product_id')
-                      ->where('skus.is_active', true)
-                      ->select('products.*', \DB::raw('MAX(skus.selling_price) as max_price'))
-                      ->groupBy('products.id')
-                      ->orderBy('max_price', 'desc');
+                    ->where('skus.is_active', true)
+                    ->select('products.*', \DB::raw('MAX(skus.selling_price) as max_price'))
+                    ->groupBy('products.id')
+                    ->orderBy('max_price', 'desc');
                 break;
             case 'rating':
                 $query->orderBy('products.view_count', 'desc'); // Placeholder, should use actual rating
                 break;
             default:
                 $query->orderBy('products.is_featured', 'desc')
-                      ->orderBy('products.view_count', 'desc');
+                    ->orderBy('products.view_count', 'desc');
         }
 
         return $query->paginate($this->perPage);

@@ -1,43 +1,6 @@
 <div class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="glass-nav fixed top-0 w-full z-50 border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-green-600">BuatSerba</a>
-                </div>
-                
-                <!-- Search Bar -->
-                <div class="flex-1 max-w-2xl mx-8">
-                    <div class="relative">
-                        <input type="text" placeholder="Cari produk, brand, atau kategori..." 
-                               class="w-full px-4 py-2 pl-10 pr-4 text-gray-700 bg-white border border-gray-300 rounded-full focus:outline-none focus:border-green-500">
-                        <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-                
-                <!-- Navigation Links -->
-                <div class="flex items-center space-x-6">
-                    <a href="/" class="text-gray-700 hover:text-green-600 font-medium">Beranda</a>
-                    <a href="/catalog" class="text-gray-700 hover:text-green-600 font-medium">Katalog</a>
-                    <a href="/cart" class="text-green-600 font-medium relative">
-                        Keranjang
-                        @if($cartItems->count() > 0)
-                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                            {{ $cartItems->count() }}
-                        </span>
-                        @endif
-                    </a>
-                    <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                        Masuk
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <x-navbar :cartCount="$cartItems->count()" />
 
     <!-- Breadcrumb -->
     <div class="pt-20 pb-4 bg-white border-b">
@@ -63,7 +26,7 @@
                 <div class="w-16 h-1 bg-gray-200"></div>
                 <div class="flex items-center space-x-2">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-gray-200 text-gray-600">2</div>
-                    <span class="text-sm font-medium text-gray-600">Pengiriman</span>
+                    <span class="text-sm font-medium text-gray-600">Checkout</span>
                 </div>
                 <div class="w-16 h-1 bg-gray-200"></div>
                 <div class="flex items-center space-x-2">
@@ -79,20 +42,17 @@
         </div>
 
         <!-- Cart Content -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 {{ $cartItems->count() > 0 ? 'lg:grid-cols-3' : '' }} gap-8">
             <!-- Main Content -->
-            <div class="lg:col-span-2">
+            <div class="{{ $cartItems->count() > 0 ? 'lg:col-span-2' : 'w-full' }}">
                 <div class="bg-white rounded-lg shadow-lg p-6">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6">Keranjang Belanja</h2>
                     
                     @if($cartItems->isEmpty())
                     <!-- Empty Cart State -->
                     <div class="text-center py-12">
-                        <svg class="mx-auto h-24 w-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6"></path>
-                        </svg>
                         <h3 class="mt-4 text-lg font-medium text-gray-900">Keranjang belanja Anda kosong</h3>
-                        <p class="mt-2 text-sm text-gray-500">Mulai berbelanja dan tambahkan produk ke keranjang Anda.</p>
+                        <p class="mt-2 text-sm text-gray-500">Mulai berbelanja dan tambahkan produk ke keranjang Anda</p>
                         <div class="mt-6">
                             <a href="/catalog" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-green-600 hover:bg-green-700">
                                 Mulai Belanja
@@ -193,6 +153,7 @@
             </div>
 
             <!-- Sidebar - Order Summary -->
+            @if($cartItems->count() > 0)
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow-lg p-6 sticky top-24">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan Pesanan</h3>
@@ -267,6 +228,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 
@@ -341,7 +303,6 @@
     @endif
 
     <style>
-        .glass-nav { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.9); }
         .quantity-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid #d1d5db; background: white; cursor: pointer; transition: all 0.2s; }
         .quantity-btn:hover { background: #f3f4f6; }
         .quantity-btn:active { transform: scale(0.95); }

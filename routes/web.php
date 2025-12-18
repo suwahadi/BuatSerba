@@ -4,9 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', App\Livewire\Home::class)->name('home');
 
 Route::get('/catalog', App\Livewire\Catalog::class)->name('catalog');
 Route::get('/product/{slug}', App\Livewire\ProductDetail::class)->name('product.detail');
@@ -16,15 +14,15 @@ Route::get('/payment/{code}', App\Livewire\Payment::class)->name('payment');
 Route::get('/order/{orderNumber}', App\Livewire\OrderDetail::class)->name('order.detail');
 
 // Payment Routes
-Route::get('/payment/{orderNumber}/success', function($orderNumber) {
+Route::get('/payment/{orderNumber}/success', function ($orderNumber) {
     return redirect()->route('payment', $orderNumber);
 })->name('payment.success');
 
-Route::get('/payment/{orderNumber}/pending', function($orderNumber) {
+Route::get('/payment/{orderNumber}/pending', function ($orderNumber) {
     return redirect()->route('payment', $orderNumber);
 })->name('payment.pending');
 
-Route::get('/payment/{orderNumber}/failed', function($orderNumber) {
+Route::get('/payment/{orderNumber}/failed', function ($orderNumber) {
     return redirect()->route('payment', $orderNumber);
 })->name('payment.failed');
 

@@ -1,0 +1,303 @@
+═══════════════════════════════════════════════════════════════════════════════
+MIDTRANS CORE API INTEGRATION GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ IMPLEMENTATION COMPLETE - Core API Only
+
+This guide explains the complete Midtrans Core API payment flow that has been
+implemented in this project. Unlike Snap (which provides a hosted payment page),
+Core API gives direct control over the payment process.
+
+═══════════════════════════════════════════════════════════════════════════════
+1. PAYMENT FLOW OVERVIEW
+═══════════════════════════════════════════════════════════════════════════════
+
+USER CREATES ORDER
+    ↓
+Checkout component validates and calls OrderService::createOrder()
+    ↓
+MidtransService::createTransaction() is called with order + payment method
+    ↓
+Core API /charge endpoint creates transaction (returns payment instructions)
+    ↓
+Payment record is saved to database with transaction details
+    ↓
+User is redirected to Payment page (livewire.payment) with instructions
+    ↓
+User follows payment instructions (e.g., transfer to Virtual Account)
+    ↓
+User completes payment at bank
+    ↓
+Midtrans sends webhook notification to /midtrans/notification
+    ↓
+MidtransController::notification() processes callback
+    ↓
+Payment model status is updated (payment.transaction_status = 'settlement')
+    ↓
+Order status is updated (order.payment_status = 'paid')
+    ↓
+Payment page auto-refreshes and shows success message
+
+═══════════════════════════════════════════════════════════════════════════════
+2. CONFIGURATION
+═══════════════════════════════════════════════════════════════════════════════
+
+File: /config/midtrans.php
+
+Environment variables required in .env:
+    MIDTRANS_SERVER_KEY=your_server_key_from_midtrans
+    MIDTRANS_CLIENT_KEY=your_client_key_from_midtrans
+    MIDTRANS_IS_PRODUCTION=false (set to true in production)
+    MIDTRANS_NOTIFICATION_URL=https://yoursite.com/midtrans/notification
+    MIDTRANS_CURRENCY=IDR
+    MIDTRANS_TRANSACTION_TIMEOUT=30
+
+The notification URL MUST be publicly accessible for Midtrans webhook callbacks.
+In development, use ngrok or similar to expose your local server.
+
+═══════════════════════════════════════════════════════════════════════════════
+3. KEY FILES AND THEIR ROLES
+═══════════════════════════════════════════════════════════════════════════════
+
+📁 config/midtrans.php
+   └─ Configuration for Core API endpoints and callbacks
+
+📁 app/Services/MidtransService.php
+   ├─ createTransaction($order, $paymentMethod)
+   │  └─ Creates payment via Core API /charge endpoint
+   │  └─ Extracts payment instructions from response
+   │  └─ Saves payment record to database
+   │
+   ├─ getTransactionStatus($orderId)
+   │  └─ Check payment status anytime from Midtrans
+   │
+   └─ extractPaymentInstructions($transactionData)
+      └─ Formats VA numbers, QRIS codes, e-wallet links for UI display
+
+📁 app/Http/Controllers/MidtransController.php
+   ├─ notification(Request $request) - WEBHOOK ENDPOINT
+   │  └─ Receives POST from Midtrans with payment status updates
+   │  └─ Validates signature (security)
+   │  └─ Updates Payment and Order models
+   │  └─ Must return 200 OK to confirm receipt
+   │
+   ├─ finish(Request $request) - User redirect after payment
+   │  └─ Redirects to Payment page when user returns from bank
+   │
+   ├─ unfinish(Request $request) - User redirect if still pending
+   │  └─ Redirects to Payment page when payment not yet confirmed
+   │
+   └─ error(Request $request) - User redirect if payment fails
+      └─ Redirects to Payment page with error status
+
+📁 app/Models/Payment.php
+   ├─ Stores all payment transaction details
+   ├─ updateFromMidtransNotification(array $notification)
+   │  └─ Called when webhook arrives from Midtrans
+   │  └─ Updates transaction_status, fraud_status, etc.
+   │  └─ Calls updateOrderStatusFromPayment() to update Order
+   │
+   └─ isSuccessful(): bool
+      └─ Returns true if settlement/capture AND fraud_status is accept or null
+
+📁 app/Models/Order.php
+   ├─ Stores order information
+   └─ updatePaymentStatus($transactionStatus, $fraudStatus)
+      └─ Updates order.payment_status and order.status based on transaction
+
+📁 app/Livewire/Payment.php
+   └─ Displays payment instructions to customer
+   └─ Shows Virtual Account number, QRIS code, etc.
+   └─ No Snap integration (Pure Core API)
+
+═══════════════════════════════════════════════════════════════════════════════
+4. PAYMENT STATUS TRANSITIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+Midtrans Transaction Status Values:
+    • pending        = Waiting for customer payment
+    • settlement     = Payment confirmed (settled in customer's bank)
+    • capture        = Payment captured (for credit card)
+    • deny           = Payment rejected
+    • cancel         = Payment cancelled
+    • expire         = Transaction expired (timeout)
+
+Order Status Updates:
+    pending       ──→ SETTLEMENT/CAPTURE (fraud=accept) ──→ processing
+    pending       ──→ DENY/CANCEL/EXPIRE ──→ payment_failed
+
+Key Rule: Payment is only marked "paid" when BOTH conditions are true:
+    1. transaction_status is "settlement" OR "capture"
+    2. fraud_status is "accept" OR null (if not checked)
+
+═══════════════════════════════════════════════════════════════════════════════
+5. PAYMENT METHODS (CORE API)
+═══════════════════════════════════════════════════════════════════════════════
+
+Currently Configured in app/Livewire/Checkout.php:
+
+Virtual Accounts (Bank Transfer):
+    • bank-transfer-bca  → BCA Virtual Account (e.g., 12345678901234567890)
+    • bank-transfer-bni  → BNI Virtual Account (e.g., 12345678901234)
+    • bank-transfer-bri  → BRI Virtual Account (e.g., 12345678901234567)
+
+Each method is handled by PaymentMethod model which provides:
+    • getCoreApiConfig() - Returns Core API payload structure
+    • getPaymentInstructions() - Returns user-friendly instructions
+
+═══════════════════════════════════════════════════════════════════════════════
+6. WEBHOOK SECURITY
+═══════════════════════════════════════════════════════════════════════════════
+
+All notifications from Midtrans are validated using:
+    • Signature verification with SHA-512
+    • Server key from config
+    • Hash formula: SHA512(order_id + status_code + gross_amount + server_key)
+
+Implementation in MidtransController::isValidSignature()
+    - Rejects notifications with invalid signatures
+    - Logs warning for security audit
+
+═══════════════════════════════════════════════════════════════════════════════
+7. TESTING THE INTEGRATION
+═══════════════════════════════════════════════════════════════════════════════
+
+STEP 1: Setup Environment
+    1. Add MIDTRANS credentials to .env
+    2. Make sure MIDTRANS_IS_PRODUCTION=false for sandbox
+    3. Expose localhost webhook endpoint with ngrok:
+       ngrok http 8000
+
+    4. Update MIDTRANS_NOTIFICATION_URL in .env:
+       MIDTRANS_NOTIFICATION_URL=https://your-ngrok-url.ngrok.io/midtrans/notification
+
+STEP 2: Create Test Order
+    1. Access http://localhost/checkout
+    2. Fill all checkout fields
+    3. Select any bank transfer method
+    4. Click "Buat Pesanan"
+    5. Note the order number displayed
+
+STEP 3: Verify Payment Created
+    1. Go to /payment/{order-number}
+    2. You should see Virtual Account number and instructions
+    3. Check logs: tail -f storage/logs/laravel.log
+    4. Look for: "Midtrans Core API Response"
+
+STEP 4: Simulate Payment (Sandbox Only)
+    1. In Midtrans dashboard, use Test Transaction tool
+    2. Or use curl to simulate notification:
+
+    curl -X POST http://localhost/midtrans/notification \
+      -H "Content-Type: application/json" \
+      -d '{
+        "order_id": "ORD-20251216-xxxxx",
+        "transaction_status": "settlement",
+        "fraud_status": "accept",
+        "status_code": "200",
+        "gross_amount": "50000",
+        "signature_key": "...",
+        "payment_type": "bank_transfer",
+        "transaction_id": "0123456789012345",
+        "transaction_time": "2025-12-16 10:00:00"
+      }'
+
+STEP 5: Verify Status Update
+    1. Check Payment record: Payment::where('order_id', $orderId)->first()
+       - transaction_status should be 'settlement'
+       - fraud_status should be 'accept'
+    
+    2. Check Order record: Order::where('order_number', $orderNumber)->first()
+       - payment_status should be 'paid'
+       - status should be 'processing'
+
+STEP 6: View Order Detail
+    1. Go to /order/{order-number}
+    2. Should show payment_status as "Paid"
+
+═══════════════════════════════════════════════════════════════════════════════
+8. TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+Problem: "Midtrans server_key not configured"
+Solution: Add MIDTRANS_SERVER_KEY to .env and run php artisan config:cache
+
+Problem: "Invalid signature" warning in notification
+Solution: Verify MIDTRANS_SERVER_KEY matches credentials in Midtrans dashboard
+         Check that order_id, status_code, gross_amount are not tampered
+
+Problem: Notification webhook not received
+Solution: 
+    1. Verify MIDTRANS_NOTIFICATION_URL is publicly accessible
+    2. Check firewall/security rules allow POST from Midtrans IPs
+    3. Use ngrok for local testing
+    4. Monitor logs for webhook attempts
+
+Problem: Order not updated to "paid" after payment
+Solution:
+    1. Check Payment record exists
+    2. Verify transaction_status = 'settlement' (not 'pending')
+    3. Check fraud_status = 'accept' or null
+    4. Review Payment::updateFromMidtransNotification() was called
+    5. Check Order::updatePaymentStatus() conditions
+
+Problem: "Order not found" in notification
+Solution: Ensure order_number in notification matches Order.order_number
+         Check notification payload is not being modified
+
+═══════════════════════════════════════════════════════════════════════════════
+9. DATABASE TABLES
+═══════════════════════════════════════════════════════════════════════════════
+
+payments table:
+    ├─ id
+    ├─ order_id (FK to orders)
+    ├─ payment_gateway = 'midtrans'
+    ├─ transaction_id (from Midtrans)
+    ├─ transaction_status (pending/settlement/capture/deny/cancel/expire)
+    ├─ fraud_status (accept/deny/null)
+    ├─ payment_type (bank_transfer/echannel/gopay/etc)
+    ├─ payment_channel (bca/bni/bri/gopay/etc)
+    ├─ gross_amount
+    ├─ currency = 'IDR'
+    ├─ signature_key (for webhook validation)
+    ├─ status_code
+    ├─ status_message
+    ├─ midtrans_response (full JSON from Midtrans)
+    ├─ snap_token (deprecated, no longer used)
+    ├─ snap_redirect_url (deprecated, no longer used)
+    ├─ paid_at
+    ├─ expired_at
+    ├─ refunded_at
+    └─ timestamps
+
+payment_notifications table:
+    ├─ id
+    ├─ payment_id (FK to payments)
+    ├─ order_id
+    ├─ transaction_status
+    ├─ notification_body (full JSON webhook payload)
+    ├─ processed (boolean, tracks if notification was processed)
+    ├─ processed_at
+    └─ timestamps
+
+═══════════════════════════════════════════════════════════════════════════════
+10. IMPORTANT NOTES
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ CORE API ONLY - Snap integration has been removed completely
+✓ NO CLIENT-SIDE LIBRARIES - No need for Snap.js
+✓ PAYMENT INSTRUCTIONS - Display virtual account, QRIS, etc. on backend
+✓ WEBHOOK PROCESSING - All status updates come from server notifications
+✓ FRAUD DETECTION - Supports fraud_status from Midtrans risk checks
+✓ SIGNATURE VALIDATION - All webhooks verified with SHA-512
+
+Data Flow Security:
+    • All sensitive operations happen server-side
+    • Webhook signatures validated before processing
+    • No payment data exposed to client
+    • Transaction details stored securely in database
+
+═══════════════════════════════════════════════════════════════════════════════
+END OF GUIDE
+═══════════════════════════════════════════════════════════════════════════════

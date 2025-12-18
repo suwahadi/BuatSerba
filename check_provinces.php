@@ -4,8 +4,10 @@
 if (file_exists('.env')) {
     $lines = file('.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        list($key, $value) = explode('=', $line, 2);
+        if (strpos(trim($line), '#') === 0) {
+            continue;
+        }
+        [$key, $value] = explode('=', $line, 2);
         $_ENV[trim($key)] = trim($value);
     }
 }
@@ -20,7 +22,7 @@ curl_setopt($ch, CURLOPT_URL, "{$baseUrl}/destination/province");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'accept: application/json',
-    "key: {$apiKey}"
+    "key: {$apiKey}",
 ]);
 
 $response = curl_exec($ch);
@@ -29,17 +31,17 @@ curl_close($ch);
 
 if ($httpCode === 200) {
     $data = json_decode($response, true);
-    
+
     if (isset($data['meta']['status']) && $data['meta']['status'] == 'success') {
-        echo "Provinces found (" . count($data['data']) . "):\n";
+        echo 'Provinces found ('.count($data['data'])."):\n";
         foreach ($data['data'] as $province) {
-            echo "- " . ($province['province'] ?? '') . " (ID: " . ($province['province_id'] ?? '') . ")\n";
+            echo '- '.($province['province'] ?? '').' (ID: '.($province['province_id'] ?? '').")\n";
         }
     } else {
         echo "Error retrieving provinces:\n";
         print_r($data);
     }
 } else {
-    echo "HTTP Error: " . $httpCode . "\n";
-    echo "Response: " . $response . "\n";
+    echo 'HTTP Error: '.$httpCode."\n";
+    echo 'Response: '.$response."\n";
 }

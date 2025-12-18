@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class PaymentTest extends TestCase
 {
@@ -22,7 +22,7 @@ class PaymentTest extends TestCase
         $order = Order::factory()->create([
             'user_id' => $user->id,
             'total' => 100000,
-            'payment_method' => 'bank-transfer-bca'
+            'payment_method' => 'bank-transfer-bca',
         ]);
 
         // Create a payment record
@@ -35,14 +35,14 @@ class PaymentTest extends TestCase
             'payment_type' => 'bank_transfer',
             'payment_channel' => 'bca',
             'gross_amount' => 100000,
-            'currency' => 'IDR'
+            'currency' => 'IDR',
         ]);
 
         // Assert that the payment was created
         $this->assertDatabaseHas('payments', [
             'order_id' => $order->id,
             'transaction_id' => 'txn_123456',
-            'transaction_status' => 'pending'
+            'transaction_status' => 'pending',
         ]);
 
         // Assert that the payment belongs to the order
@@ -60,7 +60,7 @@ class PaymentTest extends TestCase
             'user_id' => $user->id,
             'total' => 100000,
             'payment_method' => 'bank-transfer-bca',
-            'payment_status' => 'pending'
+            'payment_status' => 'pending',
         ]);
 
         // Create a payment record
@@ -73,7 +73,7 @@ class PaymentTest extends TestCase
             'payment_type' => 'bank_transfer',
             'payment_channel' => 'bca',
             'gross_amount' => 100000,
-            'currency' => 'IDR'
+            'currency' => 'IDR',
         ]);
 
         // Simulate a Midtrans notification for successful payment
@@ -82,7 +82,7 @@ class PaymentTest extends TestCase
             'fraud_status' => 'accept',
             'status_code' => '200',
             'status_message' => 'Success, transaction is found',
-            'signature_key' => 'sample_signature_key'
+            'signature_key' => 'sample_signature_key',
         ];
 
         // Update payment from notification

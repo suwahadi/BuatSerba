@@ -1,39 +1,6 @@
 <div class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="glass-nav fixed top-0 w-full z-50 border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-green-600">BuatSerba</a>
-                </div>
-                
-                <!-- Search Bar -->
-                <div class="flex-1 max-w-2xl mx-8">
-                    <div class="relative">
-                        <input type="text" wire:model.live.debounce.300ms="search" 
-                               placeholder="Cari produk, brand, atau kategori..." 
-                               class="w-full px-4 py-2 pl-10 pr-4 text-gray-700 bg-white border border-gray-300 rounded-full focus:outline-none focus:border-green-500">
-                        <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-                
-                <!-- Navigation Links -->
-                <div class="flex items-center space-x-6">
-                    <a href="/" class="text-gray-700 hover:text-green-600 font-medium">Beranda</a>
-                    <a href="/cart" class="text-gray-700 hover:text-green-600 font-medium relative">
-                        Keranjang
-                        <span class="cart-count absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style="display: none;">0</span>
-                    </a>
-                    <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                        Masuk
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <x-navbar />
 
     <!-- Breadcrumb -->
     <div class="pt-20 pb-4 bg-white border-b">
@@ -391,7 +358,6 @@
     <style>
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .glass-nav { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.9); }
         .range-slider { -webkit-appearance: none; appearance: none; height: 6px; background: #e5e7eb; border-radius: 3px; outline: none; }
         .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #00AA5B; border-radius: 50%; cursor: pointer; }
         .range-slider::-moz-range-thumb { width: 20px; height: 20px; background: #00AA5B; border-radius: 50%; cursor: pointer; border: none; }
