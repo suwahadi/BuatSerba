@@ -20,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register observers
+        \App\Models\Branch::observe(\App\Observers\BranchObserver::class);
+        
         // Force HTTPS in production and when using ngrok (ngrok always uses HTTPS)
         if ($this->app->environment('production') || $this->isNgrokUrl()) {
             URL::forceScheme('https');

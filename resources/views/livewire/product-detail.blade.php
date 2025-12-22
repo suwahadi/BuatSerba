@@ -182,19 +182,21 @@
                 @if($selectedSku && $selectedSku->stock_quantity > 0)
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900 mb-3">Jumlah</h3>
-                    <div class="flex items-center space-x-3">
-                        <button wire:click="decrementQuantity" class="quantity-btn rounded-l-lg">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                            </svg>
-                        </button>
-                        <input type="number" wire:model.live="quantity" min="1" max="{{ $selectedSku->stock_quantity }}" 
-                               class="w-16 text-center border-t border-b border-gray-300 py-2 focus:outline-none focus:border-green-500">
-                        <button wire:click="incrementQuantity" class="quantity-btn rounded-r-lg">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                        </button>
+                    <div class="flex items-center space-x-4">
+                        <div class="inline-flex items-center border border-gray-300 rounded-lg overflow-hidden hover:border-green-500 transition-colors bg-white shadow-sm">
+                            <button wire:click="decrementQuantity" class="px-3 py-2 hover:bg-gray-100 active:bg-gray-200 transition-colors border-r border-gray-200">
+                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                </svg>
+                            </button>
+                            <input type="number" wire:model.live="quantity" min="1" max="{{ $selectedSku->stock_quantity }}" 
+                                   class="w-16 text-center py-2 font-semibold text-gray-900 focus:outline-none focus:bg-green-50 transition-colors border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                            <button wire:click="incrementQuantity" class="px-3 py-2 hover:bg-gray-100 active:bg-gray-200 transition-colors border-l border-gray-200">
+                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </button>
+                        </div>
                         <span class="text-sm text-gray-600">Stok tersedia: <span class="font-semibold text-green-600">{{ $selectedSku->stock_quantity }}</span></span>
                     </div>
                 </div>
@@ -283,31 +285,6 @@
                 </div>
                 @endif
 
-                <!-- Shipping Info -->
-                <div class="bg-blue-50 rounded-lg p-4">
-                    <h3 class="font-semibold text-blue-900 mb-3">Info Pengiriman</h3>
-                    <div class="space-y-2 text-sm text-blue-800">
-                        <div class="flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
-                                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z"></path>
-                            </svg>
-                            <span>Gratis ongkir untuk pesanan di atas Rp 500.000</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span>Estimasi pengiriman: 1-3 hari kerja</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span>Garansi resmi 1 tahun</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -501,7 +478,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -509,6 +486,7 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
         }
         
         .cart-notification-modal.active {
@@ -518,48 +496,92 @@
         
         .cart-notification-content {
             background: white;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 420px;
+            border-radius: 20px;
+            padding: 36px;
+            max-width: 480px;
             width: 90%;
             text-align: center;
-            transform: translateY(20px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            border: 1px solid #e5e7eb;
+            transform: translateY(30px) scale(0.9);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(22, 163, 74, 0.25);
+            border: 2px solid #16a34a;
         }
         
         .cart-notification-modal.active .cart-notification-content {
             transform: translateY(0) scale(1);
         }
         
+        .cart-notification-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(22, 163, 74, 0.3);
+            animation: successPulse 0.6s ease-out;
+        }
+        
+        @keyframes successPulse {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .cart-notification-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .cart-notification-subtitle {
+            font-size: 15px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+        
+        .cart-notification-product-info {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #bbf7d0;
+        }
+        
         .cart-notification-buttons {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             margin-top: 24px;
         }
         
         .cart-notification-btn {
             flex: 1;
-            padding: 14px;
-            border-radius: 10px;
+            padding: 16px 24px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 16px;
+            font-size: 15px;
+            border: none;
         }
         
         .view-cart-btn {
-            background: #10B981;
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
             color: white;
-            border: none;
-            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
         }
         
         .view-cart-btn:hover {
-            background: #059669;
+            background: linear-gradient(135deg, #15803d 0%, #166534 100%);
             transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 16px rgba(22, 163, 74, 0.4);
+        }
+        
+        .view-cart-btn:active {
+            transform: translateY(0);
         }
         
         .continue-shopping-btn {
@@ -571,7 +593,12 @@
         .continue-shopping-btn:hover {
             background: #f9fafb;
             transform: translateY(-2px);
-            border-color: #9ca3af;
+            border-color: #16a34a;
+            color: #16a34a;
+        }
+        
+        .continue-shopping-btn:active {
+            transform: translateY(0);
         }
     </style>
     
@@ -596,43 +623,21 @@
     }" 
     x-on:show-cart-notification.window="show($event.detail.productName, $event.detail.quantity, $event.detail.price)"
     class="cart-notification-modal" 
-    :class="{ 'active': open }">
+    :class="{ 'active': open }"
+    @click.self="hide()">
         <div class="cart-notification-content">
-            <div class="flex justify-center mb-4">
-                <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">Berhasil Ditambahkan!</h3>
-            <p class="text-gray-600 mb-4">Produk telah ditambahkan ke keranjang belanja Anda.</p>
-            
-            <div class="bg-gray-50 rounded-xl p-4 mb-4">
-                <div class="flex items-start">
-                    <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-3 flex-1">
-                        <p class="text-gray-900 font-medium line-clamp-1" x-text="productName"></p>
-                        <div class="flex justify-between mt-2">
-                            <span class="text-gray-600 text-sm">Jumlah:</span>
-                            <span class="font-semibold" x-text="quantity"></span>
-                        </div>
-                        <div class="flex justify-between mt-1">
-                            <span class="text-gray-600 text-sm">Harga Satuan:</span>
-                            <span class="font-semibold text-green-600">Rp <span x-text="parseInt(price).toLocaleString('id-ID')"></span></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex justify-between mt-3 pt-3 border-t border-gray-200">
-                    <span class="text-gray-900 font-bold">Total Harga:</span>
-                    <span class="text-green-600 font-bold text-lg">Rp <span x-text="(quantity * price).toLocaleString('id-ID')"></span></span>
-                </div>
+            <!-- Success Icon -->
+            <div class="cart-notification-icon">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
             </div>
             
+            <!-- Title & Subtitle -->
+            <h3 class="cart-notification-title">Item Berhasil Ditambahkan!</h3>
+            <p class="cart-notification-subtitle">Produk telah dimasukkan ke keranjang belanja Anda</p>
+            
+            <!-- Action Buttons -->
             <div class="cart-notification-buttons">
                 <button @click="goToCart()" class="cart-notification-btn view-cart-btn">
                     Lihat Keranjang

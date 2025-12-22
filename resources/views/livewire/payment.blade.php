@@ -1,12 +1,24 @@
-<div>
+<div x-data="{ showToast: false, toastMessage: '' }">
     <div class="max-w-4xl mx-auto px-4 py-8">
         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
             <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-8 text-white">
+            <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-8 text-white">
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-2xl font-bold">Pembayaran Pesanan</h1>
-                        <p class="mt-1 opacity-90">Order #{{ $order->order_number }}</p>
+                        <div class="flex items-center mt-2 space-x-2">
+                            <p class="opacity-90">Order ID: #{{ $order->order_number }}</p>
+                            <button @click="
+                                navigator.clipboard.writeText('{{ $order->order_number }}');
+                                showToast = true;
+                                toastMessage = 'Order ID berhasil disalin!';
+                                setTimeout(() => showToast = false, 3000);
+                            " class="p-1 hover:bg-green-500 rounded transition-colors" title="Salin Order ID">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="text-right">
                         <p class="text-3xl font-bold">Rp {{ number_format($order->total, 0, ',', '.') }}</p>
@@ -44,30 +56,37 @@
             </div>
 
             <!-- Payment Instructions -->
-            @if(isset($paymentInstructions) && !empty($paymentInstructions))
-            <div class="p-6 border-b border-gray-100 bg-blue-50">
+            @if(isset($paymentInstructions) && !empty($paymentInstructions) && $order->payment_status !== 'paid' && $order->status !== 'cancelled')
+            <div class="p-6 border-b border-gray-100 bg-white">
                 <h3 class="text-sm font-semibold text-gray-800 mb-3">Cara Pembayaran</h3>
                 
                 @if($paymentInstructions['type'] === 'virtual_account')
-                <div class="bg-white rounded-lg p-4 mb-4">
+                <div class="bg-white rounded-lg p-4 mb-4 border-2 border-green-200">
                     <div class="flex items-center justify-between mb-3">
-                        <span class="font-medium">{{ strtoupper($paymentInstructions['bank']) }} Virtual Account</span>
-                        <button onclick="copyToClipboard('{{ $paymentInstructions['va_number'] }}')" 
-                                class="text-blue-600 hover:text-blue-800 text-sm">
-                            Salin
+                        <span class="font-medium text-gray-900">{{ strtoupper($paymentInstructions['bank']) }} Virtual Account</span>
+                        <button @click="
+                            navigator.clipboard.writeText('{{ $paymentInstructions['va_number'] }}');
+                            showToast = true;
+                            toastMessage = 'Nomor VA berhasil disalin!';
+                            setTimeout(() => showToast = false, 3000);
+                        " class="flex items-center space-x-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>Salin</span>
                         </button>
                     </div>
-                    <div class="text-2xl font-mono font-bold text-center py-3 bg-gray-50 rounded">
+                    <div class="text-2xl font-mono font-bold text-center py-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
                         {{ $paymentInstructions['va_number'] }}
                     </div>
-                    <p class="text-sm text-gray-600 mt-2 text-center">
+                    <p class="text-sm text-gray-600 mt-3 text-center">
                         Gunakan nomor ini untuk melakukan pembayaran melalui ATM, mobile banking, atau internet banking
                     </p>
                 </div>
                 @endif
 
                 @if($paymentInstructions['type'] === 'ewallet')
-                <div class="bg-white rounded-lg p-4 mb-4">
+                <div class="bg-white rounded-lg p-4 mb-4 border-2 border-green-200">
                     <div class="text-center">
                         <span class="font-medium">{{ strtoupper($paymentInstructions['provider']) }}</span>
                         <p class="text-sm text-gray-600 mt-2">
@@ -78,12 +97,12 @@
                 @endif
 
                 @if($paymentInstructions['type'] === 'qris')
-                <div class="bg-white rounded-lg p-4 mb-4 text-center">
+                <div class="bg-white rounded-lg p-4 mb-4 text-center border-2 border-green-200">
                     <p class="font-medium mb-2">Scan Kode QR</p>
-                    <div class="border rounded p-2 inline-block">
+                    <div class="border-2 border-green-300 rounded-lg p-2 inline-block">
                         <!-- In a real implementation, you would display the QR code here -->
-                        <div class="bg-gray-200 border-2 border-dashed rounded-xl w-48 h-48 flex items-center justify-center">
-                            <span class="text-gray-500">QR Code</span>
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 border-2 border-dashed border-green-400 rounded-xl w-48 h-48 flex items-center justify-center">
+                            <span class="text-green-600 font-medium">QR Code</span>
                         </div>
                     </div>
                     <p class="text-sm text-gray-600 mt-2">
@@ -105,32 +124,38 @@
             <!-- Actions -->
             <div class="p-6 flex flex-col sm:flex-row gap-3">
                 <a href="{{ route('home') }}" 
-                   class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-center transition">
+                   class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-center transition font-medium">
                     Kembali ke Beranda
                 </a>
                 
                 @if($order->payment_status !== 'paid')
                 <a href="{{ route('order.detail', $order->order_number) }}" 
-                   class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center transition">
+                   class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-center transition font-medium">
                     Cek Status Pembayaran
                 </a>
                 @else
                 <a href="{{ route('order.detail', $order->order_number) }}" 
-                   class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-center transition">
+                   class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-center transition font-medium">
                     Lihat Detail Pesanan
                 </a>
                 @endif
             </div>
         </div>
     </div>
-</div>
 
-<script>
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        alert('Nomor VA berhasil disalin!');
-    }).catch(function(err) {
-        console.error('Could not copy text: ', err);
-    });
-}
-</script>
+    <!-- Toast Notification -->
+    <div x-show="showToast"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-2"
+         class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-2"
+         style="display: none;">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        <span x-text="toastMessage"></span>
+    </div>
+</div>

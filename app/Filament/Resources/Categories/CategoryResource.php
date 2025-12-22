@@ -5,14 +5,11 @@ namespace App\Filament\Resources\Categories;
 use App\Filament\Resources\Categories\Pages\ManageCategories;
 use App\Models\Category;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -47,6 +44,7 @@ class CategoryResource extends Resource
                     ->columnSpanFull(),
                 \Filament\Forms\Components\FileUpload::make('image')
                     ->image()
+                    ->disk('public')
                     ->directory('categories'),
                 \Filament\Forms\Components\Toggle::make('is_active')
                     ->required()
@@ -63,7 +61,7 @@ class CategoryResource extends Resource
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                \Filament\Tables\Columns\ImageColumn::make('image'),
+                \Filament\Tables\Columns\ImageColumn::make('image')->disk('public'),
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),

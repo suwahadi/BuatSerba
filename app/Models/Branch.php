@@ -19,6 +19,8 @@ class Branch extends Model
         'city_id',
         'city_name',
         'city_type',
+        'district_id',
+        'district_name',
         'subdistrict_id',
         'subdistrict_name',
         'postal_code',

@@ -95,28 +95,29 @@
                             </div>
 
                             <!-- Quantity Controls -->
-                            <div class="flex items-center space-x-3">
-                                <button wire:click="decrementQuantity({{ $item->id }})" 
-                                        wire:loading.attr="disabled"
-                                        class="quantity-btn rounded-l-lg">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                                    </svg>
-                                </button>
-                                <input type="number" 
-                                       wire:model.live.debounce.500ms="cartItems.{{ $loop->index }}.quantity"
-                                       wire:change="updateQuantity({{ $item->id }}, $event.target.value)"
-                                       value="{{ $item->quantity }}"
-                                       min="1" 
-                                       max="{{ $item->sku->stock_quantity }}" 
-                                       class="w-16 text-center border-t border-b border-gray-300 py-2 focus:outline-none focus:border-green-500">
-                                <button wire:click="incrementQuantity({{ $item->id }})" 
-                                        wire:loading.attr="disabled"
-                                        class="quantity-btn rounded-r-lg">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                </button>
+                            <div class="flex items-center">
+                                <div class="inline-flex items-center border border-gray-300 rounded-lg overflow-hidden hover:border-green-500 transition-colors bg-white shadow-sm">
+                                    <button wire:click="decrementQuantity({{ $item->id }})" 
+                                            wire:loading.attr="disabled"
+                                            class="px-3 py-2 hover:bg-gray-100 active:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-r border-gray-200">
+                                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                        </svg>
+                                    </button>
+                                    <input type="number" 
+                                           wire:change="updateQuantity({{ $item->id }}, $event.target.value)"
+                                           value="{{ $item->quantity }}"
+                                           min="1" 
+                                           max="{{ $item->sku->stock_quantity }}" 
+                                           class="w-16 text-center py-2 font-semibold text-gray-900 focus:outline-none focus:bg-green-50 transition-colors border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                    <button wire:click="incrementQuantity({{ $item->id }})" 
+                                            wire:loading.attr="disabled"
+                                            class="px-3 py-2 hover:bg-gray-100 active:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-l border-gray-200">
+                                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Subtotal & Remove -->
@@ -200,7 +201,7 @@
                                 <span wire:loading wire:target="applyPromoCode">...</span>
                             </button>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">Coba: DISKON10, DISKON50K, WELCOME</p>
+                        <p class="text-xs text-gray-500 mt-2">DISKON10, DISKON50K, WELCOME</p>
                     </div>
                     
                     <!-- Action Buttons -->
@@ -303,9 +304,6 @@
     @endif
 
     <style>
-        .quantity-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid #d1d5db; background: white; cursor: pointer; transition: all 0.2s; }
-        .quantity-btn:hover { background: #f3f4f6; }
-        .quantity-btn:active { transform: scale(0.95); }
-        .quantity-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* Custom styles can be added here if needed */
     </style>
 </div>

@@ -24,4 +24,9 @@ class BranchInventory extends Model
     {
         return $this->belongsTo(Branch::class);
     }
+
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class);
+    }
 }

@@ -8,9 +8,6 @@ use App\Services\MidtransService;
 use App\Services\OrderService;
 use App\Services\RajaongkirService;
 use Illuminate\Support\Facades\Session;
-use Laravolt\Indonesia\Models\City;
-use Laravolt\Indonesia\Models\District;
-use Laravolt\Indonesia\Models\Province;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -25,23 +22,29 @@ class Checkout extends Component
     public $phone = '';
 
     // Shipping Address
-    public $provinceCode = '';
+    public $provinceId = '';
 
-    public $cityCode = '';
+    public $cityId = '';
 
-    public $districtCode = '';
+    public $districtId = '';
+
+    public $subdistrictId = '';
 
     public $postalCode = '';
 
     public $address = '';
 
     // Available regions
-    #[Locked]
     public $provinces = [];
 
     public $cities = [];
 
     public $districts = [];
+
+    public $subdistricts = [];
+
+    // Store subdistrict name for order
+    public $subdistrictName = '';
 
     // Shipping Method
     public $shippingMethod = '';
@@ -113,9 +116,9 @@ class Checkout extends Component
         'fullName' => 'required|min:3',
         'email' => 'required|email',
         'phone' => 'required|min:10',
-        'provinceCode' => 'required',
-        'cityCode' => 'required',
-        'districtCode' => 'required',
+        'provinceId' => 'required',
+        'cityId' => 'required',
+        'districtId' => 'required',
         'postalCode' => 'required',
         'address' => 'required|min:10',
         'shippingMethod' => 'required',
@@ -129,9 +132,9 @@ class Checkout extends Component
         'email.email' => 'Email harus diisi dengan format yang benar',
         'phone.required' => 'Nomor telepon harus diisi',
         'phone.min' => 'Nomor telepon harus diisi minimal 10 digit',
-        'provinceCode.required' => 'Pilih provinsi terlebih dahulu',
-        'cityCode.required' => 'Pilih kota/kabupaten terlebih dahulu',
-        'districtCode.required' => 'Pilih kecamatan terlebih dahulu',
+        'provinceId.required' => 'Pilih provinsi terlebih dahulu',
+        'cityId.required' => 'Pilih kota/kabupaten terlebih dahulu',
+        'districtId.required' => 'Pilih kecamatan terlebih dahulu',
         'postalCode.required' => 'Kode pos harus diisi',
         'address.required' => 'Alamat lengkap harus diisi',
         'address.min' => 'Alamat lengkap harus diisi minimal 10 karakter',
@@ -141,13 +144,19 @@ class Checkout extends Component
 
     public function mount()
     {
-        // Load provinces - convert to array to avoid serialization issues
-        $this->provinces = Province::pluck('name', 'code')->toArray();
+        // Load provinces from RajaOngkir API
+        $rajaongkir = new RajaongkirService;
+        $provincesData = $rajaongkir->getProvinces();
+
+        // Convert to key-value array for dropdown
+        $this->provinces = collect($provincesData)->mapWithKeys(function ($province) {
+            return [$province['id'] => $province['name']];
+        })->toArray();
 
         // Load active branches for selection
         $this->branches = Branch::where('is_active', true)->orderBy('priority')->get()->toArray();
 
-        // Initialize with empty shipping methods - will be populated when district is selected
+        // Initialize with empty shipping methods - will be populated when subdistrict is selected
         $this->shippingMethods = [];
 
         // Check if cart is empty
@@ -166,43 +175,87 @@ class Checkout extends Component
         $this->selectedBranchId = $branchId;
         $this->showBranchModal = false;
 
-        // Recalculate shipping cost with new branch origin if district is already selected
-        if ($this->districtCode) {
+        // Recalculate shipping cost with new branch origin if subdistrict is already selected
+        if ($this->subdistrictId) {
             $this->calculateShippingCost();
         }
     }
 
-    public function updatedProvinceCode($provinceCode)
+    public function updatedProvinceId($provinceId)
     {
-        // Reset city and district when province changes
-        $this->cityCode = '';
-        $this->districtCode = '';
+        // Reset dependent fields when province changes
+        $this->cityId = '';
+        $this->districtId = '';
+        $this->subdistrictId = '';
         $this->cities = [];
         $this->districts = [];
-        $this->shippingMethods = []; // Clear shipping methods when province changes
+        $this->subdistricts = [];
+        $this->shippingMethods = [];
 
-        if ($provinceCode) {
-            // Load cities for selected province - convert to array
-            $this->cities = City::where('province_code', $provinceCode)->pluck('name', 'code')->toArray();
+        if ($provinceId) {
+            // Load cities from RajaOngkir API
+            $rajaongkir = new RajaongkirService;
+            $citiesData = $rajaongkir->getCities($provinceId);
+
+            // Convert to key-value array for dropdown
+            $this->cities = collect($citiesData)->mapWithKeys(function ($city) {
+                $type = $city['type'] ?? '';
+                $name = $city['name'] ?? '';
+                $displayName = trim($type.' '.$name);
+
+                return [$city['id'] => $displayName];
+            })->toArray();
         }
     }
 
-    public function updatedCityCode($cityCode)
+    public function updatedCityId($cityId)
     {
-        // Reset district when city changes
-        $this->districtCode = '';
+        // Reset dependent fields when city changes
+        $this->districtId = '';
+        $this->subdistrictId = '';
         $this->districts = [];
-        $this->shippingMethods = []; // Clear shipping methods when city changes
+        $this->subdistricts = [];
+        $this->shippingMethods = [];
 
-        if ($cityCode) {
-            // Load districts for selected city - convert to array
-            $this->districts = District::where('city_code', $cityCode)->pluck('name', 'code')->toArray();
+        if ($cityId) {
+            // Load districts from RajaOngkir API
+            $rajaongkir = new RajaongkirService;
+            $districtsData = $rajaongkir->getDistricts($cityId);
+
+            // Convert to key-value array for dropdown
+            $this->districts = collect($districtsData)->mapWithKeys(function ($district) {
+                return [$district['id'] => $district['name']];
+            })->toArray();
         }
     }
 
-    public function updatedDistrictCode($districtCode)
+    public function updatedDistrictId($districtId)
     {
-        // Recalculate shipping when district changes
+        // Reset dependent fields when district changes
+        $this->subdistrictId = '';
+        $this->subdistricts = [];
+        $this->shippingMethods = [];
+
+        if ($districtId) {
+            // Load subdistricts from RajaOngkir API
+            $rajaongkir = new RajaongkirService;
+            $subdistrictsData = $rajaongkir->getSubdistricts($districtId);
+
+            // Convert to key-value array for dropdown
+            $this->subdistricts = collect($subdistrictsData)->mapWithKeys(function ($subdistrict) {
+                return [$subdistrict['id'] => $subdistrict['name']];
+            })->toArray();
+        }
+    }
+
+    public function updatedSubdistrictId($subdistrictId)
+    {
+        // Store the subdistrict name for later use
+        if ($subdistrictId && isset($this->subdistricts[$subdistrictId])) {
+            $this->subdistrictName = $this->subdistricts[$subdistrictId];
+        }
+
+        // Recalculate shipping when subdistrict changes
         $this->calculateShippingCost();
     }
 
@@ -250,8 +303,8 @@ class Checkout extends Component
 
     public function calculateShippingCost()
     {
-        // Only calculate if we have district code and selected branch
-        if (! $this->districtCode || ! $this->selectedBranch) {
+        // Only calculate if we have district selected
+        if (! $this->districtId || ! $this->selectedBranch) {
             // Clear shipping methods if district not selected
             $this->shippingMethods = [];
 
@@ -262,54 +315,72 @@ class Checkout extends Component
             // Initialize Rajaongkir service
             $rajaongkir = new RajaongkirService;
 
-            // Get destination district (from user input)
-            $destinationDistrict = District::where('code', $this->districtCode)->first();
-
-            if (! $destinationDistrict) {
-                $this->shippingMethods = [];
-
-                return;
-            }
-
             // Calculate total package weight
             $totalWeight = $this->cartItems->sum(function ($item) {
                 return ($item->sku->weight ?? 1000) * $item->quantity;
             });
 
-            // Use selected branch's subdistrict_id as origin
-            $originDistrictId = $this->selectedBranch->subdistrict_id;
+            // Determine origin and destination IDs
+            // IMPORTANT: Both origin and destination should use the same level (both district OR both subdistrict)
+            // Origin: Always use branch's subdistrict_id (branches should have this configured)
+            $originId = $this->selectedBranch->subdistrict_id;
 
-            // Log the parameters for debugging
-            \Log::info('Shipping Cost Calculation', [
-                'origin_district_id' => $originDistrictId,
-                'origin_branch' => $this->selectedBranch->name,
-                'destination_district_id' => $destinationDistrict->id,
-                'destination_district_code' => $this->districtCode,
-                'total_weight' => $totalWeight,
-            ]);
+            // Destination: Prefer subdistrict if selected, otherwise use district
+            // When user selects subdistrict (kelurahan), we get more accurate pricing
+            $destinationId = $this->subdistrictId ?: $this->districtId;
+            $useSubdistrict = ! empty($this->subdistrictId);
 
-            // Check if origin is null
-            if (! $originDistrictId) {
-                \Log::warning('Origin district ID is null. Selected branch subdistrict_id is not set.');
+            if (! $originId) {
+                \Log::warning('Origin subdistrict_id is null for branch: '.$this->selectedBranch->name);
                 $this->shippingMethods = [];
 
                 return;
             }
 
-            // Prepare parameters for shipping cost calculation using district-level API
+            // Prepare location type information for logging
+            $locationType = $useSubdistrict ? 'subdistrict' : 'district';
+            $destinationName = $useSubdistrict
+                ? ($this->subdistrictName ?: 'Unknown Subdistrict')
+                : ($this->districts[$this->districtId] ?? 'Unknown District');
+
+            // Enhanced logging to show exactly what's being calculated
+            \Log::info('Shipping Cost Calculation Request', [
+                'calculation_level' => strtoupper($locationType),
+                'origin' => [
+                    'branch' => $this->selectedBranch->name,
+                    'province' => ($this->selectedBranch->province_name ?? ''),
+                    'city' => ($this->selectedBranch->city_name ?? ''),
+                    'subdistrict' => ($this->selectedBranch->subdistrict_name ?? ''),
+                    'subdistrict_id' => $originId,
+                ],
+                'destination' => [
+                    'province' => $this->provinces[$this->provinceId] ?? 'Unknown',
+                    'city' => $this->cities[$this->cityId] ?? 'Unknown',
+                    'district' => $this->districts[$this->districtId] ?? 'Unknown',
+                    'subdistrict' => $useSubdistrict ? $destinationName : 'N/A',
+                    'id' => $destinationId,
+                    'type' => $locationType,
+                ],
+                'weight_grams' => $totalWeight,
+            ]);
+
+            // Prepare parameters for shipping cost calculation
             $params = [
-                'origin' => $originDistrictId, // Origin from selected branch
-                'destination' => $destinationDistrict->id, // Destination (user district)
+                'origin' => $originId,
+                'destination' => $destinationId,
                 'weight' => max(200, $totalWeight), // Weight in grams, minimum 200
-                'courier' => 'jne:sicepat:jnt:ninja:anteraja:pos:wahana',
-                'price' => 'lowest',
+                'courier' => 'ide:tiki:sap:jne:sicepat:jnt:ninja:pos:wahana',
+                'price' => 'lowest', // Get lowest price first
+                '_use_subdistrict' => $useSubdistrict, // Internal flag for service logging
             ];
 
-            // Calculate shipping cost
-            $shippingResults = $rajaongkir->calculateShippingCost($params);
+            // Calculate shipping cost using the domestic cost endpoint
+            // This endpoint supports BOTH district and subdistrict IDs
+            $shippingResults = $rajaongkir->calculateDomesticCost($params);
 
             // Log API response for debugging
             \Log::info('Rajaongkir API Response', [
+                'calculation_level' => strtoupper($locationType),
                 'results_count' => count($shippingResults),
                 'results' => $shippingResults,
             ]);
@@ -419,10 +490,12 @@ class Checkout extends Component
         }
 
         try {
-            // Get province, city, and district names
-            $province = Province::where('code', $this->provinceCode)->first();
-            $city = City::where('code', $this->cityCode)->first();
-            $district = District::where('code', $this->districtCode)->first();
+            // Get location names directly from the dropdown arrays (already loaded)
+            // This is more efficient and ensures consistency with what user selected
+            $provinceName = strtoupper($this->provinces[$this->provinceId] ?? '');
+            $cityName = strtoupper($this->cities[$this->cityId] ?? '');
+            $districtName = strtoupper($this->districts[$this->districtId] ?? '');
+            $subdistrictName = strtoupper($this->subdistricts[$this->subdistrictId] ?? '');
 
             // Create order using OrderService
             $orderService = new OrderService;
@@ -431,9 +504,10 @@ class Checkout extends Component
                 'customer_name' => $this->fullName,
                 'customer_email' => $this->email,
                 'customer_phone' => $this->phone,
-                'shipping_province' => $province->name ?? '',
-                'shipping_city' => $city->name ?? '',
-                'shipping_district' => $district->name ?? '',
+                'shipping_province' => $provinceName,
+                'shipping_city' => $cityName,
+                'shipping_district' => $districtName,
+                'shipping_subdistrict' => $subdistrictName,
                 'shipping_postal_code' => $this->postalCode,
                 'shipping_address' => $this->address,
                 'shipping_method' => $this->shippingMethod,

@@ -123,73 +123,99 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Provinsi *</label>
                             <div class="relative">
-                                <select wire:model.live="provinceCode" 
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 @error('provinceCode') border-red-500 @enderror">
+                                <select wire:model.live="provinceId" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 @error('provinceId') border-red-500 @enderror">
                                     <option value="">Pilih Provinsi</option>
-                                    @foreach($provinces as $code => $name)
-                                    <option value="{{ $code }}" wire:key="province-{{ $code }}">{{ $name }}</option>
+                                    @foreach($provinces as $id => $name)
+                                    <option value="{{ $id }}" wire:key="province-{{ $id }}">{{ $name }}</option>
                                     @endforeach
                                 </select>
-                                <div wire:loading wire:target="provinceCode" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                <div wire:loading wire:target="provinceId" class="absolute inset-y-0 right-0 flex items-center pr-3">
                                     <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </div>
                             </div>
-                            @error('provinceCode') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            @error('provinceId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kota/Kabupaten *</label>
                             <div class="relative">
-                                <select wire:model.live="cityCode" 
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 @error('cityCode') border-red-500 @enderror"
+                                <select wire:model.live="cityId" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 @error('cityId') border-red-500 @enderror"
                                         {{ empty($cities) ? 'disabled' : '' }}>
                                     <option value="">Pilih Kota/Kabupaten</option>
-                                    @foreach($cities as $code => $name)
-                                    <option value="{{ $code }}" wire:key="city-{{ $code }}">{{ $name }}</option>
+                                    @foreach($cities as $id => $name)
+                                    <option value="{{ $id }}" wire:key="city-{{ $id }}">{{ $name }}</option>
                                     @endforeach
                                 </select>
-                                <div wire:loading wire:target="cityCode" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                <div wire:loading wire:target="cityId" class="absolute inset-y-0 right-0 flex items-center pr-3">
                                     <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </div>
-                                <div wire:loading wire:target="provinceCode" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+                                <div wire:loading wire:target="provinceId" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
                                     <svg class="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </div>
                             </div>
-                            @error('cityCode') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            @error('cityId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kecamatan *</label>
                             <div class="relative">
-                                <select wire:model.live="districtCode" 
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 @error('districtCode') border-red-500 @enderror"
+                                <select wire:model.live="districtId" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 @error('districtId') border-red-500 @enderror"
                                         {{ empty($districts) ? 'disabled' : '' }}>
                                     <option value="">Pilih Kecamatan</option>
-                                    @foreach($districts as $code => $name)
-                                    <option value="{{ $code }}" wire:key="district-{{ $code }}">{{ $name }}</option>
+                                    @foreach($districts as $id => $name)
+                                    <option value="{{ $id }}" wire:key="district-{{ $id }}">{{ $name }}</option>
                                     @endforeach
                                 </select>
-                                <div wire:loading wire:target="districtCode" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                <div wire:loading wire:target="districtId" class="absolute inset-y-0 right-0 flex items-center pr-3">
                                     <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </div>
-                                <div wire:loading wire:target="cityCode" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+                                <div wire:loading wire:target="cityId" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
                                     <svg class="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </div>
                             </div>
-                            @error('districtCode') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            @error('districtId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Kelurahan *</label>
+                            <div class="relative">
+                                <select wire:model.live="subdistrictId" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 @error('subdistrictId') border-red-500 @enderror"
+                                        {{ empty($subdistricts) ? 'disabled' : '' }}>
+                                    <option value="">Pilih Kelurahan</option>
+                                    @foreach($subdistricts as $id => $name)
+                                    <option value="{{ $id }}" wire:key="subdistrict-{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                                <div wire:loading wire:target="subdistrictId" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                <div wire:loading wire:target="districtId" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+                                    <svg class="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            @error('subdistrictId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kode Pos *</label>
@@ -228,7 +254,7 @@
                                     Ubah cabang
                                 </button>
                             </div>
-                            @if($districtCode)
+                            @if($subdistrictId)
                             <div wire:loading wire:target="selectBranch" class="ml-4">
                                 <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -240,7 +266,7 @@
                     </div>
                     @endif
                     
-                    @if(empty($districtCode))
+                    @if(empty($districtId))
                     <!-- Message when district not selected -->
                     <div class="text-center py-8">
                         <div class="mx-auto h-12 w-12 text-gray-400 mb-3 flex items-center justify-center">
@@ -252,7 +278,7 @@
                     </div>
                     @else
                     <!-- Loading indicator for shipping calculation -->
-                    <div wire:loading wire:target="districtCode" class="flex flex-col items-center justify-center py-8">
+                    <div wire:loading wire:target="districtId" class="flex flex-col items-center justify-center py-8">
                         <svg class="animate-spin h-10 w-10 text-green-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -262,27 +288,31 @@
                     </div>
                     
                     <!-- Shipping options -->
-                    <div wire:loading.remove wire:target="districtCode">
-                        <div class="space-y-3">
+                    <div wire:loading.remove wire:target="districtId">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                             @forelse($shippingMethods as $method)
-                            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all {{ $shippingMethod === $method['id'] ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300' }}" wire:key="shipping-{{ $method['id'] }}">
-                                <input type="radio" wire:model.live="shippingMethod" value="{{ $method['id'] }}" 
-                                       class="text-green-600 focus:ring-green-500">
-                                <div class="ml-3 flex-1">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="font-semibold text-gray-900">{{ $method['name'] }}</p>
-                                            <p class="text-sm text-gray-600">{{ $method['description'] }}</p>
-                                            <p class="text-xs text-gray-500 mt-1">Estimasi: {{ $method['estimatedDays'] }} hari</p>
-                                        </div>
-                                        <div class="text-right">
-                                            <p class="font-bold text-gray-900">{{ format_rupiah($method['cost']) }}</p>
-                                        </div>
+                            <label class="flex flex-col p-3 border-2 rounded-lg cursor-pointer transition-all {{ $shippingMethod === $method['id'] ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300' }}" wire:key="shipping-{{ $method['id'] }}">
+                                <div class="flex items-start mb-2">
+                                    <input type="radio" wire:model.live="shippingMethod" value="{{ $method['id'] }}" 
+                                           class="mt-0.5 text-green-600 focus:ring-green-500 flex-shrink-0">
+                                    <div class="ml-2 flex-1 min-w-0">
+                                        <p class="text-sm font-semibold text-gray-900 leading-tight">{{ $method['name'] }}</p>
+                                        <p class="text-xs text-gray-600 mt-0.5 line-clamp-2">{{ $method['description'] }}</p>
                                     </div>
+                                </div>
+                                <div class="pl-5 mt-1 flex items-center justify-between">
+                                    <p class="text-xs text-gray-500">
+                                        @php
+                                            // Remove 'day' or 'days' from estimation to avoid duplication
+                                            $estimation = preg_replace('/\s*(day|days)\s*/i', '', $method['estimatedDays']);
+                                        @endphp
+                                        Estimasi: {{ $estimation }} hari
+                                    </p>
+                                    <p class="text-sm font-bold text-green-600">{{ format_rupiah($method['cost']) }}</p>
                                 </div>
                             </label>
                             @empty
-                            <div class="text-center py-8">
+                            <div class="col-span-full text-center py-8">
                                 <div class="mx-auto h-12 w-12 text-gray-400 mb-3 flex items-center justify-center">
                                     <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>

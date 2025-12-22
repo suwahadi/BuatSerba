@@ -31,9 +31,11 @@ class Cart extends Component
         $sessionId = Session::get('cart_session_id');
 
         return CartItem::with(['product', 'sku'])
-            ->where('session_id', $sessionId)
-            ->when(auth()->check(), function ($query) {
-                $query->orWhere('user_id', auth()->id());
+            ->where(function ($query) use ($sessionId) {
+                $query->where('session_id', $sessionId);
+                if (auth()->check()) {
+                    $query->orWhere('user_id', auth()->id());
+                }
             })
             ->get();
     }
@@ -142,10 +144,12 @@ class Cart extends Component
     {
         $sessionId = Session::get('cart_session_id');
 
-        CartItem::where('session_id', $sessionId)
-            ->when(auth()->check(), function ($query) {
+        CartItem::where(function ($query) use ($sessionId) {
+            $query->where('session_id', $sessionId);
+            if (auth()->check()) {
                 $query->orWhere('user_id', auth()->id());
-            })
+            }
+        })
             ->delete();
 
         session()->flash('message', 'Keranjang berhasil dikosongkan.');

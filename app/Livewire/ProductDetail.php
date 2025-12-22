@@ -146,10 +146,12 @@ class ProductDetail extends Component
         $sessionId = session()->get('cart_session_id');
 
         // Check if item already exists in cart
-        $existingItem = \App\Models\CartItem::where('session_id', $sessionId)
-            ->where('sku_id', $this->selectedSku->id)
-            ->when(auth()->check(), function ($query) {
-                $query->orWhere('user_id', auth()->id());
+        $existingItem = \App\Models\CartItem::where('sku_id', $this->selectedSku->id)
+            ->where(function ($query) use ($sessionId) {
+                $query->where('session_id', $sessionId);
+                if (auth()->check()) {
+                    $query->orWhere('user_id', auth()->id());
+                }
             })
             ->first();
 
@@ -187,7 +189,7 @@ class ProductDetail extends Component
 
         // Dispatch event for showing popup notification
         $this->dispatch('cartUpdated');
-        $this->dispatch('showCartNotification', [
+        $this->dispatch('show-cart-notification', [
             'productName' => $this->product->name,
             'quantity' => $this->quantity,
             'price' => $this->selectedSku->getPriceForQuantity($this->quantity),

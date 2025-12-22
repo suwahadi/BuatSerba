@@ -20,7 +20,7 @@ class BranchSeeder extends Seeder
                 'city_id' => 151,
                 'city_name' => 'Jakarta Pusat',
                 'city_type' => 'Kota',
-                'subdistrict_id' => 2779, // Cempaka Putih, Jakarta Pusat
+                'subdistrict_id' => 1973, // Cempaka Putih, Jakarta Pusat (CORRECTED from 2779)
                 'subdistrict_name' => 'Cempaka Putih',
                 'postal_code' => '10110',
                 'full_address' => 'Jl. Sudirman No. 123, Jakarta Pusat',

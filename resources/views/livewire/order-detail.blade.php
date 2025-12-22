@@ -1,12 +1,24 @@
-<div>
+<div x-data="{ showToast: false, toastMessage: '' }">
     <div class="max-w-4xl mx-auto px-4 py-8">
         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
             <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-8 text-white">
+            <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-8 text-white">
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-2xl font-bold">Detail Pesanan</h1>
-                        <p class="mt-1 opacity-90">Order #{{ $order->order_number }}</p>
+                        <div class="flex items-center mt-2 space-x-2">
+                            <p class="opacity-90">Order ID: #{{ $order->order_number }}</p>
+                            <button @click="
+                                navigator.clipboard.writeText('{{ $order->order_number }}');
+                                showToast = true;
+                                toastMessage = 'Order ID berhasil disalin!';
+                                setTimeout(() => showToast = false, 3000);
+                            " class="p-1 hover:bg-green-500 rounded transition-colors" title="Salin Order ID">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="text-right">
                         <p class="text-3xl font-bold">Rp {{ number_format($order->total, 0, ',', '.') }}</p>
@@ -42,23 +54,24 @@
                 <div class="space-y-4">
                     @foreach($order->items as $item)
                     <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                        <div class="flex-shrink-0 w-16 h-16 bg-white rounded-md flex items-center justify-center">
-                            @if($item->product && $item->product->images && $item->product->images->first())
-                                <img src="{{ asset('storage/' . $item->product->images->first()->image_path) }}" 
-                                     alt="{{ $item->product->name }}" 
-                                     class="w-12 h-12 object-contain">
-                            @else
-                                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-12 h-12"></div>
-                            @endif
+                        <div class="flex-shrink-0 w-20 h-20 bg-white rounded-lg overflow-hidden border border-gray-200">
+                            <img src="{{ image_url($item->product->main_image) }}" 
+                                 alt="{{ $item->product->name ?? 'Product' }}" 
+                                 class="w-full h-full object-cover"
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23f3f4f6%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2712px%27 fill=%27%239ca3af%27%3ENo Image%3C/text%3E%3C/svg%3E'">
                         </div>
                         <div class="flex-grow">
                             <h3 class="font-medium text-gray-900">{{ $item->product->name ?? 'Product' }}</h3>
                             @if($item->sku->attributes)
-                                <p class="text-sm text-gray-500">
+                                <p class="text-sm text-gray-500 mt-1">
                                     @if(is_string($item->sku->attributes))
                                         {{ implode(', ', json_decode($item->sku->attributes, true)) }}
                                     @elseif(is_array($item->sku->attributes))
-                                        {{ implode(', ', $item->sku->attributes) }}
+                                        @foreach($item->sku->attributes as $key => $value)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mr-1">
+                                                {{ $key }}: {{ $value }}
+                                            </span>
+                                        @endforeach
                                     @else
                                         {{ $item->sku->attributes }}
                                     @endif
@@ -66,7 +79,7 @@
                             @endif
                             <div class="flex items-center justify-between mt-2">
                                 <span class="text-sm text-gray-600">{{ $item->quantity }} x Rp {{ number_format($item->price, 0, ',', '.') }}</span>
-                                <span class="font-medium">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                                <span class="font-semibold text-green-600">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
                             </div>
                         </div>
                     </div>
@@ -96,9 +109,9 @@
                         <span class="text-red-600">- Rp {{ number_format($order->discount, 0, ',', '.') }}</span>
                     </div>
                     @endif
-                    <div class="flex justify-between pt-3 border-t border-gray-200 font-bold">
+                    <div class="flex justify-between pt-3 border-t border-gray-200 font-bold text-lg">
                         <span>Total</span>
-                        <span>Rp {{ number_format($order->total, 0, ',', '.') }}</span>
+                        <span class="text-green-600">Rp {{ number_format($order->total, 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -161,17 +174,33 @@
             <!-- Actions -->
             <div class="p-6 flex flex-col sm:flex-row gap-3">
                 <a href="{{ route('home') }}" 
-                   class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-center transition">
+                   class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-center transition font-medium">
                     Kembali ke Beranda
                 </a>
                 
                 @if($order->payment_status !== 'paid')
                 <a href="{{ route('payment', $order->order_number) }}" 
-                   class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center transition">
+                   class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-center transition font-medium">
                     Lanjutkan Pembayaran
                 </a>
                 @endif
             </div>
         </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div x-show="showToast"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-2"
+         class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-2"
+         style="display: none;">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        <span x-text="toastMessage"></span>
     </div>
 </div>

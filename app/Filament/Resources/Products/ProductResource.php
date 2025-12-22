@@ -5,13 +5,10 @@ namespace App\Filament\Resources\Products;
 use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
-use App\Filament\Resources\Products\Schemas\ProductForm;
-use App\Filament\Resources\Products\Tables\ProductsTable;
 use App\Models\Product;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class ProductResource extends Resource
@@ -62,6 +59,7 @@ class ProductResource extends Resource
                             ->schema([
                                 \Filament\Forms\Components\FileUpload::make('main_image')
                                     ->image()
+                                    ->disk('public')
                                     ->directory('products'),
                             ]),
                     ])
@@ -74,7 +72,7 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                \Filament\Tables\Columns\ImageColumn::make('main_image'),
+                \Filament\Tables\Columns\ImageColumn::make('main_image')->disk('public'),
                 \Filament\Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
