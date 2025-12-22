@@ -34,9 +34,27 @@
                     <span class="cart-count absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style="display: none;">0</span>
                     @endif
                 </a>
-                <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                    Masuk
-                </button>
+                
+                @auth
+                    <!-- Authenticated User -->
+                    <a href="{{ route('dashboard') }}" class="{{ request()->is('user*') ? 'text-green-600' : 'text-gray-700 hover:text-green-600' }} font-medium">
+                        Dashboard
+                    </a>
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="text-gray-700 hover:text-red-600 font-medium transition-colors">
+                            Logout
+                        </button>
+                    </form>
+                @else
+                    <!-- Guest User -->
+                    <a href="{{ route('login') }}" class="text-gray-700 hover:text-green-600 font-medium">
+                        Masuk
+                    </a>
+                    <a href="{{ route('register') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        Daftar
+                    </a>
+                @endauth
             </div>
         </div>
     </div>

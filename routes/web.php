@@ -32,9 +32,24 @@ Route::get('/midtrans/finish', [App\Http\Controllers\MidtransController::class, 
 Route::get('/midtrans/unfinish', [App\Http\Controllers\MidtransController::class, 'unfinish'])->name('midtrans.unfinish');
 Route::get('/midtrans/error', [App\Http\Controllers\MidtransController::class, 'error'])->name('midtrans.error');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+// Auth Routes (guests only)
+Route::middleware('guest')->group(function () {
+    Route::get('/login', App\Livewire\Auth\Login::class)->name('login');
+    Route::get('/register', App\Livewire\Auth\Register::class)->name('register');
+});
+
+// Dashboard Routes (authenticated users only)
+Route::middleware('auth')->prefix('user')->group(function () {
+    Route::get('/dashboard', App\Livewire\Dashboard\Index::class)->name('dashboard');
+});
+
+// Logout Route
+Route::post('/logout', function () {
+    auth()->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/')->with('success', 'Berhasil logout');
+})->name('logout')->middleware('auth');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');

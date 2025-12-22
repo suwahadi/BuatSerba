@@ -82,6 +82,15 @@ class MidtransController extends Controller
                 \Log::info('Order updated from notification', ['order_id' => $order->id]);
             }
 
+            // Refresh order to get latest status
+            $order->refresh();
+
+            // Send payment success email if payment is confirmed
+            if ($order->payment_status === 'paid') {
+                \App\Jobs\SendPaymentSuccessEmail::dispatch($order);
+                \Log::info('Payment success email job dispatched', ['order_number' => $order->order_number]);
+            }
+
             // Mark notification as processed
             $paymentNotification->update(['processed' => true, 'processed_at' => now()]);
 

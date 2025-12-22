@@ -1,67 +1,90 @@
-<x-layouts.auth>
-    <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Create an account')" :description="__('Enter your details below to create your account')" />
+<div>
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+        Daftar Akun {{ env('APP_NAME') }}
+    </h2>
 
-        <!-- Session Status -->
-        <x-auth-session-status class="text-center" :status="session('status')" />
-
-        <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
-            @csrf
-            <!-- Name -->
-            <flux:input
-                name="name"
-                :label="__('Name')"
-                :value="old('name')"
-                type="text"
-                required
-                autofocus
-                autocomplete="name"
-                :placeholder="__('Full name')"
-            />
-
-            <!-- Email Address -->
-            <flux:input
-                name="email"
-                :label="__('Email address')"
-                :value="old('email')"
-                type="email"
-                required
-                autocomplete="email"
-                placeholder="email@example.com"
-            />
-
-            <!-- Password -->
-            <flux:input
-                name="password"
-                :label="__('Password')"
-                type="password"
-                required
-                autocomplete="new-password"
-                :placeholder="__('Password')"
-                viewable
-            />
-
-            <!-- Confirm Password -->
-            <flux:input
-                name="password_confirmation"
-                :label="__('Confirm password')"
-                type="password"
-                required
-                autocomplete="new-password"
-                :placeholder="__('Confirm password')"
-                viewable
-            />
-
-            <div class="flex items-center justify-end">
-                <flux:button type="submit" variant="primary" class="w-full" data-test="register-user-button">
-                    {{ __('Create account') }}
-                </flux:button>
+    <form wire:submit.prevent="register" class="space-y-4">
+        <div>
+            <div class="floating-label-group">
+                <input wire:model="name" 
+                       class="text-gray-900" 
+                       id="name" 
+                       type="text" 
+                       required />
+                <label for="name">Nama Lengkap</label>
             </div>
-        </form>
-
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            <span>{{ __('Already have an account?') }}</span>
-            <flux:link :href="route('login')" wire:navigate>{{ __('Log in') }}</flux:link>
+            @error('name')
+                <p class="text-xs text-red-600 mt-1 ml-1">{{ $message }}</p>
+            @enderror
         </div>
-    </div>
-</x-layouts.auth>
+
+        <div>
+            <div class="floating-label-group">
+                <input wire:model="email" 
+                       class="text-gray-900" 
+                       id="email" 
+                       type="email" 
+                       required />
+                <label for="email">Email</label>
+            </div>
+            @error('email')
+                <p class="text-xs text-red-600 mt-1 ml-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <div class="floating-label-group">
+                <input wire:model="phone" 
+                       class="text-gray-900" 
+                       id="phone" 
+                       type="text" 
+                       placeholder="" />
+                <label for="phone">Nomor HP (Opsional)</label>
+            </div>
+            @error('phone')
+                <p class="text-xs text-red-600 mt-1 ml-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <div class="floating-label-group">
+                <input wire:model="password" 
+                       class="text-gray-900" 
+                       id="password" 
+                       type="password" 
+                       required />
+                <label for="password">Password</label>
+            </div>
+            @error('password')
+                <p class="text-xs text-red-600 mt-1 ml-1">{{ $message }}</p>
+            @else
+                <p class="text-xs text-gray-500 mt-1 ml-1">
+                    Minimal 8 karakter
+                </p>
+            @enderror
+        </div>
+
+        <div>
+            <div class="floating-label-group">
+                <input wire:model="password_confirmation" 
+                       class="text-gray-900" 
+                       id="password_confirmation" 
+                       type="password" 
+                       required />
+                <label for="password_confirmation">Konfirmasi Password</label>
+            </div>
+        </div>
+
+        <div class="flex justify-end pt-2">
+            <a class="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors" 
+               href="{{ route('login') }}">
+                Sudah Punya Akun? Login Di Sini
+            </a>
+        </div>
+
+        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600" 
+                type="submit">
+            Daftar
+        </button>
+    </form>
+</div>

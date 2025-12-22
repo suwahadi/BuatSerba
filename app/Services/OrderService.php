@@ -112,6 +112,9 @@ class OrderService
                 })
                 ->delete();
 
+            // Dispatch email notification job
+            \App\Jobs\SendOrderCreatedEmail::dispatch($order);
+
             return $order;
         }, 5); // Retry 5 times if deadlock occurs
     }

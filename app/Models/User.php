@@ -70,6 +70,30 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is regular user
+     */
+    public function isRegular(): bool
+    {
+        return $this->role === 'regular';
+    }
+
+    /**
+     * Get user's orders
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
      * Get the user's initials
      */
     public function initials(): string

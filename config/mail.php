@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Email Address
+    |--------------------------------------------------------------------------
+    |
+    | This is the email address where admin notifications will be sent,
+    | such as new paid orders, critical system alerts, etc.
+    |
+    */
+
+    'admin_email' => env('MAIL_ADMIN', null),
+
 ];
