@@ -71,6 +71,7 @@ class OrderService
                 'shipping_province' => $data['shipping_province'],
                 'shipping_city' => $data['shipping_city'],
                 'shipping_district' => $data['shipping_district'],
+                'shipping_subdistrict' => $data['shipping_subdistrict'] ?? null,
                 'shipping_postal_code' => $data['shipping_postal_code'],
                 'shipping_address' => $data['shipping_address'],
                 'shipping_method' => $data['shipping_method'],

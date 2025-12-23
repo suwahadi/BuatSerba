@@ -43,7 +43,9 @@ class Checkout extends Component
 
     public $subdistricts = [];
 
-    // Store subdistrict name for order
+    // Store district and subdistrict names for order
+    public $districtName = '';
+
     public $subdistrictName = '';
 
     // Shipping Method
@@ -168,6 +170,67 @@ class Checkout extends Component
 
         // Show branch selection modal on initial load
         $this->showBranchModal = true;
+
+        // Auto-fill from user data if logged in
+        if (auth()->check()) {
+            $user = auth()->user();
+            
+            // Fill user information
+            $this->fullName = $user->name ?? '';
+            $this->email = $user->email ?? '';
+            $this->phone = $user->phone ?? '';
+
+            // Try to load user's primary or first address
+            $address = $user->addresses()->where('is_primary', true)->first() 
+                    ?? $user->addresses()->first();
+
+            if ($address) {
+                // Fill address information
+                $this->provinceId = $address->province_id;
+                $this->cityId = $address->city_id;
+                $this->districtId = $address->district_id;
+                $this->subdistrictId = $address->subdistrict_id ?? '';
+                $this->postalCode = $address->postal_code;
+                $this->address = $address->full_address;
+
+                // Load cities for the selected province
+                if ($this->provinceId) {
+                    $citiesData = $rajaongkir->getCities($this->provinceId);
+                    $this->cities = collect($citiesData)->mapWithKeys(function ($city) {
+                        $type = $city['type'] ?? '';
+                        $name = $city['name'] ?? '';
+                        $displayName = trim($type.' '.$name);
+                        return [$city['id'] => $displayName];
+                    })->toArray();
+                }
+
+                // Load districts for the selected city
+                if ($this->cityId) {
+                    $districtsData = $rajaongkir->getDistricts($this->cityId);
+                    $this->districts = collect($districtsData)->mapWithKeys(function ($district) {
+                        return [$district['id'] => $district['name']];
+                    })->toArray();
+
+                    // Store district name if selected
+                    if ($this->districtId && isset($this->districts[$this->districtId])) {
+                        $this->districtName = $this->districts[$this->districtId];
+                    }
+                }
+
+                // Load subdistricts for the selected district
+                if ($this->districtId) {
+                    $subdistrictsData = $rajaongkir->getSubdistricts($this->districtId);
+                    $this->subdistricts = collect($subdistrictsData)->mapWithKeys(function ($subdistrict) {
+                        return [$subdistrict['id'] => $subdistrict['name']];
+                    })->toArray();
+
+                    // Store subdistrict name if selected
+                    if ($this->subdistrictId && isset($this->subdistricts[$this->subdistrictId])) {
+                        $this->subdistrictName = $this->subdistricts[$this->subdistrictId];
+                    }
+                }
+            }
+        }
     }
 
     public function selectBranch($branchId)
@@ -235,6 +298,11 @@ class Checkout extends Component
         $this->subdistrictId = '';
         $this->subdistricts = [];
         $this->shippingMethods = [];
+
+        // Store the district name for later use
+        if ($districtId && isset($this->districts[$districtId])) {
+            $this->districtName = $this->districts[$districtId];
+        }
 
         if ($districtId) {
             // Load subdistricts from RajaOngkir API

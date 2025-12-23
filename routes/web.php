@@ -41,6 +41,8 @@ Route::middleware('guest')->group(function () {
 // Dashboard Routes (authenticated users only)
 Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/dashboard', App\Livewire\Dashboard\Index::class)->name('dashboard');
+    Route::get('/profile', App\Livewire\Dashboard\Profile::class)->name('user.profile');
+    Route::get('/address', App\Livewire\Dashboard\Address::class)->name('user.address');
 });
 
 // Logout Route

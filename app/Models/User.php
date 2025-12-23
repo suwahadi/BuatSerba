@@ -94,6 +94,14 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Get user's addresses
+     */
+    public function addresses()
+    {
+        return $this->hasMany(UserAddress::class);
+    }
+
+    /**
      * Get the user's initials
      */
     public function initials(): string

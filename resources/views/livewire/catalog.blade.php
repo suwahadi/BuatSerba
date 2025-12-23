@@ -139,22 +139,6 @@
                         </div>
                     </div>
 
-                    <!-- Brand Filter -->
-                    <div class="mb-6">
-                        <h4 class="font-medium text-gray-900 mb-3">Brand</h4>
-                        <div class="space-y-2">
-                            @foreach(['Samsung', 'Apple', 'Sony', 'Logitech', 'Anker', 'ASUS', 'Nike'] as $brand)
-                            <label class="flex items-center">
-                                <input type="checkbox" 
-                                       wire:model.live="selectedBrands" 
-                                       value="{{ strtolower($brand) }}" 
-                                       class="rounded text-green-600 focus:ring-green-500">
-                                <span class="ml-2 text-gray-700">{{ $brand }}</span>
-                            </label>
-                            @endforeach
-                        </div>
-                    </div>
-
                     <!-- Rating Filter -->
                     <div class="mb-6">
                         <h4 class="font-medium text-gray-900 mb-3">Rating</h4>
@@ -201,14 +185,14 @@
                         <div class="flex items-center space-x-2">
                             <span class="text-sm text-gray-600">Tampilan:</span>
                             <button wire:click="setViewMode('grid')" 
-                                    class="p-2 rounded-md {{ $viewMode === 'grid' ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                                    class="p-2.5 rounded-lg border-2 transition-all {{ $viewMode === 'grid' ? 'bg-green-600 text-white border-green-600' : 'text-gray-600 hover:bg-gray-50 border-gray-200' }}">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z"></path>
                                 </svg>
                             </button>
                             <button wire:click="setViewMode('list')" 
-                                    class="p-2 rounded-md {{ $viewMode === 'list' ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    class="p-2.5 rounded-lg border-2 transition-all {{ $viewMode === 'list' ? 'bg-green-600 text-white border-green-600' : 'text-gray-600 hover:bg-gray-50 border-gray-200' }}">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
                                 </svg>
                             </button>
@@ -227,7 +211,7 @@
                 </div>
 
                 <!-- Products Grid -->
-                <div class="grid {{ $viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1' }} gap-6">
+                <div class="grid {{ $viewMode === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1' }} gap-3 sm:gap-6">
                     @forelse($products as $product)
                     <div class="bg-white rounded-lg shadow-md card-hover overflow-hidden">
                         <a href="/product/{{ $product->slug }}" class="block">
@@ -242,51 +226,54 @@
                                 </span>
                                 @endif
                             </div>
-                            <div class="p-4">
-                                <p class="text-xs text-gray-500 mb-1">{{ $product->category->name ?? 'Uncategorized' }}</p>
-                                <h3 class="text-base font-semibold text-gray-900 mb-2 line-clamp-2">{{ $product->name }}</h3>
+                            <div class="p-2.5 sm:p-4">
+                                <p class="text-xs text-gray-500 mb-0.5 sm:mb-1 truncate">{{ $product->category->name ?? 'Uncategorized' }}</p>
+                                <h3 class="text-xs sm:text-sm font-semibold text-gray-900 mb-1.5 sm:mb-2 line-clamp-2">{{ $product->name }}</h3>
                                 @php
                                     $sku = $product->skus->first();
                                 @endphp
                                 @if($sku)
-                                <div class="mt-3">
-                                    <div class="flex items-baseline space-x-2">
-                                        <span class="text-xl font-bold text-green-600">
+                                <div class="mt-2 sm:mt-3">
+                                    <div class="flex flex-col sm:flex-row sm:items-baseline sm:space-x-2">
+                                        <span class="text-sm sm:text-base font-bold text-green-600">
                                             {{ format_rupiah($sku->selling_price) }}
                                         </span>
                                         @if($sku->base_price > $sku->selling_price)
-                                        <span class="text-sm text-gray-500 line-through">
-                                            {{ format_rupiah($sku->base_price) }}
-                                        </span>
-                                        @php
-                                            $discountPercent = discount_percentage($sku->base_price, $sku->selling_price);
-                                        @endphp
-                                        @if($discountPercent > 0)
-                                        <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
-                                            -{{ $discountPercent }}%
-                                        </span>
-                                        @endif
+                                        <div class="flex items-center space-x-1 sm:space-x-2">
+                                            <span class="text-xs text-gray-500 line-through">
+                                                {{ format_rupiah($sku->base_price) }}
+                                            </span>
+                                            @php
+                                                $discountPercent = discount_percentage($sku->base_price, $sku->selling_price);
+                                            @endphp
+                                            @if($discountPercent > 0)
+                                            <span class="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
+                                                -{{ $discountPercent }}%
+                                            </span>
+                                            @endif
+                                        </div>
                                         @endif
                                     </div>
                                     
                                     <!-- Wholesale Info -->
                                     @if($sku->wholesale_price && $sku->wholesale_min_quantity)
-                                    <div class="mt-2 text-xs text-blue-600 flex items-center">
-                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <div class="mt-1.5 sm:mt-2 text-xs text-blue-600 flex items-center">
+                                        <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path>
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"></path>
                                         </svg>
-                                        Grosir: {{ format_rupiah($sku->wholesale_price) }} untuk {{ $sku->wholesale_min_quantity }}+ pcs
+                                        <span class="hidden sm:inline">Grosir: {{ format_rupiah($sku->wholesale_price) }} untuk {{ $sku->wholesale_min_quantity }}+ pcs</span>
+                                        <span class="sm:hidden">{{ format_rupiah($sku->wholesale_price) }}/{{ $sku->wholesale_min_quantity }}+ pcs</span>
                                     </div>
                                     @endif
                                 </div>
                                 @endif
-                                <div class="mt-3 flex items-center justify-between">
-                                    <div class="flex items-center text-yellow-400 text-sm">
+                                <div class="mt-2 sm:mt-3 flex items-center justify-between">
+                                    <div class="flex items-center text-yellow-400 text-xs sm:text-sm">
                                         @for($i = 0; $i < 5; $i++)
-                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                         @endfor
-                                        <span class="ml-1 text-gray-600">({{ rand(10, 500) }})</span>
+                                        <span class="ml-0.5 sm:ml-1 text-gray-600 text-xs">({{ rand(10, 500) }})</span>
                                     </div>
                                 </div>
                             </div>
@@ -312,48 +299,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h4 class="text-2xl font-bold text-green-600 mb-4">BuatSerba</h4>
-                    <p class="text-gray-400 mb-4">Platform belanja online terpercaya dengan produk berkualitas dan harga terbaik.</p>
-                </div>
-                
-                <div>
-                    <h5 class="font-semibold mb-4">Kategori</h5>
-                    <ul class="space-y-2 text-gray-400">
-                        @foreach($categories->take(4) as $category)
-                        <li><a href="/catalog?category={{ $category->id }}" class="hover:text-white">{{ $category->name }}</a></li>
-                        @endforeach
-                    </ul>
-                </div>
-                
-                <div>
-                    <h5 class="font-semibold mb-4">Layanan</h5>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#" class="hover:text-white">Bantuan</a></li>
-                        <li><a href="#" class="hover:text-white">Kebijakan Pengembalian</a></li>
-                        <li><a href="#" class="hover:text-white">Syarat & Ketentuan</a></li>
-                        <li><a href="#" class="hover:text-white">Kebijakan Privasi</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h5 class="font-semibold mb-4">Hubungi Kami</h5>
-                    <ul class="space-y-2 text-gray-400">
-                        <li>Email: support@buatserba.com</li>
-                        <li>Telepon: 0800-123-4567</li>
-                        <li>Jam Operasional: 24/7</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; {{ date('Y') }} BuatSerba. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <x-footer :categories="$categories" />
 
     <style>
         .card-hover { transition: all 0.3s ease; }
