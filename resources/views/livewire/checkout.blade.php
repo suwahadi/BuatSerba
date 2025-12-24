@@ -337,19 +337,17 @@
                         Metode Pembayaran
                     </h2>
                     
-                    <div class="space-y-2 sm:space-y-3">
+                    <div class="grid grid-cols-2 gap-2 sm:gap-3">
                         @foreach($this->paymentMethods as $method)
-                        <label class="flex items-center p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all {{ $paymentMethod === $method['id'] ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300' }}" wire:key="payment-{{ $method['id'] }}">
-                            <input type="radio" wire:model="paymentMethod" value="{{ $method['id'] }}" 
-                                   class="text-green-600 focus:ring-green-500 flex-shrink-0">
-                            <div class="ml-3 flex-1 min-w-0">
-                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                                    <div class="min-w-0">
-                                        <p class="text-sm sm:text-base font-semibold text-gray-900">{{ $method['name'] }}</p>
-                                        <p class="text-xs sm:text-sm text-gray-600">{{ $method['description'] }}</p>
-                                    </div>
+                        <label class="flex flex-col p-2.5 sm:p-3 border-2 rounded-lg cursor-pointer transition-all {{ $paymentMethod === $method['id'] ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300' }}" wire:key="payment-{{ $method['id'] }}">
+                            <div class="flex items-start gap-2">
+                                <input type="radio" wire:model.live="paymentMethod" value="{{ $method['id'] }}" 
+                                       class="mt-0.5 text-green-600 focus:ring-green-500 flex-shrink-0">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs sm:text-sm font-semibold text-gray-900 leading-tight">{{ $method['name'] }}</p>
+                                    <p class="text-xs text-gray-600 mt-0.5 leading-tight">{{ $method['description'] }}</p>
                                     @if($method['id'] === 'cod')
-                                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded self-start sm:self-auto">POPULER</span>
+                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-1.5 py-0.5 rounded mt-1">POPULER</span>
                                     @endif
                                 </div>
                             </div>

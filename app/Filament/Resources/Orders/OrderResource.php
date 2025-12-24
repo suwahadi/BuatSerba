@@ -52,29 +52,34 @@ class OrderResource extends Resource
                                         \Filament\Forms\Components\TextInput::make('sku_code')
                                             ->label('SKU')
                                             ->disabled()
-                                            ->dehydrated(false),
+                                            ->dehydrated(false)
+                                            ->inlineLabel(false),
                                         \Filament\Forms\Components\TextInput::make('quantity')
                                             ->label('Qty')
                                             ->disabled()
-                                            ->dehydrated(false),
+                                            ->dehydrated(false)
+                                            ->inlineLabel(false),
                                         \Filament\Forms\Components\TextInput::make('price')
-                                            ->label('Amount')
+                                            ->label('Price')
                                             ->disabled()
                                             ->dehydrated(false)
                                             ->prefix('Rp')
-                                            ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.')),
+                                            ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
+                                            ->inlineLabel(false),
                                         \Filament\Forms\Components\TextInput::make('subtotal')
-                                            ->label('Total')
+                                            ->label('Subtotal')
                                             ->disabled()
                                             ->dehydrated(false)
                                             ->prefix('Rp')
-                                            ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.')),
+                                            ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
+                                            ->inlineLabel(false),
                                     ])
                                     ->columns(4)
                                     ->addable(false)
                                     ->deletable(false)
                                     ->reorderable(false)
                                     ->defaultItems(0)
+                                    ->itemLabel(fn (array $state): ?string => null)
                                     ->columnSpanFull(),
                                 \Filament\Forms\Components\Placeholder::make('grand_total_display')
                                     ->label('Grand Total')
@@ -146,9 +151,10 @@ class OrderResource extends Resource
                             ->schema([
                                 \Filament\Forms\Components\Select::make('payment_method')
                                     ->options([
-                                        'manual_transfer' => 'Bank Transfer',
-                                        'midtrans' => 'Midtrans',
-                                        'cod' => 'COD',
+                                        'bri' => 'BRI',
+                                        'bni' => 'BNI',
+                                        'bca' => 'BCA',
+                                        'permata' => 'Permata',
                                     ]),
                                 \Filament\Forms\Components\Select::make('payment_status')
                                     ->options([

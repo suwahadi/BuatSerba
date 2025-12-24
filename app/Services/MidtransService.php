@@ -152,17 +152,26 @@ class MidtransService
 
     /**
      * Determine payment channel from transaction data
+     * Extract bank name from Midtrans response (e.g., from va_numbers array)
      */
     protected function getPaymentChannel($transactionData, $paymentMethodObj)
     {
+        // Priority 1: Get from va_numbers array (most accurate from Midtrans)
+        if (isset($transactionData['va_numbers']) && is_array($transactionData['va_numbers']) && count($transactionData['va_numbers']) > 0) {
+            return $transactionData['va_numbers'][0]['bank'];
+        }
+
+        // Priority 2: Get from bank_transfer
         if (isset($transactionData['bank_transfer']['bank'])) {
             return $transactionData['bank_transfer']['bank'];
         }
 
+        // Priority 3: Get from payment_type
         if (isset($transactionData['payment_type'])) {
             return $transactionData['payment_type'];
         }
 
+        // Priority 4: Fallback to config
         $config = $paymentMethodObj->getCoreApiConfig();
         if (isset($config['bank'])) {
             return $config['bank'];

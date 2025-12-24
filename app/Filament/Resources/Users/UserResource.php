@@ -43,9 +43,9 @@ class UserResource extends Resource
                 \Filament\Forms\Components\Select::make('role')
                     ->options([
                         'admin' => 'Admin',
-                        'customer' => 'Customer',
+                        'regular' => 'Regular',
                     ])
-                    ->default('customer')
+                    ->default('regular')
                     ->required(),
                 \Filament\Forms\Components\Select::make('status')
                     ->options([

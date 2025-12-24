@@ -38,7 +38,7 @@
                             @elseif($order->status === 'processing') bg-orange-100 text-orange-800
                             @elseif($order->status === 'pending') bg-yellow-100 text-yellow-800
                             @else bg-red-100 text-red-800 @endif">
-                            {{ ucfirst($order->status) }}
+                            {{ $order->status }}
                         </span>
                     </div>
                     <div class="text-left sm:text-right">
@@ -160,7 +160,7 @@
                             @if($order->payment_status === 'paid') bg-green-100 text-green-800
                             @elseif($order->payment_status === 'pending') bg-yellow-100 text-yellow-800
                             @else bg-red-100 text-red-800 @endif">
-                            {{ ucfirst($order->payment_status) }}
+                            {{ $order->payment_status }}
                         </span>
                     </div>
                     @if($order->paid_at)
@@ -180,10 +180,17 @@
                 </a>
                 
                 @if($order->payment_status !== 'paid')
-                <a href="{{ route('payment', $order->order_number) }}" 
-                   class="flex-1 px-4 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 text-center transition font-medium">
-                    Lanjutkan Pembayaran
-                </a>
+                    @if($order->payment_status === 'failed')
+                    <a href="{{ route('catalog') }}" 
+                       class="flex-1 px-4 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 text-center transition font-medium">
+                        Order Lagi
+                    </a>
+                    @else
+                    <a href="{{ route('payment', $order->order_number) }}" 
+                       class="flex-1 px-4 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 text-center transition font-medium">
+                        Lanjutkan Pembayaran
+                    </a>
+                    @endif
                 @endif
             </div>
         </div>

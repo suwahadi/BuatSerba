@@ -93,6 +93,12 @@ class Checkout extends Component
                 'description' => 'Transfer ke rekening virtual BRI',
                 'icon' => 'bank',
             ],
+            [
+                'id' => 'bank-transfer-permata',
+                'name' => 'Permata Virtual Account',
+                'description' => 'Transfer ke rekening virtual Permata',
+                'icon' => 'bank',
+            ],
         ];
     }
 
@@ -568,6 +574,11 @@ class Checkout extends Component
             // Create order using OrderService
             $orderService = new OrderService;
 
+            // Extract bank name from payment method
+            // Format: 'bank-transfer-bca' -> 'bca', 'cod' -> 'cod'
+            $paymentMethodParts = explode('-', $this->paymentMethod);
+            $bankName = end($paymentMethodParts); // Get last part (bca, bni, bri, or cod)
+
             $order = $orderService->createOrder([
                 'customer_name' => $this->fullName,
                 'customer_email' => $this->email,
@@ -580,7 +591,7 @@ class Checkout extends Component
                 'shipping_address' => $this->address,
                 'shipping_method' => $this->shippingMethod,
                 'shipping_cost' => $this->shippingCost,
-                'payment_method' => $this->paymentMethod,
+                'payment_method' => $bankName, // Store only bank name: bca, bni, bri, or cod
                 'service_fee' => $this->serviceFee,
                 'discount' => $this->discount,
             ]);

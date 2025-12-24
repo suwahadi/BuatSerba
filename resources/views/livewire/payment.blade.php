@@ -49,14 +49,14 @@
                             @if($order->payment_status === 'paid') bg-green-100 text-green-800
                             @elseif($order->payment_status === 'pending') bg-yellow-100 text-yellow-800
                             @else bg-red-100 text-red-800 @endif">
-                            {{ ucfirst($order->payment_status) }}
+                            {{ $order->payment_status }}
                         </span>
                     </div>
                 </div>
             </div>
 
             <!-- Payment Instructions -->
-            @if(isset($paymentInstructions) && !empty($paymentInstructions) && $order->payment_status !== 'paid' && $order->status !== 'cancelled')
+            @if(isset($paymentInstructions) && !empty($paymentInstructions) && $order->payment_status !== 'paid' && $order->status !== 'cancelled' && (!isset($paymentData['transaction_status']) || !in_array($paymentData['transaction_status'], ['expire', 'expired'])))
             <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100 bg-white">
                 <h3 class="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">Cara Pembayaran</h3>
                 
