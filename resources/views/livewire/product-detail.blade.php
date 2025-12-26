@@ -269,12 +269,10 @@
             <div class="p-4 sm:p-6">
                 <!-- Description Tab -->
                 <div class="{{ $activeTab === 'description' ? '' : 'hidden' }}">
-                    <div class="prose max-w-none">
-                        {!! nl2br(e($product->description)) !!}
+                    <div class="prose prose-lg max-w-none text-gray-700 prose-p:mb-8">
+                        {!! $product->description !!}
                     </div>
                 </div>
-
-
 
                 </div>
         </div>

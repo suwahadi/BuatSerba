@@ -13,7 +13,6 @@ Route::get('/checkout', App\Livewire\Checkout::class)->name('checkout');
 Route::get('/payment/{code}', App\Livewire\Payment::class)->name('payment');
 Route::get('/order/{orderNumber}', App\Livewire\OrderDetail::class)->name('order.detail');
 
-// Payment Routes
 Route::get('/payment/{orderNumber}/success', function ($orderNumber) {
     return redirect()->route('payment', $orderNumber);
 })->name('payment.success');
@@ -26,30 +25,27 @@ Route::get('/payment/{orderNumber}/failed', function ($orderNumber) {
     return redirect()->route('payment', $orderNumber);
 })->name('payment.failed');
 
-// Midtrans Routes
 Route::post('/midtrans/notification', [App\Http\Controllers\MidtransController::class, 'notification'])->name('midtrans.notification');
 Route::get('/midtrans/finish', [App\Http\Controllers\MidtransController::class, 'finish'])->name('midtrans.finish');
 Route::get('/midtrans/unfinish', [App\Http\Controllers\MidtransController::class, 'unfinish'])->name('midtrans.unfinish');
 Route::get('/midtrans/error', [App\Http\Controllers\MidtransController::class, 'error'])->name('midtrans.error');
 
-// Auth Routes (guests only)
 Route::middleware('guest')->group(function () {
     Route::get('/login', App\Livewire\Auth\Login::class)->name('login');
     Route::get('/register', App\Livewire\Auth\Register::class)->name('register');
 });
 
-// Dashboard Routes (authenticated users only)
 Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/dashboard', App\Livewire\Dashboard\Index::class)->name('dashboard');
     Route::get('/profile', App\Livewire\Dashboard\Profile::class)->name('user.profile');
     Route::get('/address', App\Livewire\Dashboard\Address::class)->name('user.address');
 });
 
-// Logout Route
 Route::post('/logout', function () {
     auth()->logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
+
     return redirect('/')->with('success', 'Berhasil logout');
 })->name('logout')->middleware('auth');
 

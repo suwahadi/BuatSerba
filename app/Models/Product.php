@@ -43,6 +43,11 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function sku()
+    {
+        return $this->hasOne(Sku::class);
+    }
+
     public function skus()
     {
         return $this->hasMany(Sku::class);
