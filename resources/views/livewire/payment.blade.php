@@ -41,7 +41,7 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-600">Metode Pembayaran</p>
-                        <p class="text-xs sm:text-sm font-medium capitalize mt-0.5">{{ str_replace('-', ' ', $order->payment_method) }}</p>
+                        <p class="text-xs sm:text-sm font-medium uppercase mt-0.5">{{ strtoupper($order->payment_method) }} VA</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-600">Status Pembayaran</p>

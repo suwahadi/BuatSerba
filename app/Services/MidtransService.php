@@ -156,22 +156,35 @@ class MidtransService
      */
     protected function getPaymentChannel($transactionData, $paymentMethodObj)
     {
-        // Priority 1: Get from va_numbers array (most accurate from Midtrans)
-        if (isset($transactionData['va_numbers']) && is_array($transactionData['va_numbers']) && count($transactionData['va_numbers']) > 0) {
-            return $transactionData['va_numbers'][0]['bank'];
+        // Priority 1: Get from permata_va_number (Permata specific)
+        if (isset($transactionData['permata_va_number'])) {
+            \Log::info('Payment channel detected: permata', ['permata_va_number' => $transactionData['permata_va_number']]);
+
+            return 'permata';
         }
 
-        // Priority 2: Get from bank_transfer
+        // Priority 2: Get from va_numbers array (most accurate from Midtrans)
+        if (isset($transactionData['va_numbers']) && is_array($transactionData['va_numbers']) && count($transactionData['va_numbers']) > 0) {
+            $channel = $transactionData['va_numbers'][0]['bank'];
+            \Log::info('Payment channel detected from va_numbers', ['channel' => $channel]);
+
+            return $channel;
+        }
+
+        // Priority 3: Get from bank_transfer
         if (isset($transactionData['bank_transfer']['bank'])) {
             return $transactionData['bank_transfer']['bank'];
         }
 
-        // Priority 3: Get from payment_type
+        // Priority 4: Get from payment_type
         if (isset($transactionData['payment_type'])) {
-            return $transactionData['payment_type'];
+            $channel = $transactionData['payment_type'];
+            \Log::info('Payment channel fallback to payment_type', ['channel' => $channel]);
+
+            return $channel;
         }
 
-        // Priority 4: Fallback to config
+        // Priority 5: Fallback to config
         $config = $paymentMethodObj->getCoreApiConfig();
         if (isset($config['bank'])) {
             return $config['bank'];
@@ -221,7 +234,17 @@ class MidtransService
 
         switch ($paymentType) {
             case 'bank_transfer':
-                if (isset($transactionData['va_numbers'][0])) {
+                // Handle Permata VA (different response structure)
+                if (isset($transactionData['permata_va_number'])) {
+                    $instructions = [
+                        'type' => 'virtual_account',
+                        'bank' => 'permata',
+                        'va_number' => $transactionData['permata_va_number'],
+                        'instructions' => $this->getVAInstructions('permata'),
+                    ];
+                }
+                // Handle other banks (BCA, BNI, BRI, etc.)
+                elseif (isset($transactionData['va_numbers'][0])) {
                     $vaNumber = $transactionData['va_numbers'][0];
                     $instructions = [
                         'type' => 'virtual_account',
@@ -229,7 +252,9 @@ class MidtransService
                         'va_number' => $vaNumber['va_number'],
                         'instructions' => $this->getVAInstructions($vaNumber['bank']),
                     ];
-                } elseif (isset($transactionData['bill_key']) && isset($transactionData['biller_code'])) {
+                }
+                // Handle Mandiri Bill Payment
+                elseif (isset($transactionData['bill_key']) && isset($transactionData['biller_code'])) {
                     $instructions = [
                         'type' => 'mandiri_echannel',
                         'bill_key' => $transactionData['bill_key'],
@@ -303,6 +328,13 @@ class MidtransService
             'bri' => [
                 'Masuk ke ATM BRI atau BRI Mobile Banking',
                 'Pilih Menu Pembayaran > BRIVA',
+                'Masukkan nomor Virtual Account di atas',
+                'Masukkan jumlah yang harus dibayar',
+                'Ikuti instruksi untuk menyelesaikan pembayaran',
+            ],
+            'permata' => [
+                'Masuk ke ATM Permata atau PermataNet/PermataMobile',
+                'Pilih Menu Transaksi Lainnya > Pembayaran > Pembayaran Lainnya > Virtual Account',
                 'Masukkan nomor Virtual Account di atas',
                 'Masukkan jumlah yang harus dibayar',
                 'Ikuti instruksi untuk menyelesaikan pembayaran',

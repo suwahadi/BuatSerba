@@ -131,7 +131,7 @@
                     <div class="sm:col-span-2">
                         <p class="text-xs text-gray-600">Alamat</p>
                         <p class="text-xs sm:text-sm font-medium mt-0.5 leading-relaxed">
-                            {{ $order->shipping_address }}, 
+                            {{ strtoupper($order->shipping_address) }},
                             {{ $order->shipping_district }}, 
                             {{ $order->shipping_subdistrict }},
                             {{ $order->shipping_city }}, 
@@ -152,7 +152,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                     <div>
                         <p class="text-xs text-gray-600">Metode Pembayaran</p>
-                        <p class="text-xs sm:text-sm font-medium mt-0.5">{{ $order->payment_method }}</p>
+                        <p class="text-xs sm:text-sm font-medium mt-0.5">{{ strtoupper($order->payment_method) }} VA</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-600">Status Pembayaran</p>
