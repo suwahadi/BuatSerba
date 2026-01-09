@@ -1,8 +1,6 @@
 <div class="bg-gray-50">
-    <!-- Navigation -->
     <x-navbar />
 
-    <!-- Hero Slider -->
     <div class="pt-16">
         <div class="relative overflow-hidden bg-gray-200">
             <div class="hero-slider">
@@ -55,24 +53,27 @@
         <!-- Latest Products Section -->
         <livewire:product-list type="latest" />
 
+        <!-- Random Products Section -->
+        <livewire:product-list type="random" />
+
         <!-- About Us Section -->
         <section class="mb-12 sm:mb-16">
             <div class="bg-white rounded-lg shadow-lg p-6 sm:p-8 md:p-10">
                 <div class="max-w-4xl mx-auto text-center">
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Tentang BuatSerba</h2>
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Tentang {{ global_config('site_name') }}</h2>
                     <div class="text-gray-700 leading-relaxed space-y-3 sm:space-y-4">
-                        <p class="text-sm sm:text-base">
-                            BuatSerba adalah platform e-commerce terpercaya yang menyediakan berbagai macam produk berkualitas dengan harga terbaik. 
-                            Kami berkomitmen untuk memberikan pengalaman belanja online yang mudah, aman, dan menyenangkan bagi seluruh pelanggan kami.
-                        </p>
-                        <p class="text-sm sm:text-base">
-                            Dengan koleksi produk yang lengkap dari berbagai kategori, mulai dari elektronik, fashion, peralatan rumah tangga, 
-                            hingga kebutuhan sehari-hari, BuatSerba hadir sebagai solusi belanja one-stop shopping untuk memenuhi semua kebutuhan Anda.
-                        </p>
-                        <p class="text-sm sm:text-base">
-                            Kami menjamin keaslian produk, harga kompetitif, pengiriman cepat, dan layanan pelanggan yang responsif. 
-                            Kepuasan pelanggan adalah prioritas utama kami, dan kami terus berinovasi untuk memberikan layanan terbaik.
-                        </p>
+
+                        {!! $aboutSummary !!}
+                        
+                        <div class="pt-2">
+                            <a href="/about" class="inline-flex items-center text-green-600 font-semibold hover:text-green-700 transition-colors">
+                                Selengkapnya Tentang Kami
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
                             <div class="p-4 sm:p-6 bg-green-50 rounded-lg">
                                 <div class="text-green-600 mb-2 sm:mb-3">
@@ -103,7 +104,6 @@
                                 <p class="text-xs sm:text-sm text-gray-600">Pengiriman ke seluruh Indonesia dengan cepat</p>
                             </div>
                         </div>
-                    </div>
                 </div>
             </div>
         </section>

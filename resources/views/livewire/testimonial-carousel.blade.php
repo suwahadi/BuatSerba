@@ -1,9 +1,10 @@
+<div>
 @if($testimonials->count() > 0)
 <div class="py-12 bg-gray-50" wire:ignore>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10">
             <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Apa Kata Mereka?</h2>
-            <p class="text-gray-600">Testimoni pelanggan setia BuatSerba</p>
+            <p class="text-gray-600">Testimoni pelanggan setia {{ global_config('site_name') }}</p>
         </div>
         
         <div x-data="{
@@ -137,3 +138,4 @@
     </div>
 </div>
 @endif
+</div>

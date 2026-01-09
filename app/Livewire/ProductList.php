@@ -7,13 +7,13 @@ use Livewire\Component;
 
 class ProductList extends Component
 {
-    public $perPage = 6;
+    public $perPage = 12;
 
-    public $type = 'best-selling'; // 'best-selling' or 'latest'
+    public $type = 'best-selling';
 
     public function loadMore()
     {
-        $this->perPage += 6;
+        $this->perPage += 12;
     }
 
     public function render()
@@ -23,8 +23,9 @@ class ProductList extends Component
 
         if ($this->type === 'latest') {
             $query->orderBy('created_at', 'desc');
+        } elseif ($this->type === 'random') {
+            $query->inRandomOrder();
         } else {
-            // Default best-selling
             $query->orderBy('is_featured', 'desc')
                 ->orderBy('view_count', 'desc');
         }

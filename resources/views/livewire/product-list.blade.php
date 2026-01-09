@@ -1,9 +1,15 @@
 <section class="mb-12 sm:mb-16">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl sm:text-2xl font-bold text-gray-900">
-            {{ $type === 'latest' ? 'Produk Terbaru' : 'Produk Terlaris' }}
+            @if($type === 'latest')
+                Produk Terbaru
+            @elseif($type === 'random')
+                Produk Random
+            @else
+                Produk Terlaris
+            @endif
         </h2>
-        <a href="/catalog?sortBy={{ $type === 'latest' ? 'newest' : 'popularity' }}" class="text-sm sm:text-base text-green-600 hover:text-green-700 font-medium flex items-center">
+        <a href="/catalog?sortBy={{ $type === 'latest' ? 'newest' : ($type === 'random' ? 'random' : 'popularity') }}" class="text-sm sm:text-base text-green-600 hover:text-green-700 font-medium flex items-center">
             Lihat Semua
             <svg class="w-4 h-4 sm:w-5 sm:h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>

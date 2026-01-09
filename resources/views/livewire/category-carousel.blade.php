@@ -1,3 +1,4 @@
+<div>
 @if($categories->count() > 0)
 <div class="mb-12 sm:mb-16" wire:ignore>
     <div class="flex items-center justify-between mb-6">
@@ -126,3 +127,4 @@
     </div>
 </div>
 @endif
+</div>
