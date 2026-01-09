@@ -36,12 +36,12 @@
                         class="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors {{ $statusFilter === 'all' ? 'bg-green-50 border-green-600 text-green-600' : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50' }}">
                     Semua
                 </button>
-                <button wire:click="$set('statusFilter', 'ongoing')"
-                        class="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors {{ $statusFilter === 'ongoing' ? 'bg-green-50 border-green-600 text-green-600' : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50' }}">
-                    Berlangsung
+                <button wire:click="$set('statusFilter', 'pending')"
+                        class="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors {{ $statusFilter === 'pending' ? 'bg-green-50 border-green-600 text-green-600' : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50' }}">
+                    Menunggu
                 </button>
-                <button wire:click="$set('statusFilter', 'success')"
-                        class="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors {{ $statusFilter === 'success' ? 'bg-green-50 border-green-600 text-green-600' : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50' }}">
+                <button wire:click="$set('statusFilter', 'completed')"
+                        class="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors {{ $statusFilter === 'completed' ? 'bg-green-50 border-green-600 text-green-600' : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50' }}">
                     Berhasil
                 </button>
                 <button wire:click="$set('statusFilter', 'failed')"
@@ -93,6 +93,19 @@
                                     Bayar Sekarang
                                 </a>
                             @endif
+                            @if($order->status === 'completed')
+                                <span class="text-gray-300">|</span>
+                                @if($order->reviews->isNotEmpty())
+                                    <span class="text-sm text-gray-500 font-medium">
+                                        Sudah Dinilai
+                                    </span>
+                                @else
+                                    <a href="{{ route('order.rating', $order->order_number) }}" 
+                                       class="text-sm text-green-600 hover:text-green-700 font-medium">
+                                        Beri Penilaian
+                                    </a>
+                                @endif
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -105,15 +118,15 @@
         @else
             <!-- Empty State -->
             <div class="flex flex-col items-center justify-center text-center py-16">
-                <div class="mb-6 text-gray-400">
-                    <svg class="w-32 h-32 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                <div class="mb-4 text-gray-300">
+                    <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">
+                <h3 class="text-base font-bold text-gray-900 mb-1">
                     Data Tidak Ditemukan
                 </h3>
-                <p class="text-gray-600 mb-8 max-w-md mx-auto text-sm leading-relaxed">
+                <p class="text-gray-500 mb-6 max-w-md mx-auto text-xs leading-relaxed">
                     Yuk, mulai belanja di {{ config('app.name') }}!
                 </p>
                 <a href="{{ route('catalog') }}" 
@@ -123,4 +136,10 @@
             </div>
         @endif
     </div>
+    @if(session()->has('success'))
+        <div x-init="setTimeout(() => $dispatch('notify', { message: '{{ session('success') }}', type: 'success' }), 500)"></div>
+    @endif
+    @if(session()->has('error'))
+        <div x-init="setTimeout(() => $dispatch('notify', { message: '{{ session('error') }}', type: 'error' }), 500)"></div>
+    @endif
 </div>

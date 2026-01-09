@@ -110,6 +110,8 @@ class Catalog extends Component
     public function getProducts()
     {
         $query = Product::with(['category', 'skus'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->where('products.is_active', true);
 
         // Search filter
@@ -156,7 +158,7 @@ class Catalog extends Component
                     ->orderBy('max_price', 'desc');
                 break;
             case 'rating':
-                $query->orderBy('products.view_count', 'desc'); // Placeholder, should use actual rating
+                $query->orderByDesc('reviews_avg_rating');
                 break;
             default:
                 $query->orderBy('products.is_featured', 'desc')

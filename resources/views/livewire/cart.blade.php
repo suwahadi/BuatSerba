@@ -175,9 +175,24 @@
                             <span class="font-medium">{{ format_rupiah($serviceFee) }}</span>
                         </div>
                         @if($discount > 0)
-                        <div class="flex justify-between text-xs sm:text-sm text-green-600">
-                            <span>Diskon</span>
-                            <span class="font-medium">-{{ format_rupiah($discount) }}</span>
+                        <div class="mt-2 pt-2 border-t border-dashed border-green-200">
+                            <div class="flex items-center justify-between bg-green-50 p-2 rounded mb-2 border border-green-100">
+                                <div class="flex items-center text-green-700">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                    </svg>
+                                    <div class="flex flex-col">
+                                        <span class="text-xs">Voucher ({{ strtoupper($promoCode) }})</span>
+                                    </div>
+                                </div>
+                                <button wire:click="removePromoCode" class="text-xs text-red-500 hover:text-red-700 underline font-medium">
+                                    Hapus
+                                </button>
+                            </div>
+                            <div class="flex justify-between text-xs sm:text-sm text-green-600 font-bold">
+                                <span>Potongan Harga</span>
+                                <span>-{{ format_rupiah($discount) }}</span>
+                            </div>
                         </div>
                         @endif
                     </div>
@@ -194,7 +209,7 @@
                         <div class="flex space-x-2">
                             <input type="text" 
                                    wire:model="promoCode"
-                                   placeholder="Kode promo" 
+                                   placeholder="Kode voucher" 
                                    class="flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:border-green-500">
                             <button wire:click="applyPromoCode" 
                                     wire:loading.attr="disabled"

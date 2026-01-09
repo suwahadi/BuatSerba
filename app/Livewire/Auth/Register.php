@@ -14,9 +14,13 @@ use Livewire\Component;
 class Register extends Component
 {
     public $name = '';
+
     public $email = '';
+
     public $phone = '';
+
     public $password = '';
+
     public $password_confirmation = '';
 
     protected $rules = [
@@ -56,7 +60,7 @@ class Register extends Component
 
             $this->dispatch('notify', [
                 'message' => 'Registrasi berhasil! Selamat datang di BuatSerba.',
-                'type' => 'success'
+                'type' => 'success',
             ]);
 
             return redirect()->route('dashboard');
@@ -64,7 +68,7 @@ class Register extends Component
         } catch (\Exception $e) {
             $this->dispatch('notify', [
                 'message' => 'Terjadi kesalahan. Silakan coba lagi.',
-                'type' => 'error'
+                'type' => 'error',
             ]);
         }
     }

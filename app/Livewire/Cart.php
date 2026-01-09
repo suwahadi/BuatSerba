@@ -24,6 +24,32 @@ class Cart extends Component
         if (! Session::has('cart_session_id')) {
             Session::put('cart_session_id', Session::getId());
         }
+
+        // Restore voucher on initial load / reload
+        if (Session::has('applied_voucher')) {
+            $voucherData = Session::get('applied_voucher');
+            $this->promoCode = $voucherData['code'];
+
+            // Re-calculate strictly
+            $voucherService = new \App\Services\VoucherService;
+            // We need to fetch cart items first to get subtotal correctly here?
+            // Computed properties are accessible.
+
+            $result = $voucherService->applyVoucher(
+                $voucherData['code'],
+                $this->subtotal,
+                auth()->user()
+            );
+
+            if ($result['success']) {
+                $this->discount = $result['data']['discount_amount'];
+                Session::put('applied_voucher', $result['data']);
+            } else {
+                // If invalid (e.g. expired while in session), clear it
+                $this->discount = 0;
+                Session::forget('applied_voucher');
+            }
+        }
     }
 
     public function getCartItemsProperty()
@@ -158,28 +184,67 @@ class Cart extends Component
 
     public function applyPromoCode()
     {
-        // Simple promo code validation (you can expand this)
-        $promoCodes = [
-            'DISKON10' => 10, // 10% discount
-            'DISKON50K' => 50000, // Rp 50.000 discount
-            'WELCOME' => 5, // 5% discount
-        ];
-
+        $voucherService = new \App\Services\VoucherService;
         $code = strtoupper($this->promoCode);
 
-        if (isset($promoCodes[$code])) {
-            if ($promoCodes[$code] < 100) {
-                // Percentage discount
-                $this->discount = ($this->subtotal * $promoCodes[$code]) / 100;
-            } else {
-                // Fixed amount discount
-                $this->discount = $promoCodes[$code];
-            }
+        $result = $voucherService->applyVoucher(
+            $code,
+            $this->subtotal,
+            auth()->user()
+        );
 
-            session()->flash('message', 'Kode promo berhasil diterapkan!');
+        if ($result['success']) {
+            $data = $result['data'];
+            $this->discount = $data['discount_amount'];
+
+            // Store to session for Checkout page
+            Session::put('applied_voucher', $data);
+
+            session()->flash('message', $result['message']);
         } else {
             $this->discount = 0;
-            session()->flash('error', 'Kode promo tidak valid.');
+            Session::forget('applied_voucher');
+            session()->flash('error', $result['message']);
+        }
+    }
+
+    public function removePromoCode()
+    {
+        $this->promoCode = '';
+        $this->discount = 0;
+        Session::forget('applied_voucher');
+        session()->flash('message', 'Kode voucher dihapus.');
+    }
+
+    // Recalculate voucher logic AFTER actions (like update qty) are performed
+    public function dehydrate()
+    {
+        if (Session::has('applied_voucher')) {
+            $voucherData = Session::get('applied_voucher');
+
+            // Re-calculate based on NEW subtotal (after quantity updates)
+            $voucherService = new \App\Services\VoucherService;
+            $result = $voucherService->applyVoucher(
+                $voucherData['code'],
+                $this->subtotal,
+                auth()->user()
+            );
+
+            if ($result['success']) {
+                $this->discount = $result['data']['discount_amount'];
+                // Update session with new calculation if needed
+                if ($this->discount !== $voucherData['discount_amount']) {
+                    $voucherData['discount_amount'] = $this->discount;
+                    Session::put('applied_voucher', $voucherData);
+                }
+            } else {
+                // Voucher invalid now (e.g. subtotal changed below minimum)
+                $this->discount = 0;
+                Session::forget('applied_voucher');
+                $this->promoCode = '';
+                // Optional: flash error only if it was previously valid?
+                // session()->flash('error', 'Voucher tidak lagi valid.');
+            }
         }
     }
 

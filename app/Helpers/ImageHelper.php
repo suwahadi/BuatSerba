@@ -106,6 +106,22 @@ if (! function_exists('user_avatar')) {
             return asset('images/default-avatar.png');
         }
 
-        return image_url($user->avatar);
+    }
+}
+
+if (! function_exists('global_config')) {
+    /**
+     * Get global configuration value by key.
+     *
+     * @param  mixed  $default
+     * @return mixed
+     */
+    function global_config(string $key, $default = null)
+    {
+        return \Illuminate\Support\Facades\Cache::remember('global_config.'.$key, 3600, function () use ($key, $default) {
+            $config = \App\Models\GlobalConfig::where('key', $key)->first();
+
+            return $config ? $config->value : $default;
+        });
     }
 }

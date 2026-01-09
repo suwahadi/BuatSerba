@@ -12,6 +12,7 @@ Route::get('/cart', App\Livewire\Cart::class)->name('cart');
 Route::get('/checkout', App\Livewire\Checkout::class)->name('checkout');
 Route::get('/payment/{code}', App\Livewire\Payment::class)->name('payment');
 Route::get('/order/{orderNumber}', App\Livewire\OrderDetail::class)->name('order.detail');
+Route::get('/payment/{code}/confirmation', App\Livewire\PaymentConfirmation::class)->name('payment.confirmation');
 
 Route::get('/payment/{orderNumber}/success', function ($orderNumber) {
     return redirect()->route('payment', $orderNumber);
@@ -37,6 +38,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/dashboard', App\Livewire\Dashboard\Index::class)->name('dashboard');
+    Route::get('/order/{orderNumber}/rating', App\Livewire\Dashboard\OrderRating::class)->name('order.rating');
     Route::get('/profile', App\Livewire\Dashboard\Profile::class)->name('user.profile');
     Route::get('/address', App\Livewire\Dashboard\Address::class)->name('user.address');
 });
@@ -67,3 +69,6 @@ Route::middleware(['auth'])->group(function () {
         )
         ->name('two-factor.show');
 });
+
+// Dynamic Page Route
+Route::get('/{slug}', App\Livewire\SlugRouter::class)->name('page.show');

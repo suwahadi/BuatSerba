@@ -12,12 +12,16 @@ use Livewire\Component;
 class Profile extends Component
 {
     public $name = '';
+
     public $email = '';
+
     public $phone = '';
-    
+
     // Password fields
     public $current_password = '';
+
     public $new_password = '';
+
     public $new_password_confirmation = '';
 
     public function mount()
@@ -32,7 +36,7 @@ class Profile extends Component
     {
         return [
             'name' => 'required|min:3|max:255',
-            'email' => 'required|email|unique:users,email,' . auth()->id(),
+            'email' => 'required|email|unique:users,email,'.auth()->id(),
             'phone' => 'nullable|min:10|max:15',
             'current_password' => 'nullable|required_with:new_password|current_password',
             'new_password' => 'nullable|required_with:current_password|min:8|confirmed',
@@ -62,7 +66,7 @@ class Profile extends Component
 
         try {
             $user = auth()->user();
-            
+
             // Update basic info
             $user->update([
                 'name' => $this->name,
@@ -71,21 +75,21 @@ class Profile extends Component
             ]);
 
             // Update password if provided
-            if (!empty($this->new_password)) {
+            if (! empty($this->new_password)) {
                 $user->update([
-                    'password' => Hash::make($this->new_password)
+                    'password' => Hash::make($this->new_password),
                 ]);
-                
+
                 // Clear password fields after successful update
                 $this->reset(['current_password', 'new_password', 'new_password_confirmation']);
-                
+
                 $this->dispatch('notify-success', message: 'Profil dan password berhasil diperbarui!');
             } else {
                 $this->dispatch('notify-success', message: 'Profil berhasil diperbarui!');
             }
 
         } catch (\Exception $e) {
-            $this->dispatch('notify-error', message: 'Gagal memperbarui profil: ' . $e->getMessage());
+            $this->dispatch('notify-error', message: 'Gagal memperbarui profil: '.$e->getMessage());
         }
     }
 

@@ -41,7 +41,13 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-600">Metode Pembayaran</p>
-                        <p class="text-xs sm:text-sm font-medium uppercase mt-0.5">{{ strtoupper($order->payment_method) }} VA</p>
+                        <p class="text-xs sm:text-sm font-medium uppercase mt-0.5">
+                            @if($order->payment_method === 'transfer')
+                                Bank Transfer
+                            @else
+                                {{ strtoupper($order->payment_method) }} VA
+                            @endif
+                        </p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-600">Status Pembayaran</p>
@@ -56,7 +62,43 @@
             </div>
 
             <!-- Payment Instructions -->
-            @if(isset($paymentInstructions) && !empty($paymentInstructions) && $order->payment_status !== 'paid' && $order->status !== 'cancelled' && (!isset($paymentData['transaction_status']) || !in_array($paymentData['transaction_status'], ['expire', 'expired'])))
+            @if($order->payment_method === 'transfer')
+            <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100 bg-white">
+                <h3 class="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">Cara Pembayaran</h3>
+                
+                <div class="bg-white rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 border-2 border-green-200">
+                    <div class="flex items-center justify-between mb-2 sm:mb-3">
+                        <span class="text-xs sm:text-sm font-medium text-gray-900">Bank Transfer {{ global_config('manual_bank_name') ?? 'BCA' }}</span>
+                        <button @click="
+                            navigator.clipboard.writeText('{{ global_config('manual_bank_account_number') }}');
+                            showToast = true;
+                            toastMessage = 'Nomor Rekening berhasil disalin!';
+                            setTimeout(() => showToast = false, 3000);
+                        " class="flex items-center space-x-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs font-medium">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>Salin</span>
+                        </button>
+                    </div>
+                    <div class="text-base sm:text-lg md:text-xl font-mono font-bold text-center py-3 sm:py-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 overflow-x-auto">
+                        <div class="min-w-0 px-2">{{ global_config('manual_bank_account_number') }}</div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2 sm:mt-3 text-center font-medium">
+                        a.n {{ global_config('manual_bank_account_name') }}
+                    </p>
+                    <p class="text-xs text-gray-600 mt-2 text-center leading-relaxed">
+                        Silakan transfer ke rekening di atas dan lakukan konfirmasi pembayaran Anda.
+                    </p>
+                </div>
+
+                <ol class="list-decimal list-inside space-y-1.5 sm:space-y-2">
+                    <li class="text-xs sm:text-sm text-gray-700">Lakukan transfer sesuai total tagihan ke rekening di atas.</li>
+                    <li class="text-xs sm:text-sm text-gray-700">Simpan bukti transfer Anda.</li>
+                    <li class="text-xs sm:text-sm text-gray-700">Klik tombol <strong>Konfirmasi Pembayaran</strong> di bawah ini.</li>
+                </ol>
+            </div>
+            @elseif(isset($paymentInstructions) && !empty($paymentInstructions) && $order->payment_status !== 'paid' && $order->status !== 'cancelled' && (!isset($paymentData['transaction_status']) || !in_array($paymentData['transaction_status'], ['expire', 'expired'])))
             <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100 bg-white">
                 <h3 class="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">Cara Pembayaran</h3>
                 
@@ -128,7 +170,12 @@
                     Kembali ke Beranda
                 </a>
                 
-                @if($order->payment_status !== 'paid')
+                @if($order->payment_method === 'transfer')
+                <a href="{{ route('payment.confirmation', ['code' => $order->order_number]) }}" 
+                   class="flex-1 px-4 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 text-center transition font-medium">
+                    Konfirmasi Pembayaran
+                </a>
+                @elseif($order->payment_status !== 'paid')
                 <a href="{{ route('order.detail', $order->order_number) }}" 
                    class="flex-1 px-4 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 text-center transition font-medium">
                     Cek Status Pembayaran

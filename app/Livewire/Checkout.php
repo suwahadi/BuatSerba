@@ -14,14 +14,12 @@ use Livewire\Component;
 
 class Checkout extends Component
 {
-    // Customer Information
     public $fullName = '';
 
     public $email = '';
 
     public $phone = '';
 
-    // Shipping Address
     public $provinceId = '';
 
     public $cityId = '';
@@ -34,7 +32,6 @@ class Checkout extends Component
 
     public $address = '';
 
-    // Available regions
     public $provinces = [];
 
     public $cities = [];
@@ -43,28 +40,24 @@ class Checkout extends Component
 
     public $subdistricts = [];
 
-    // Store district and subdistrict names for order
     public $districtName = '';
 
     public $subdistrictName = '';
 
-    // Shipping Method
     public $shippingMethod = '';
 
     public $shippingCost = 0;
 
-    // Payment Method
     public $paymentMethod = '';
 
-    // Order Summary
     public $serviceFee = 2000;
 
     public $discount = 0;
 
-    // Available Options (Will be populated with dynamic options)
+    public $voucherCode = '';
+
     public $shippingMethods = [];
 
-    // Branch Selection
     public $branches = [];
 
     public $selectedBranchId = null;
@@ -93,16 +86,21 @@ class Checkout extends Component
                 'description' => 'Transfer ke rekening virtual BRI',
                 'icon' => 'bank',
             ],
+            // [
+            //     'id' => 'bank-transfer-permata',
+            //     'name' => 'Permata Virtual Account',
+            //     'description' => 'Transfer ke rekening virtual Permata',
+            //     'icon' => 'bank',
+            // ],
             [
-                'id' => 'bank-transfer-permata',
-                'name' => 'Permata Virtual Account',
-                'description' => 'Transfer ke rekening virtual Permata',
+                'id' => 'bank-transfer',
+                'name' => 'Bank Transfer (' . (global_config('manual_bank_name') ?? 'BCA') . ')',
+                'description' => 'Transfer manual ke rekening ' . (global_config('manual_bank_name') ?? 'BCA'),
                 'icon' => 'bank',
             ],
         ];
     }
 
-    // Selected branch for shipping origin
     #[Computed]
     public function activeBranches()
     {
@@ -152,46 +150,43 @@ class Checkout extends Component
 
     public function mount()
     {
-        // Load provinces from RajaOngkir API
+
         $rajaongkir = new RajaongkirService;
         $provincesData = $rajaongkir->getProvinces();
 
-        // Convert to key-value array for dropdown
         $this->provinces = collect($provincesData)->mapWithKeys(function ($province) {
             return [$province['id'] => $province['name']];
         })->toArray();
 
-        // Load active branches for selection
         $this->branches = Branch::where('is_active', true)->orderBy('priority')->get()->toArray();
 
-        // Initialize with empty shipping methods - will be populated when subdistrict is selected
         $this->shippingMethods = [];
 
-        // Check if cart is empty
         if ($this->cartItems->isEmpty()) {
             session()->flash('error', 'Keranjang belanja Anda kosong.');
 
             return redirect()->route('cart');
         }
 
-        // Show branch selection modal on initial load
-        $this->showBranchModal = true;
+        if (count($this->branches) === 1) {
+            $this->selectedBranchId = $this->branches[0]['id'];
+            $this->showBranchModal = false;
+        } else {
+            $this->showBranchModal = true;
+        }
 
-        // Auto-fill from user data if logged in
         if (auth()->check()) {
             $user = auth()->user();
-            
-            // Fill user information
+
             $this->fullName = $user->name ?? '';
             $this->email = $user->email ?? '';
             $this->phone = $user->phone ?? '';
 
-            // Try to load user's primary or first address
-            $address = $user->addresses()->where('is_primary', true)->first() 
+            $address = $user->addresses()->where('is_primary', true)->first()
                     ?? $user->addresses()->first();
 
             if ($address) {
-                // Fill address information
+
                 $this->provinceId = $address->province_id;
                 $this->cityId = $address->city_id;
                 $this->districtId = $address->district_id;
@@ -199,42 +194,62 @@ class Checkout extends Component
                 $this->postalCode = $address->postal_code;
                 $this->address = $address->full_address;
 
-                // Load cities for the selected province
                 if ($this->provinceId) {
                     $citiesData = $rajaongkir->getCities($this->provinceId);
                     $this->cities = collect($citiesData)->mapWithKeys(function ($city) {
                         $type = $city['type'] ?? '';
                         $name = $city['name'] ?? '';
                         $displayName = trim($type.' '.$name);
+
                         return [$city['id'] => $displayName];
                     })->toArray();
                 }
 
-                // Load districts for the selected city
                 if ($this->cityId) {
                     $districtsData = $rajaongkir->getDistricts($this->cityId);
                     $this->districts = collect($districtsData)->mapWithKeys(function ($district) {
                         return [$district['id'] => $district['name']];
                     })->toArray();
 
-                    // Store district name if selected
                     if ($this->districtId && isset($this->districts[$this->districtId])) {
                         $this->districtName = $this->districts[$this->districtId];
                     }
                 }
 
-                // Load subdistricts for the selected district
                 if ($this->districtId) {
                     $subdistrictsData = $rajaongkir->getSubdistricts($this->districtId);
                     $this->subdistricts = collect($subdistrictsData)->mapWithKeys(function ($subdistrict) {
                         return [$subdistrict['id'] => $subdistrict['name']];
                     })->toArray();
 
-                    // Store subdistrict name if selected
                     if ($this->subdistrictId && isset($this->subdistricts[$this->subdistrictId])) {
                         $this->subdistrictName = $this->subdistricts[$this->subdistrictId];
                     }
                 }
+
+                if ($this->selectedBranchId && $this->districtId) {
+                    $this->calculateShippingCost();
+                }
+            }
+        }
+
+        if (Session::has('applied_voucher')) {
+            $voucherData = Session::get('applied_voucher');
+            $this->voucherCode = $voucherData['code'];
+
+            $voucherService = new \App\Services\VoucherService;
+            $result = $voucherService->applyVoucher(
+                $this->voucherCode,
+                $this->subtotal,
+                auth()->user()
+            );
+
+            if ($result['success']) {
+                $this->discount = $result['data']['discount_amount'];
+            } else {
+                $this->discount = 0;
+                $this->voucherCode = '';
+                Session::forget('applied_voucher');
             }
         }
     }
@@ -244,7 +259,6 @@ class Checkout extends Component
         $this->selectedBranchId = $branchId;
         $this->showBranchModal = false;
 
-        // Recalculate shipping cost with new branch origin if subdistrict is already selected
         if ($this->subdistrictId) {
             $this->calculateShippingCost();
         }
@@ -252,7 +266,7 @@ class Checkout extends Component
 
     public function updatedProvinceId($provinceId)
     {
-        // Reset dependent fields when province changes
+
         $this->cityId = '';
         $this->districtId = '';
         $this->subdistrictId = '';
@@ -262,11 +276,10 @@ class Checkout extends Component
         $this->shippingMethods = [];
 
         if ($provinceId) {
-            // Load cities from RajaOngkir API
+
             $rajaongkir = new RajaongkirService;
             $citiesData = $rajaongkir->getCities($provinceId);
 
-            // Convert to key-value array for dropdown
             $this->cities = collect($citiesData)->mapWithKeys(function ($city) {
                 $type = $city['type'] ?? '';
                 $name = $city['name'] ?? '';
@@ -279,7 +292,7 @@ class Checkout extends Component
 
     public function updatedCityId($cityId)
     {
-        // Reset dependent fields when city changes
+
         $this->districtId = '';
         $this->subdistrictId = '';
         $this->districts = [];
@@ -287,11 +300,10 @@ class Checkout extends Component
         $this->shippingMethods = [];
 
         if ($cityId) {
-            // Load districts from RajaOngkir API
+
             $rajaongkir = new RajaongkirService;
             $districtsData = $rajaongkir->getDistricts($cityId);
 
-            // Convert to key-value array for dropdown
             $this->districts = collect($districtsData)->mapWithKeys(function ($district) {
                 return [$district['id'] => $district['name']];
             })->toArray();
@@ -300,22 +312,20 @@ class Checkout extends Component
 
     public function updatedDistrictId($districtId)
     {
-        // Reset dependent fields when district changes
+
         $this->subdistrictId = '';
         $this->subdistricts = [];
         $this->shippingMethods = [];
 
-        // Store the district name for later use
         if ($districtId && isset($this->districts[$districtId])) {
             $this->districtName = $this->districts[$districtId];
         }
 
         if ($districtId) {
-            // Load subdistricts from RajaOngkir API
+
             $rajaongkir = new RajaongkirService;
             $subdistrictsData = $rajaongkir->getSubdistricts($districtId);
 
-            // Convert to key-value array for dropdown
             $this->subdistricts = collect($subdistrictsData)->mapWithKeys(function ($subdistrict) {
                 return [$subdistrict['id'] => $subdistrict['name']];
             })->toArray();
@@ -324,12 +334,11 @@ class Checkout extends Component
 
     public function updatedSubdistrictId($subdistrictId)
     {
-        // Store the subdistrict name for later use
+
         if ($subdistrictId && isset($this->subdistricts[$subdistrictId])) {
             $this->subdistrictName = $this->subdistricts[$subdistrictId];
         }
 
-        // Recalculate shipping when subdistrict changes
         $this->calculateShippingCost();
     }
 
@@ -367,7 +376,7 @@ class Checkout extends Component
 
     protected function updateShippingCost()
     {
-        // Find selected shipping method
+
         $method = collect($this->shippingMethods)->firstWhere('id', $this->shippingMethod);
 
         if ($method) {
@@ -377,104 +386,56 @@ class Checkout extends Component
 
     public function calculateShippingCost()
     {
-        // Only calculate if we have district selected
+
         if (! $this->districtId || ! $this->selectedBranch) {
-            // Clear shipping methods if district not selected
+
             $this->shippingMethods = [];
 
             return;
         }
 
         try {
-            // Initialize Rajaongkir service
+
             $rajaongkir = new RajaongkirService;
 
-            // Calculate total package weight
             $totalWeight = $this->cartItems->sum(function ($item) {
                 return ($item->sku->weight ?? 1000) * $item->quantity;
             });
 
-            // Determine origin and destination IDs
-            // IMPORTANT: Both origin and destination should use the same level (both district OR both subdistrict)
-            // Origin: Always use branch's subdistrict_id (branches should have this configured)
             $originId = $this->selectedBranch->subdistrict_id;
-
-            // Destination: Prefer subdistrict if selected, otherwise use district
-            // When user selects subdistrict (kelurahan), we get more accurate pricing
             $destinationId = $this->subdistrictId ?: $this->districtId;
             $useSubdistrict = ! empty($this->subdistrictId);
 
             if (! $originId) {
-                \Log::warning('Origin subdistrict_id is null for branch: '.$this->selectedBranch->name);
+
                 $this->shippingMethods = [];
 
                 return;
             }
 
-            // Prepare location type information for logging
             $locationType = $useSubdistrict ? 'subdistrict' : 'district';
             $destinationName = $useSubdistrict
                 ? ($this->subdistrictName ?: 'Unknown Subdistrict')
                 : ($this->districts[$this->districtId] ?? 'Unknown District');
 
-            // Enhanced logging to show exactly what's being calculated
-            \Log::info('Shipping Cost Calculation Request', [
-                'calculation_level' => strtoupper($locationType),
-                'origin' => [
-                    'branch' => $this->selectedBranch->name,
-                    'province' => ($this->selectedBranch->province_name ?? ''),
-                    'city' => ($this->selectedBranch->city_name ?? ''),
-                    'subdistrict' => ($this->selectedBranch->subdistrict_name ?? ''),
-                    'subdistrict_id' => $originId,
-                ],
-                'destination' => [
-                    'province' => $this->provinces[$this->provinceId] ?? 'Unknown',
-                    'city' => $this->cities[$this->cityId] ?? 'Unknown',
-                    'district' => $this->districts[$this->districtId] ?? 'Unknown',
-                    'subdistrict' => $useSubdistrict ? $destinationName : 'N/A',
-                    'id' => $destinationId,
-                    'type' => $locationType,
-                ],
-                'weight_grams' => $totalWeight,
-            ]);
-
-            // Prepare parameters for shipping cost calculation
             $params = [
                 'origin' => $originId,
                 'destination' => $destinationId,
-                'weight' => max(200, $totalWeight), // Weight in grams, minimum 200
-                'courier' => 'ide:tiki:sap:jne:sicepat:jnt:ninja:pos:wahana',
-                'price' => 'lowest', // Get lowest price first
-                '_use_subdistrict' => $useSubdistrict, // Internal flag for service logging
+                'weight' => max(200, $totalWeight),
+                'courier' => 'jne:jnt',
+                'price' => 'lowest',
+                '_use_subdistrict' => $useSubdistrict,
             ];
 
-            // Calculate shipping cost using the domestic cost endpoint
-            // This endpoint supports BOTH district and subdistrict IDs
             $shippingResults = $rajaongkir->calculateDomesticCost($params);
-
-            // Log API response for debugging
-            \Log::info('Rajaongkir API Response', [
-                'calculation_level' => strtoupper($locationType),
-                'results_count' => count($shippingResults),
-                'results' => $shippingResults,
-            ]);
-
-            // Process results and update shipping options
             $this->processShippingResults($shippingResults);
 
         } catch (\Exception $e) {
-            // Log error but don't break the flow
-            \Log::error('Shipping cost calculation error: '.$e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
-            // Clear shipping methods on error
+
             $this->shippingMethods = [];
         }
     }
 
-    /**
-     * Process shipping results from Rajaongkir API
-     */
     protected function processShippingResults($results)
     {
         $shippingOptions = [];
@@ -502,9 +463,8 @@ class Checkout extends Component
             ];
         }
 
-        // Update shipping methods if we have options
         if (! empty($shippingOptions)) {
-            // Ensure all data is serializable by converting to plain arrays
+
             $this->shippingMethods = array_map(function ($option) {
                 return [
                     'id' => (string) $option['id'],
@@ -514,38 +474,23 @@ class Checkout extends Component
                     'estimatedDays' => (string) $option['estimatedDays'],
                 ];
             }, $shippingOptions);
-            // Set first option as default
+
             $this->shippingMethod = $this->shippingMethods[0]['id'] ?? 'regular';
         } else {
-            // No shipping options available from API
+
             $this->shippingMethods = [];
         }
 
-        // Update shipping cost based on selected method
         $this->updateShippingCost();
     }
 
-    /**
-     * Initialize default shipping methods - DEPRECATED
-     * Shipping methods are now only shown after district selection
-     */
-    protected function initializeDefaultShippingMethods()
-    {
-        // This method is kept for backward compatibility but should not be called
-        // Shipping methods are now populated from Rajaongkir API only
-    }
+    protected function initializeDefaultShippingMethods() {}
 
-    /**
-     * Select the nearest branch for shipping origin
-     */
-    public function selectNearestBranch()
-    {
-        // This method is no longer needed as we use computed property
-    }
+    public function selectNearestBranch() {}
 
     public function placeOrder()
     {
-        // Validate all fields
+
         try {
             $this->validate();
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -553,7 +498,6 @@ class Checkout extends Component
             throw $e;
         }
 
-        // Check if cart is empty
         if ($this->cartItems->isEmpty()) {
             $this->dispatch('showModalError', [
                 'title' => 'Keranjang Kosong',
@@ -564,20 +508,16 @@ class Checkout extends Component
         }
 
         try {
-            // Get location names directly from the dropdown arrays (already loaded)
-            // This is more efficient and ensures consistency with what user selected
+
             $provinceName = strtoupper($this->provinces[$this->provinceId] ?? '');
             $cityName = strtoupper($this->cities[$this->cityId] ?? '');
             $districtName = strtoupper($this->districts[$this->districtId] ?? '');
             $subdistrictName = strtoupper($this->subdistricts[$this->subdistrictId] ?? '');
 
-            // Create order using OrderService
             $orderService = new OrderService;
 
-            // Extract bank name from payment method
-            // Format: 'bank-transfer-bca' -> 'bca', 'cod' -> 'cod'
             $paymentMethodParts = explode('-', $this->paymentMethod);
-            $bankName = end($paymentMethodParts); // Get last part (bca, bni, bri, or cod)
+            $bankName = end($paymentMethodParts);
 
             $order = $orderService->createOrder([
                 'customer_name' => $this->fullName,
@@ -591,28 +531,39 @@ class Checkout extends Component
                 'shipping_address' => $this->address,
                 'shipping_method' => $this->shippingMethod,
                 'shipping_cost' => $this->shippingCost,
-                'payment_method' => $bankName, // Store only bank name: bca, bni, bri, or cod
+                'payment_method' => $bankName,
                 'service_fee' => $this->serviceFee,
                 'discount' => $this->discount,
             ]);
 
-            // Log order creation
-            \Log::info('Order created successfully: '.$order->order_number);
+            if ($this->paymentMethod === 'bank-transfer') {
+                \App\Models\Payment::create([
+                    'order_id' => $order->id,
+                    'payment_gateway' => 'bank_transfer',
+                    'transaction_id' => (string) \Illuminate\Support\Str::uuid(),
+                    'transaction_time' => now(),
+                    'transaction_status' => 'pending',
+                    'payment_type' => 'bank_transfer',
+                    'payment_channel' => strtolower(global_config('manual_bank_name') ?? 'bca'),
+                    'gross_amount' => $order->total,
+                    'currency' => 'IDR',
+                    'status_code' => '201',
+                    'status_message' => 'Waiting for manual transfer',
+                ]);
 
-            // Create Midtrans payment for non-COD payments
-            if ($this->paymentMethod !== 'cod') {
+                $order->update([
+                    'status' => 'pending_payment',
+                    'payment_status' => 'pending',
+                ]);
+
+            } elseif ($this->paymentMethod !== 'cod') {
                 $midtransService = new MidtransService;
                 $paymentResult = $midtransService->createTransaction($order, $this->paymentMethod);
 
-                // Log the payment result for debugging
-                \Log::info('Midtrans payment creation result: '.json_encode($paymentResult));
-
                 if ($paymentResult['success']) {
-                    // Payment created successfully, the payment record is automatically created by the MidtransService
-                    \Log::info('Payment record created successfully for order: '.$order->order_number);
+
                 } else {
-                    // Log the error
-                    \Log::error('Failed to create payment for order: '.$order->order_number.' - '.$paymentResult['message']);
+
                     $this->dispatch('showModalError', [
                         'title' => 'Gagal Membuat Pembayaran',
                         'message' => 'Gagal membuat pembayaran: '.$paymentResult['message'],
@@ -621,27 +572,22 @@ class Checkout extends Component
                     return;
                 }
             } else {
-                // For COD orders, mark as pending payment
+
                 $order->update([
                     'status' => 'pending_payment',
                     'payment_status' => 'pending',
                 ]);
             }
 
-            // Log redirect information
-            \Log::info('Redirecting to payment page for order: '.$order->order_number);
-
-            // Show success modal and redirect
             $this->dispatch('showModalSuccess', [
                 'title' => 'Pesanan Berhasil Dibuat',
                 'message' => 'Pesanan Anda telah berhasil dibuat. Nomor pesanan: '.$order->order_number,
             ]);
 
-            // Redirect after a short delay
             return redirect()->route('payment', ['code' => $order->order_number]);
 
         } catch (\Exception $e) {
-            \Log::error('Order placement error: '.$e->getMessage());
+
             $this->dispatch('showModalError', [
                 'title' => 'Error',
                 'message' => $e->getMessage(),

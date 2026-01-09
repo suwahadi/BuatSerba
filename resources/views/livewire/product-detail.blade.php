@@ -1,3 +1,4 @@
+<div>
 <div class="bg-gray-50">
     <!-- Navigation -->
     <x-navbar />
@@ -11,7 +12,7 @@
                     <li><span class="text-gray-400">/</span></li>
                     <li><a href="/catalog" class="text-gray-500 hover:text-gray-700">Katalog</a></li>
                     <li><span class="text-gray-400">/</span></li>
-                    <li><a href="/catalog?category={{ $product->category_id }}" class="text-gray-500 hover:text-gray-700">{{ $product->category->name }}</a></li>
+                    <li><a href="/{{ $product->category->slug }}" class="text-gray-500 hover:text-gray-700">{{ $product->category->name }}</a></li>
                     <li><span class="text-gray-400">/</span></li>
                     <li><span class="text-gray-900 font-medium truncate max-w-[150px] sm:max-w-none">{{ Str::limit($product->name, 30) }}</span></li>
                 </ol>
@@ -61,9 +62,13 @@
                     <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">{{ $product->name }}</h1>
                     
                     <div class="flex items-center space-x-2 sm:space-x-4 mb-3 sm:mb-4">
-                        <div class="flex text-yellow-400">
-                            @for($i = 0; $i < 5; $i++)
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <div class="flex items-center space-x-1">
+                            @for($i = 1; $i <= 5; $i++)
+                                @if($i <= round($this->averageRating))
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                @else
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                @endif
                             @endfor
                         </div>
                         <span class="text-xs sm:text-sm text-gray-500">{{ number_format($product->view_count) }} dilihat</span>
@@ -84,6 +89,7 @@
                     </div>
                     
                     <!-- Dynamic Pricing Information -->
+                    {{--
                     <div class="bg-blue-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
                         <h3 class="text-sm sm:text-base font-semibold text-blue-900 mb-2 sm:mb-3">Harga Berdasarkan Jumlah Pembelian</h3>
                         <div class="space-y-2 sm:space-y-3">
@@ -121,6 +127,7 @@
                             Klik pada tier untuk langsung menambahkan ke keranjang belanja.
                         </p>
                     </div>
+                    --}}
                     @endif
                 </div>
 
@@ -183,6 +190,7 @@
                 </div>
 
                 <!-- Branch Inventory Information -->
+                {{--
                 @if($branchInventory && $branchInventory->count() > 0)
                 <div class="mt-4 sm:mt-6">
                     <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Ketersediaan Stok di Gudang</h3>
@@ -228,6 +236,7 @@
                     </div>
                 </div>
                 @endif
+                --}}
                 @else
                 <div class="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
                     <p class="text-sm sm:text-base text-red-800 font-medium">Produk ini sedang tidak tersedia</p>
@@ -262,15 +271,123 @@
                             class="py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap {{ $activeTab === 'description' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
                         Deskripsi
                     </button>
-
+                    <button wire:click="setActiveTab('reviews')" 
+                            class="py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap {{ $activeTab === 'reviews' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                        Ulasan ({{ $this->reviewCount }})
+                    </button>
                 </nav>
             </div>
 
             <div class="p-4 sm:p-6">
                 <!-- Description Tab -->
                 <div class="{{ $activeTab === 'description' ? '' : 'hidden' }}">
-                    <div class="prose prose-lg max-w-none text-gray-700 prose-p:mb-8">
+                    <div class="product-description text-gray-700 text-sm sm:text-base leading-relaxed">
                         {!! $product->description !!}
+                    </div>
+                </div>
+
+                <!-- Reviews Tab -->
+                <div class="{{ $activeTab === 'reviews' ? '' : 'hidden' }}">
+                    <div class="space-y-6">
+                        @forelse($product->reviews as $review)
+                        <div class="border-b border-gray-100 pb-6 last:border-0">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                        <span class="text-xs font-bold text-gray-600">{{ substr($review->user->name ?? 'User', 0, 1) }}</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-semibold text-gray-900">{{ $review->user->name ?? 'Pengguna' }}</h4>
+                                        <span class="text-xs text-gray-500">{{ $review->created_at->format('d M Y') }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-0.5">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <svg class="w-4 h-4 {{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-200' }} fill-current" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                    @endfor
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-700 leading-relaxed">{{ $review->review }}</p>
+
+                            @if(!empty($review->images) && is_array($review->images))
+                            @php
+                                $imageUrls = collect($review->images)->map(fn($img) => Storage::url($img))->toArray();
+                            @endphp
+                            <div class="mt-3 flex gap-2 overflow-x-auto pb-2" 
+                                 x-data="{ 
+                                    lightbox: false, 
+                                    images: {{ json_encode($imageUrls) }},
+                                    currentIndex: 0,
+                                    get currentImage() { return this.images[this.currentIndex]; },
+                                    next() { this.currentIndex = (this.currentIndex + 1) % this.images.length; },
+                                    prev() { this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length; }
+                                 }">
+                                @foreach($review->images as $index => $image)
+                                    <div class="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:opacity-90"
+                                         @click="currentIndex = {{ $index }}; lightbox = true">
+                                        <img src="{{ Storage::url($image) }}" class="w-full h-full object-cover">
+                                    </div>
+                                @endforeach
+
+                                <!-- Simple Lightbox -->
+                                <div x-show="lightbox" 
+                                     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
+                                     x-transition:enter="transition ease-out duration-300"
+                                     x-transition:enter-start="opacity-0"
+                                     x-transition:enter-end="opacity-100"
+                                     x-transition:leave="transition ease-in duration-200"
+                                     x-transition:leave-start="opacity-100"
+                                     x-transition:leave-end="opacity-0"
+                                     @click.self="lightbox = false"
+                                     @keydown.window.escape="lightbox = false"
+                                     @keydown.window.arrow-right="if(lightbox) next()"
+                                     @keydown.window.arrow-left="if(lightbox) prev()"
+                                     style="display: none;">
+                                    
+                                    <div class="relative max-w-4xl max-h-full flex items-center justify-center w-full">
+                                        <!-- Prev Button -->
+                                        <button x-show="images.length > 1" 
+                                                @click.stop="prev()" 
+                                                class="absolute left-0 sm:-left-16 text-white hover:text-gray-300 p-2 focus:outline-none z-10 bg-black/50 sm:bg-transparent rounded-full sm:rounded-none m-2 sm:m-0">
+                                            <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                            </svg>
+                                        </button>
+
+                                        <img :src="currentImage" class="max-w-full max-h-[85vh] object-contain rounded-lg select-none">
+                                        
+                                        <!-- Next Button -->
+                                        <button x-show="images.length > 1" 
+                                                @click.stop="next()" 
+                                                class="absolute right-0 sm:-right-16 text-white hover:text-gray-300 p-2 focus:outline-none z-10 bg-black/50 sm:bg-transparent rounded-full sm:rounded-none m-2 sm:m-0">
+                                            <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </button>
+
+                                        <!-- Close Button -->
+                                        <button @click="lightbox = false" class="absolute -top-12 right-0 sm:-right-10 text-white hover:text-gray-300 p-2">
+                                            <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                        
+                                        <!-- Counter -->
+                                        <div x-show="images.length > 1" class="absolute -bottom-10 left-0 right-0 text-center text-white text-sm select-none">
+                                            <span x-text="currentIndex + 1"></span> / <span x-text="images.length"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                        @empty
+                        <div class="text-center py-8">
+                            <p class="text-gray-500">Belum ada ulasan untuk produk ini.</p>
+                        </div>
+                        @endforelse
                     </div>
                 </div>
 
@@ -480,6 +597,22 @@
         .continue-shopping-btn:active {
             transform: translateY(0);
         }
+
+        /* Product Description Styles (Custom Typography) */
+        .product-description p { margin-bottom: 1em; line-height: 1.6; font-size: 14px;}
+        .product-description p:last-child { margin-bottom: 0; }
+        .product-description ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .product-description ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+        .product-description li { margin-bottom: 0.25em; padding-left: 0.25em; }
+        .product-description strong, .product-description b { font-weight: 600; color: #111827; }
+        .product-description em, .product-description i { font-style: italic; }
+        .product-description h1 { font-size: 1.5em; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.75em; color: #111827; }
+        .product-description h2 { font-size: 1.25em; font-weight: 700; margin-top: 1.25em; margin-bottom: 0.75em; color: #111827; }
+        .product-description h3 { font-size: 1.125em; font-weight: 600; margin-top: 1.25em; margin-bottom: 0.5em; color: #111827; }
+        .product-description blockquote { border-left: 4px solid #e5e7eb; padding-left: 1em; margin-left: 0; margin-right: 0; font-style: italic; color: #4b5563; }
+        .product-description img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1em 0; }
+        .product-description a { color: #16a34a; text-decoration: underline; }
+        .product-description a:hover { color: #15803d; }
     </style>
     
     <!-- Cart Notification Modal -->
@@ -528,4 +661,5 @@
             </div>
         </div>
     </div>
+</div>
 </div>

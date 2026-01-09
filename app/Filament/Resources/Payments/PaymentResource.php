@@ -34,7 +34,7 @@ class PaymentResource extends Resource
 
     protected static ?string $slug = 'payments';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 10;
 
     public static function form(Schema $schema): Schema
     {
@@ -229,13 +229,7 @@ class PaymentResource extends Resource
                         'deny' => 'danger',
                         default => 'gray',
                     })
-                    ->toggleable(),
-
-                // TextColumn::make('paid_at')
-                //     ->label('Paid At')
-                //     ->dateTime()
-                //     ->sortable()
-                //     ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('transaction_time')
                     ->label('Transaction Time')

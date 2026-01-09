@@ -126,7 +126,8 @@ class OrderService
     protected function generateOrderNumber(): string
     {
         do {
-            $orderNumber = 'ORD-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -6));
+            $prefix = global_config('prefix_trx') ?? 'ORD-';
+            $orderNumber = $prefix.strtoupper(substr(uniqid(), -6));
         } while (Order::where('order_number', $orderNumber)->exists());
 
         return $orderNumber;

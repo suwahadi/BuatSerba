@@ -42,48 +42,7 @@
         </div>
 
         <!-- Footer -->
-        <footer class="bg-gray-900 text-white py-12">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div>
-                        <h4 class="text-2xl font-bold text-green-600 mb-4">BuatSerba</h4>
-                        <p class="text-gray-400 mb-4">Platform belanja online terpercaya dengan produk berkualitas dan harga terbaik.</p>
-                    </div>
-                    
-                    <div>
-                        <h5 class="font-semibold mb-4">Layanan</h5>
-                        <ul class="space-y-2 text-gray-400">
-                            <li><a href="#" class="hover:text-white">Bantuan</a></li>
-                            <li><a href="#" class="hover:text-white">Kebijakan Pengembalian</a></li>
-                            <li><a href="#" class="hover:text-white">Syarat & Ketentuan</a></li>
-                            <li><a href="#" class="hover:text-white">Kebijakan Privasi</a></li>
-                        </ul>
-                    </div>
-                    
-                    <div>
-                        <h5 class="font-semibold mb-4">Hubungi Kami</h5>
-                        <ul class="space-y-2 text-gray-400">
-                            <li>Email: cs@buatserba.com</li>
-                            <li>Telepon: 0800-123-4567</li>
-                            <li>Jam Operasional: 24/7</li>
-                        </ul>
-                    </div>
-                    
-                    <div>
-                        <h5 class="font-semibold mb-4">Ikuti Kami</h5>
-                        <div class="flex space-x-4 text-gray-400">
-                            <a href="#" class="hover:text-white">Facebook</a>
-                            <a href="#" class="hover:text-white">Instagram</a>
-                            <a href="#" class="hover:text-white">Twitter</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                    <p>&copy; {{ date('Y') }} BuatSerba. All rights reserved.</p>
-                </div>
-            </div>
-        </footer>
+        <x-footer />
 
         <!-- Notification -->
         <div x-data="{ show: false, message: '', type: 'success' }"

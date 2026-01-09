@@ -29,6 +29,8 @@ class BranchResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
+    protected static ?int $navigationSort = 13;
+
     public static function form(Schema $schema): Schema
     {
         return $schema
@@ -66,7 +68,7 @@ class BranchResource extends Resource
                         $set('city_name', null);
                         $set('district_name', null);
                         $set('subdistrict_name', null);
-                        
+
                         // Save province name
                         if ($state) {
                             $rajaongkir = new RajaongkirService;
@@ -106,7 +108,7 @@ class BranchResource extends Resource
                         $set('subdistrict_id', null);
                         $set('district_name', null);
                         $set('subdistrict_name', null);
-                        
+
                         // Save city name
                         $provinceId = $get('province_id');
                         if ($provinceId && $state) {
@@ -144,14 +146,14 @@ class BranchResource extends Resource
                     ->afterStateUpdated(function (Set $set, Get $get, $state) {
                         $set('subdistrict_id', null);
                         $set('subdistrict_name', null);
-                        
+
                         // Get selected district name and save it
                         $cityId = $get('city_id');
                         if ($cityId && $state) {
                             $rajaongkir = new RajaongkirService;
                             $districts = $rajaongkir->getDistricts($cityId);
                             $selectedDistrict = collect($districts)->firstWhere('id', $state);
-                            
+
                             if ($selectedDistrict) {
                                 $set('district_name', $selectedDistrict['name']);
                             }

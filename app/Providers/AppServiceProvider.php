@@ -21,8 +21,18 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Register observers
+        // Register observers
         \App\Models\Branch::observe(\App\Observers\BranchObserver::class);
-        
+
+        // Share categories with footer component
+        \Illuminate\Support\Facades\View::composer('components.footer', function ($view) {
+            $view->with('categories', \App\Models\Category::where('is_active', true)
+                ->whereNotNull('image')
+                ->orderBy('sort_order')
+                ->limit(6)
+                ->get());
+        });
+
         // Force HTTPS in production and when using ngrok (ngrok always uses HTTPS)
         if ($this->app->environment('production') || $this->isNgrokUrl()) {
             URL::forceScheme('https');

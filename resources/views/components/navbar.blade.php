@@ -3,7 +3,7 @@
         <div class="flex justify-between items-center h-14 sm:h-16">
             <!-- Logo -->
             <div class="flex items-center flex-shrink-0">
-                <a href="/" class="text-lg sm:text-2xl font-bold text-green-600">BuatSerba</a>
+                <a href="/" class="text-lg sm:text-2xl font-bold text-green-600">BuatSerba®</a>
             </div>
             
             <!-- Search Bar - Mobile & Desktop -->

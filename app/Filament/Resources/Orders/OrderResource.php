@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Orders;
 
-use App\Filament\Resources\Orders\Pages\CreateOrder;
 use App\Filament\Resources\Orders\Pages\EditOrder;
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Models\Order;
@@ -16,6 +15,8 @@ class OrderResource extends Resource
     protected static ?string $model = Order::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-cart';
+
+    protected static ?int $navigationSort = 9;
 
     protected static ?string $recordTitleAttribute = 'order_number';
 
@@ -249,5 +250,4 @@ class OrderResource extends Resource
     {
         return false;
     }
-
 }

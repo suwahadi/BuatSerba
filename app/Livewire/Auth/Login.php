@@ -13,7 +13,9 @@ use Livewire\Component;
 class Login extends Component
 {
     public $email = '';
+
     public $password = '';
+
     public $remember = false;
 
     protected $rules = [
@@ -32,11 +34,11 @@ class Login extends Component
         $this->validate();
 
         // Rate limiting
-        $throttleKey = strtolower($this->email) . '|' . request()->ip();
+        $throttleKey = strtolower($this->email).'|'.request()->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-            
+
             $this->js("
                 window.dispatchEvent(new CustomEvent('notify', {
                     detail: { 
@@ -45,19 +47,20 @@ class Login extends Component
                     }
                 }))
             ");
+
             return;
         }
 
         // Attempt login with email
         $credentials = [
             'email' => $this->email,
-            'password' => $this->password
+            'password' => $this->password,
         ];
 
         if (Auth::attempt($credentials, $this->remember)) {
             RateLimiter::clear($throttleKey);
             request()->session()->regenerate();
-            
+
             $this->js("
                 window.dispatchEvent(new CustomEvent('notify', {
                     detail: { 
@@ -68,7 +71,8 @@ class Login extends Component
             ");
 
             // Small delay for notification then redirect
-            $this->js("setTimeout(() => window.location.href = '" . route('dashboard') . "', 1000)");
+            $this->js("setTimeout(() => window.location.href = '".route('dashboard')."', 1000)");
+
             return;
         }
 

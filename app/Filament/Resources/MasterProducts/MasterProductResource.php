@@ -35,17 +35,17 @@ class MasterProductResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 
-    protected static ?string $navigationLabel = 'Master Products';
+    protected static ?string $navigationLabel = 'Products';
 
-    protected static ?string $modelLabel = 'Master Product';
+    protected static ?string $modelLabel = 'Product';
 
-    protected static ?string $pluralModelLabel = 'Master Products';
+    protected static ?string $pluralModelLabel = 'Products';
 
     protected static ?string $slug = 'master-products';
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 7;
 
     public static function form(Schema $schema): Schema
     {

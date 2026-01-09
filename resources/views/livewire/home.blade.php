@@ -6,118 +6,54 @@
     <div class="pt-16">
         <div class="relative overflow-hidden bg-gray-200">
             <div class="hero-slider">
-                <!-- Slide 1 -->
-                <div class="hero-slide active transition-opacity duration-700">
-                    <div class="relative w-full aspect-[16/10.67] md:aspect-[1600/600]">
-                        <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&h=600&fit=crop" 
-                             alt="Banner 1" 
-                             class="w-full h-full object-cover">
+                @forelse($banners as $index => $banner)
+                    <div class="hero-slide {{ $index === 0 ? 'relative active' : 'absolute inset-0 opacity-0' }} transition-opacity duration-700">
+                        <div class="relative w-full aspect-[16/10.67] md:aspect-[1600/600]">
+                            @if($banner->url)
+                                <a href="{{ $banner->url }}" class="block w-full h-full">
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($banner->image) }}" 
+                                         alt="{{ $banner->title }}" 
+                                         class="w-full h-full object-cover">
+                                </a>
+                            @else
+                                <img src="{{ \Illuminate\Support\Facades\Storage::url($banner->image) }}" 
+                                     alt="{{ $banner->title }}" 
+                                     class="w-full h-full object-cover">
+                            @endif
+                        </div>
                     </div>
-                </div>
-
-                <!-- Slide 2 -->
-                <div class="hero-slide absolute inset-0 transition-opacity duration-700 opacity-0">
-                    <div class="relative w-full aspect-[16/10.67] md:aspect-[1600/600]">
-                        <img src="https://images.unsplash.com/photo-1485125639709-a60c3a500bf1?q=80&w=1600&h=600&fit=crop" 
-                             alt="Banner 2" 
-                             class="w-full h-full object-cover">
+                @empty
+                    <!-- Default Slides if no banner -->
+                    <div class="hero-slide relative active transition-opacity duration-700">
+                        <div class="relative w-full aspect-[16/10.67] md:aspect-[1600/600]">
+                            <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&h=600&fit=crop" 
+                                 alt="Default Banner" 
+                                 class="w-full h-full object-cover">
+                        </div>
                     </div>
-                </div>
-
-                <!-- Slide 3 -->
-                <div class="hero-slide absolute inset-0 transition-opacity duration-700 opacity-0">
-                    <div class="relative w-full aspect-[16/10.67] md:aspect-[1600/600]">
-                        <img src="https://images.unsplash.com/photo-1573879500655-98f2012dd1db?q=80&w=1600&h=600&fit=crop" 
-                             alt="Banner 3" 
-                             class="w-full h-full object-cover">
-                    </div>
-                </div>
+                @endforelse
             </div>
 
             <!-- Slider Navigation -->
+            @if($banners->count() > 1)
             <div class="absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 sm:space-x-3 z-10">
-                <button class="slider-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity active" data-slide="0"></button>
-                <button class="slider-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity" data-slide="1"></button>
-                <button class="slider-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity" data-slide="2"></button>
+                @foreach($banners as $index => $banner)
+                    <button class="slider-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity {{ $index === 0 ? 'active' : '' }}" 
+                            data-slide="{{ $index }}"></button>
+                @endforeach
             </div>
+            @endif
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        <!-- Best Selling Products Section -->
-        <section class="mb-12 sm:mb-16">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Produk Terlaris</h2>
-                <a href="/catalog?sortBy=popularity" class="text-sm sm:text-base text-green-600 hover:text-green-700 font-medium flex items-center">
-                    Lihat Semua
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </a>
-            </div>
+        <!-- Category Carousel Section -->
+        <livewire:category-carousel />
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                @forelse($bestSellingProducts as $product)
-                <div class="bg-white rounded-lg shadow-md card-hover overflow-hidden">
-                    <a href="/product/{{ $product->slug }}" class="block">
-                        <div class="relative pb-[100%] bg-gray-100">
-                            <img src="{{ product_image($product) }}" 
-                                 alt="{{ $product->name }}" 
-                                 class="absolute inset-0 w-full h-full object-cover"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27400%27 height=%27400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%23f3f4f6%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2726px%27 fill=%27%239ca3af%27%3ENo Image%3C/text%3E%3C/svg%3E'">
-                            @if($product->is_featured)
-                            <span class="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full">
-                                Featured
-                            </span>
-                            @endif
-                        </div>
-                        <div class="p-3">
-                            <p class="text-xs text-gray-500 mb-1">{{ $product->category->name ?? 'Uncategorized' }}</p>
-                            <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">{{ $product->name }}</h3>
-                            @php
-                                $sku = $product->skus->first();
-                            @endphp
-                            @if($sku)
-                            <div class="mt-2">
-                                <div class="flex items-baseline space-x-1">
-                                    <span class="text-base font-bold text-green-600">
-                                        {{ format_rupiah($sku->selling_price) }}
-                                    </span>
-                                </div>
-                                @if($sku->base_price > $sku->selling_price)
-                                <div class="flex items-center space-x-1 mt-1">
-                                    <span class="text-xs text-gray-500 line-through">
-                                        {{ format_rupiah($sku->base_price) }}
-                                    </span>
-                                    @php
-                                        $discountPercent = discount_percentage($sku->base_price, $sku->selling_price);
-                                    @endphp
-                                    @if($discountPercent > 0)
-                                    <span class="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
-                                        -{{ $discountPercent }}%
-                                    </span>
-                                    @endif
-                                </div>
-                                @endif
-                            </div>
-                            @endif
-                            <div class="mt-2 flex items-center text-yellow-400 text-xs">
-                                @for($i = 0; $i < 5; $i++)
-                                <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                @endfor
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                @empty
-                <div class="col-span-full text-center py-12 text-gray-500">
-                    Belum ada produk tersedia
-                </div>
-                @endforelse
-            </div>
-        </section>
+        <!-- Latest Products Section -->
+        <livewire:product-list type="latest" />
 
         <!-- About Us Section -->
         <section class="mb-12 sm:mb-16">
@@ -172,10 +108,19 @@
             </div>
         </section>
 
+    <!-- Best Selling Products Section -->
+    <livewire:product-list />
+
     </div>
 
+    <!-- Testimonials Section -->
+    <livewire:testimonial-carousel />
+
+    <!-- Special Promo Section -->
+    <livewire:voucher-carousel />
+
     <!-- Footer -->
-    <x-footer :categories="$categories" />
+    <x-footer />
 
     <style>
         .card-hover { 

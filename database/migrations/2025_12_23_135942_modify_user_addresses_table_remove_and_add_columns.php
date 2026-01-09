@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('user_addresses', function (Blueprint $table) {
             // Drop columns: label, recipient_name, phone
             $table->dropColumn(['label', 'recipient_name', 'phone']);
-            
+
             // Add columns: district_id, district_name (before subdistrict_id)
             $table->integer('district_id')->after('city_type');
             $table->string('district_name')->after('district_id');
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('label');
             $table->string('recipient_name');
             $table->string('phone');
-            
+
             // Remove the added columns
             $table->dropColumn(['district_id', 'district_name']);
         });

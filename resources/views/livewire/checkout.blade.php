@@ -237,7 +237,7 @@
                     </h2>
                     
                     <!-- Selected Branch Info -->
-                    @if($this->selectedBranch)
+                    @if($this->selectedBranch && count($branches) > 1)
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
                         <div class="flex items-start">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,7 +337,7 @@
                         Metode Pembayaran
                     </h2>
                     
-                    <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                         @foreach($this->paymentMethods as $method)
                         <label class="flex flex-col p-2.5 sm:p-3 border-2 rounded-lg cursor-pointer transition-all {{ $paymentMethod === $method['id'] ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300' }}" wire:key="payment-{{ $method['id'] }}">
                             <div class="flex items-start gap-2">
@@ -408,17 +408,23 @@
                             <span class="font-medium">{{ format_rupiah($serviceFee) }}</span>
                         </div>
                         @if($discount > 0)
-                        <div class="flex justify-between text-xs sm:text-sm text-green-600">
-                            <span>Diskon</span>
-                            <span class="font-medium">-{{ format_rupiah($discount) }}</span>
+                        <div class="flex justify-between text-xs sm:text-sm text-green-600 font-medium bg-green-50 p-2 rounded border border-green-100 mt-2">
+                            <div class="flex items-center">
+                                <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                                <span>Voucher ({{ strtoupper($voucherCode) }})</span>
+                            </div>
+                            <span>-{{ format_rupiah($discount) }}</span>
                         </div>
                         @endif
+
                     </div>
                     
                     <!-- Total -->
                     <div class="border-t border-gray-200 pt-3 sm:pt-4 mb-4 sm:mb-6">
                         <div class="flex justify-between items-center">
-                            <span class="text-sm sm:text-lg font-semibold text-gray-900">Total Pembayaran</span>
+                            <span class="text-sm sm:text-lg font-semibold text-gray-900">Total: </span>
                             <span class="text-lg sm:text-2xl font-bold text-green-600">{{ format_rupiah($this->total) }}</span>
                         </div>
                     </div>

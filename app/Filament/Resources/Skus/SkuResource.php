@@ -5,8 +5,6 @@ namespace App\Filament\Resources\Skus;
 use App\Filament\Resources\Skus\Pages\CreateSku;
 use App\Filament\Resources\Skus\Pages\EditSku;
 use App\Filament\Resources\Skus\Pages\ListSkus;
-use App\Filament\Resources\Skus\Schemas\SkuForm;
-use App\Filament\Resources\Skus\Tables\SkusTable;
 use App\Models\Sku;
 use BackedEnum;
 use Filament\Forms\Components\KeyValue;
@@ -17,7 +15,6 @@ use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
@@ -28,6 +25,7 @@ class SkuResource extends Resource
     protected static ?string $model = Sku::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static ?string $recordTitleAttribute = 'sku';
 
@@ -150,7 +148,7 @@ class SkuResource extends Resource
                     ->exports([
                         \pxlrbt\FilamentExcel\Exports\ExcelExport::make()
                             ->fromTable()
-                            ->withFilename('skus-' . date('Y-m-d'))
+                            ->withFilename('skus-'.date('Y-m-d'))
                             ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
                             ->withColumns([
                                 \pxlrbt\FilamentExcel\Columns\Column::make('id'),
@@ -187,7 +185,7 @@ class SkuResource extends Resource
                                     ->heading('Updated At'),
                             ]),
                     ]),
-                
+
                 \Filament\Actions\ImportAction::make()
                     ->label('Import from Excel')
                     ->icon('heroicon-o-arrow-up-tray')

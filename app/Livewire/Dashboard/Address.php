@@ -13,19 +13,28 @@ use Livewire\Component;
 class Address extends Component
 {
     public $provinceId = '';
+
     public $cityId = '';
+
     public $districtId = '';
+
     public $subdistrictId = '';
+
     public $postalCode = '';
+
     public $fullAddress = '';
 
     // Available regions
     public $provinces = [];
+
     public $cities = [];
+
     public $districts = [];
+
     public $subdistricts = [];
 
     public $hasExistingAddress = false;
+
     public $addressId = null;
 
     public function mount()
@@ -40,7 +49,7 @@ class Address extends Component
 
         // Load existing address if available
         $address = UserAddress::where('user_id', auth()->id())->first();
-        
+
         if ($address) {
             $this->hasExistingAddress = true;
             $this->addressId = $address->id;
@@ -57,7 +66,8 @@ class Address extends Component
                 $this->cities = collect($citiesData)->mapWithKeys(function ($city) {
                     $type = $city['type'] ?? '';
                     $name = $city['name'] ?? '';
-                    $displayName = trim($type . ' ' . $name);
+                    $displayName = trim($type.' '.$name);
+
                     return [$city['id'] => $displayName];
                 })->toArray();
             }
@@ -96,7 +106,8 @@ class Address extends Component
             $this->cities = collect($citiesData)->mapWithKeys(function ($city) {
                 $type = $city['type'] ?? '';
                 $name = $city['name'] ?? '';
-                $displayName = trim($type . ' ' . $name);
+                $displayName = trim($type.' '.$name);
+
                 return [$city['id'] => $displayName];
             })->toArray();
         }
@@ -164,7 +175,7 @@ class Address extends Component
         try {
             $provinceName = strtoupper($this->provinces[$this->provinceId] ?? '');
             $cityName = strtoupper($this->cities[$this->cityId] ?? '');
-            
+
             // Extract city type and name
             $cityType = '';
             $cityNameOnly = $cityName;
@@ -177,8 +188,8 @@ class Address extends Component
             }
 
             $districtName = strtoupper($this->districts[$this->districtId] ?? '');
-            $subdistrictName = !empty($this->subdistrictId) && isset($this->subdistricts[$this->subdistrictId]) 
-                ? strtoupper($this->subdistricts[$this->subdistrictId]) 
+            $subdistrictName = ! empty($this->subdistrictId) && isset($this->subdistricts[$this->subdistrictId])
+                ? strtoupper($this->subdistricts[$this->subdistrictId])
                 : null;
 
             $data = [
@@ -211,7 +222,7 @@ class Address extends Component
             $this->dispatch('notify-success', message: $message);
 
         } catch (\Exception $e) {
-            $this->dispatch('notify-error', message: 'Gagal menyimpan alamat: ' . $e->getMessage());
+            $this->dispatch('notify-error', message: 'Gagal menyimpan alamat: '.$e->getMessage());
         }
     }
 

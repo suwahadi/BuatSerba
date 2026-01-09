@@ -22,7 +22,9 @@ class ProductDetail extends Component
 
     public function mount($slug)
     {
-        $this->product = Product::with(['category', 'skus' => function ($query) {
+        $this->product = Product::with(['category', 'reviews' => function ($query) {
+            $query->where('is_approved', true);
+        }, 'reviews.user', 'skus' => function ($query) {
             $query->where('is_active', true);
         }])
             ->where('slug', $slug)
@@ -247,6 +249,16 @@ class ProductDetail extends Component
             ->orderBy('branches.priority')
             ->select('branch_inventory.*')
             ->get();
+    }
+
+    public function getAverageRatingProperty()
+    {
+        return $this->product->reviews->avg('rating') ?? 0;
+    }
+
+    public function getReviewCountProperty()
+    {
+        return $this->product->reviews->count();
     }
 
     public function render()

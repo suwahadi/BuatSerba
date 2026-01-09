@@ -16,8 +16,11 @@ class Index extends Component
     use WithPagination;
 
     public $search = '';
+
     public $category = '';
+
     public $dateFilter = '';
+
     public $statusFilter = 'all';
 
     protected $queryString = [
@@ -44,21 +47,21 @@ class Index extends Component
     #[Computed]
     public function orders()
     {
-        return Order::with(['items.product'])
+        return Order::with(['items.product', 'reviews'])
             ->where('user_id', auth()->id())
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('order_number', 'like', '%' . $this->search . '%')
-                      ->orWhere('customer_name', 'like', '%' . $this->search . '%');
+                    $q->where('order_number', 'like', '%'.$this->search.'%')
+                        ->orWhere('customer_name', 'like', '%'.$this->search.'%');
                 });
             })
             ->when($this->statusFilter !== 'all', function ($query) {
                 switch ($this->statusFilter) {
-                    case 'ongoing':
+                    case 'pending':
                         $query->whereIn('status', ['pending', 'processing', 'shipped']);
                         break;
-                    case 'success':
-                        $query->where('status', 'delivered');
+                    case 'completed':
+                        $query->where('status', 'completed');
                         break;
                     case 'failed':
                         $query->whereIn('status', ['cancelled', 'payment_failed']);
