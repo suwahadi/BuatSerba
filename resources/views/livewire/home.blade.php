@@ -61,13 +61,13 @@
             <div class="bg-white rounded-lg shadow-lg p-6 sm:p-8 md:p-10">
                 <div class="max-w-4xl mx-auto text-center">
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Tentang {{ global_config('site_name') }}</h2>
-                    <div class="text-gray-700 leading-relaxed space-y-3 sm:space-y-4">
+                    <div class="text-gray-700 text-sm text-center leading-relaxed space-y-3 sm:space-y-4">
 
                         {!! $aboutSummary !!}
                         
-                        <div class="pt-2">
-                            <a href="/about" class="inline-flex items-center text-green-600 font-semibold hover:text-green-700 transition-colors">
-                                Selengkapnya Tentang Kami
+                        <div class="pt-2 text-center">
+                            <a href="/about" class="inline-flex items-center text-sm text-green-600 font-semibold hover:text-green-700 transition-colors">
+                                Tentang Kami
                                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>

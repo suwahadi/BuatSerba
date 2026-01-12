@@ -144,18 +144,27 @@ class Catalog extends Component
                 $query->orderBy('products.created_at', 'desc');
                 break;
             case 'price-low':
-                $query->join('skus', 'products.id', '=', 'skus.product_id')
-                    ->where('skus.is_active', true)
-                    ->select('products.*', \DB::raw('MIN(skus.selling_price) as min_price'))
-                    ->groupBy('products.id')
-                    ->orderBy('min_price', 'asc');
+                $query->orderBy(
+                    \App\Models\Sku::select('selling_price')
+                        ->whereColumn('product_id', 'products.id')
+                        ->where('is_active', true)
+                        ->orderBy('selling_price', 'asc')
+                        ->limit(1),
+                    'asc'
+                );
                 break;
             case 'price-high':
-                $query->join('skus', 'products.id', '=', 'skus.product_id')
-                    ->where('skus.is_active', true)
-                    ->select('products.*', \DB::raw('MAX(skus.selling_price) as max_price'))
-                    ->groupBy('products.id')
-                    ->orderBy('max_price', 'desc');
+                $query->orderBy(
+                    \App\Models\Sku::select('selling_price')
+                        ->whereColumn('product_id', 'products.id')
+                        ->where('is_active', true)
+                        ->orderBy('selling_price', 'desc')
+                        ->limit(1),
+                    'desc'
+                );
+                break;
+            case 'random':
+                $query->inRandomOrder();
                 break;
             case 'rating':
                 $query->orderByDesc('reviews_avg_rating');

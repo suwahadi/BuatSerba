@@ -58,7 +58,7 @@ class Index extends Component
             ->when($this->statusFilter !== 'all', function ($query) {
                 switch ($this->statusFilter) {
                     case 'pending':
-                        $query->whereIn('status', ['pending', 'processing', 'shipped']);
+                        $query->where('payment_status', 'pending');
                         break;
                     case 'completed':
                         $query->where('status', 'completed');
