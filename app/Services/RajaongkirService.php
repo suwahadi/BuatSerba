@@ -118,11 +118,7 @@ class RajaongkirService
     public function calculateShippingCost($params)
     {
         try {
-            // Log the exact request being sent
-            Log::info('RajaOngkir API Request', [
-                'endpoint' => "{$this->baseUrl}/calculate/district/domestic-cost",
-                'params' => $params,
-            ]);
+
 
             $response = Http::withHeaders([
                 'accept' => 'application/json',
@@ -132,11 +128,7 @@ class RajaongkirService
 
             $data = $response->json();
 
-            // Log the full response
-            Log::info('RajaOngkir API Full Response', [
-                'status_code' => $response->status(),
-                'response' => $data,
-            ]);
+
 
             if (isset($data['meta']['status']) && $data['meta']['status'] == 'success') {
                 return $data['data'] ?? [];
@@ -329,10 +321,7 @@ class RajaongkirService
             // Remove internal flags before sending to API
             unset($params['_use_subdistrict']);
 
-            Log::info("RajaOngkir API Request ({$locationType} Level)", [
-                'endpoint' => "{$this->baseUrl}/calculate/district/domestic-cost",
-                'params' => $params,
-            ]);
+
 
             $response = Http::withHeaders([
                 'accept' => 'application/json',
@@ -342,10 +331,7 @@ class RajaongkirService
 
             $data = $response->json();
 
-            Log::info("RajaOngkir API Full Response ({$locationType} Level)", [
-                'status_code' => $response->status(),
-                'response' => $data,
-            ]);
+
 
             if (isset($data['meta']['status']) && $data['meta']['status'] == 'success') {
                 return $data['data'] ?? [];
@@ -371,10 +357,7 @@ class RajaongkirService
     public function calculateDomesticCost($params)
     {
         try {
-            Log::info('RajaOngkir API Request (Search-Based)', [
-                'endpoint' => "{$this->baseUrl}/calculate/domestic-cost",
-                'params' => $params,
-            ]);
+
 
             $response = Http::withHeaders([
                 'accept' => 'application/json',
@@ -384,10 +367,7 @@ class RajaongkirService
 
             $data = $response->json();
 
-            Log::info('RajaOngkir API Full Response (Search-Based)', [
-                'status_code' => $response->status(),
-                'response' => $data,
-            ]);
+
 
             if (isset($data['meta']['status']) && $data['meta']['status'] == 'success') {
                 return $data['data'] ?? [];
