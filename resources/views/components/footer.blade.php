@@ -3,7 +3,10 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <!-- Brand -->
             <div>
-                <h4 class="text-lg sm:text-xl font-bold text-green-600 mb-3 sm:mb-4">BuatSerba®</h4>
+                <a href="/" class="inline-flex flex-col items-end leading-none group mb-3 sm:mb-4">
+                    <span class="text-xl sm:text-3xl font-black text-green-600 tracking-tighter hover:text-green-700 transition-colors">buatserba</span>
+                    <span class="text-[0.6rem] sm:text-xs font-bold text-green-600 -mt-1 sm:-mt-1.5 mr-0.5 group-hover:text-green-700 transition-colors">.com</span>
+                </a>
                 <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">Platform belanja online terpercaya dengan produk berkualitas dan harga terbaik. Kami hadir sebagai solusi belanja one-stop shopping untuk memenuhi semua kebutuhan Anda.</p>
             </div>
             
@@ -37,7 +40,8 @@
                 <ul class="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
                     <li>Alamat: {{ global_config('address') }}</li>
                     <li>Email: {{ global_config('email') }}</li>
-                    <li>Telepon / WA: {{ global_config('phone') }}</li>
+                    <li>Telepon: {{ global_config('phone') }}</li>
+                    <li>WhatsApp: {{ global_config('whatsapp') }}</li>
                 </ul>
             </div>
         </div>

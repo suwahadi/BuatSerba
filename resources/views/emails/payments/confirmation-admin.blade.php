@@ -24,7 +24,7 @@ Pelanggan telah melakukan konfirmasi pembayaran manual untuk pesanan **{{ $order
 Cek Order di Admin
 </x-mail::button>
 
-Silakan validasi pembayaran ini di rekening tujuan dan update status pembayaran pesanan di admin panel jika dana sudah diterima.
+Silakan validasi pembayaran ini di rekening tujuan dan update status pembayaran pesanan di Admin Panel jika dana sudah diterima.
 
-Email otomatis dari sistem {{ config('app.name') }}.
+Email otomatis dari sistem {{ global_config('site_name') }}.
 </x-mail::message>

@@ -50,7 +50,7 @@ class Checkout extends Component
 
     public $paymentMethod = '';
 
-    public $serviceFee = 2000;
+    public $serviceFee = 0;
 
     public $discount = 0;
 
@@ -456,7 +456,7 @@ class Checkout extends Component
 
             $shippingOptions[] = [
                 'id' => strtolower($courier).'_'.strtolower(str_replace(' ', '_', $service)),
-                'name' => "{$courierName} - {$service}",
+                'name' => $this->formatShippingName($courier, $service),
                 'description' => $description,
                 'cost' => $cost,
                 'estimatedDays' => $etd ?? '',
@@ -600,5 +600,24 @@ class Checkout extends Component
     public function render()
     {
         return view('livewire.checkout')->layout('components.layouts.guest');
+    }
+    protected function formatShippingName($courierCode, $service)
+    {
+        $courierCode = strtolower($courierCode);
+        
+        $shortName = match($courierCode) {
+            'jne' => 'JNE',
+            'jnt' => 'J&T',
+            'pos' => 'POS',
+            'tiki' => 'TIKI',
+            'sicepat' => 'SiCepat',
+            'anteraja' => 'AnterAja',
+            'ninja' => 'Ninja',
+            'lion' => 'Lion Parcel',
+            'ide' => 'ID Express',
+            default => strtoupper($courierCode),
+        };
+
+        return "{$shortName} ({$service})";
     }
 }

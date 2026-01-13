@@ -3,7 +3,10 @@
         <div class="flex justify-between items-center h-14 sm:h-16">
             <!-- Logo -->
             <div class="flex items-center flex-shrink-0">
-                <a href="/" class="text-lg sm:text-2xl font-bold text-green-600">BuatSerba®</a>
+                <a href="/" class="flex flex-col items-end leading-none group">
+                    <span class="text-xl sm:text-3xl font-black text-green-600 tracking-tighter hover:text-green-700 transition-colors">buatserba</span>
+                    <span class="text-[0.6rem] sm:text-xs font-bold text-green-600 -mt-1 sm:-mt-1.5 mr-0.5 group-hover:text-green-700 transition-colors">.com</span>
+                </a>
             </div>
             
             <!-- Search Bar - Mobile & Desktop -->

@@ -11,12 +11,12 @@ Pembayaran atas transaksi Anda telah berhasil dikonfirmasi.
 
 Pesanan Anda sedang diproses dan akan segera dikirimkan.
 
-Terima kasih sudah berbelanja di {{ config('app.name') }}.
+Terima kasih sudah berbelanja di {{ global_config('site_name') }}.
 
 ---
 
-Jika Anda memiliki pertanyaan, silakan hubungi kami di cs@buatserba.com atau telepon 0800-123-4567.
+Jika Anda memiliki pertanyaan, silakan hubungi kami di {{ global_config('email') }} atau telepon/whatsapp {{ global_config('phone') }}.
 
 Salam,  
-Tim {{ config('app.name') }}
+Tim {{ global_config('site_name') }}
 </x-mail::message>

@@ -58,10 +58,10 @@ Atau salin tautan berikut ke browser Anda:
 
 ---
 
-Jika Anda memiliki pertanyaan, silakan hubungi kami di cs@buatserba.com atau telepon 0800-123-4567.
+Jika Anda memiliki pertanyaan, silakan hubungi kami di {{ global_config('email') }} atau telepon/whatsapp {{ global_config('phone') }}.
 
-Terima kasih telah berbelanja di {{ config('app.name') }}.
+Terima kasih telah berbelanja di {{ global_config('site_name') }}.
 
 Salam,  
-Tim {{ config('app.name') }}
+Tim {{ global_config('site_name') }}
 </x-mail::message>

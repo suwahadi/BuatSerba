@@ -12,6 +12,8 @@
             visible: 3,
             autoSlideInterval: null,
             transitioning: true,
+            lightboxOpen: false,
+            lightboxImage: '',
             
             init() {
                 this.updateVisible();
@@ -63,6 +65,20 @@
                     clearInterval(this.autoSlideInterval);
                     this.autoSlideInterval = null;
                 }
+            },
+
+            openLightbox(url) {
+                this.lightboxImage = url;
+                this.lightboxOpen = true;
+                this.stopAutoSlide();
+            },
+
+            closeLightbox() {
+                this.lightboxOpen = false;
+                this.startAutoSlide();
+                setTimeout(() => {
+                    this.lightboxImage = '';
+                }, 300);
             }
         }"
         @mouseenter="stopAutoSlide"
@@ -87,7 +103,8 @@
                             <div class="bg-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow aspect-[16/6] md:aspect-[21/9]">
                                 <img src="{{ image_url($voucher->image) }}" 
                                      alt="{{ $voucher->voucher_name }}" 
-                                     class="w-full h-full object-cover">
+                                     class="w-full h-full object-cover cursor-zoom-in"
+                                     @click="openLightbox('{{ image_url($voucher->image) }}')">
                             </div>
                         </div>
                     @endforeach
@@ -111,6 +128,34 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
             </button>
+            
+            <!-- Lightbox Modal -->
+            <template x-teleport="body">
+                <div x-show="lightboxOpen" 
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+                    @click="closeLightbox"
+                    @keydown.escape.window="closeLightbox"
+                    style="display: none;">
+                    
+                    <button @click="closeLightbox" class="absolute top-4 right-4 text-white hover:text-gray-300 z-50 p-2 focus:outline-none transition-transform hover:scale-110">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+
+                    <div class="relative max-w-7xl w-full h-full flex items-center justify-center p-2 sm:p-6" @click.stop>
+                        <img :src="lightboxImage" 
+                            class="max-w-full max-h-[90vh] rounded-lg shadow-2xl object-contain"
+                            alt="Voucher Preview">
+                    </div>
+                </div>
+            </template>
             
         </div>
     </div>

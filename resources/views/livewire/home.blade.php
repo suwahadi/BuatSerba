@@ -45,7 +45,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6">
 
         <!-- Category Carousel Section -->
         <livewire:category-carousel />
@@ -109,12 +109,12 @@
         </section>
 
     <!-- Best Selling Products Section -->
-    <livewire:product-list />
+    <livewire:product-list class="!mb-0" />
 
     </div>
 
     <!-- Testimonials Section -->
-    <livewire:testimonial-carousel />
+    <livewire:testimonial-carousel class="-mt-[50px]" />
 
     <!-- Special Promo Section -->
     <livewire:voucher-carousel />

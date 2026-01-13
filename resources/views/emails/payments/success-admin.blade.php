@@ -57,5 +57,5 @@ Lihat Detail Order di Admin
 
 ---
 
-Email otomatis dari sistem {{ config('app.name') }}.
+Email otomatis dari sistem {{ global_config('site_name') }}.
 </x-mail::message>

@@ -14,7 +14,7 @@ class Cart extends Component
 
     public $shippingCost = 0;
 
-    public $serviceFee = 2000;
+    public $serviceFee = 0;
 
     protected $listeners = ['cartUpdated' => '$refresh'];
 
