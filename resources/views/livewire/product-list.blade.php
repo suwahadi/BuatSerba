@@ -4,7 +4,7 @@
             @if($type === 'latest')
                 Produk Terbaru
             @elseif($type === 'random')
-                Produk Random
+                Produk Rekomendasi
             @else
                 Produk Terlaris
             @endif

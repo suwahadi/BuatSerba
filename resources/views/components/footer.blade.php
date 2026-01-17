@@ -3,9 +3,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <!-- Brand -->
             <div>
-                <a href="/" class="inline-flex flex-col items-end leading-none group mb-3 sm:mb-4">
+                <a href="/" class="inline-flex items-start leading-none group font-['Poppins'] mb-3 sm:mb-4">
                     <span class="text-xl sm:text-3xl font-black text-green-600 tracking-tighter hover:text-green-700 transition-colors">buatserba</span>
-                    <span class="text-[0.6rem] sm:text-xs font-bold text-green-600 -mt-1 sm:-mt-1.5 mr-0.5 group-hover:text-green-700 transition-colors">.com</span>
+                    <span class="text-[0.6rem] sm:text-xs font-bold text-green-600 ml-0.5 group-hover:text-green-700 transition-colors">®</span>
                 </a>
                 <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">Platform belanja online terpercaya dengan produk berkualitas dan harga terbaik. Kami hadir sebagai solusi belanja one-stop shopping untuk memenuhi semua kebutuhan Anda.</p>
             </div>
