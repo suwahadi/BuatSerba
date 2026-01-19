@@ -29,7 +29,12 @@ class VouchersTable
                 \Filament\Tables\Columns\TextColumn::make('type')
                     ->badge()
                     ->label('Type')
-                    ->formatStateUsing(fn (string $state): string => $state === 'percentage' ? 'Percentage' : 'Nominal'),
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'percentage' => 'Percentage',
+                        'fixed' => 'Nominal',
+                        default => ucfirst($state),
+                    })
+                    ->color(fn (string $state): string => $state === 'percentage' ? 'info' : 'success'),
 
                 \Filament\Tables\Columns\TextColumn::make('amount')
                     ->label('Amount')
@@ -40,6 +45,17 @@ class VouchersTable
 
                         return 'Rp '.number_format($record->amount, 0, ',', '.');
                     }),
+                    
+                \Filament\Tables\Columns\TextColumn::make('min_spend')
+                    ->label('Min Spend')
+                    ->money('IDR')
+                    ->toggleable(),
+
+                \Filament\Tables\Columns\TextColumn::make('usage_summary')
+                    ->label('Usage')
+                    ->state(fn ($record) => $record->usage_count . ' / ' . ($record->usage_limit ?? '∞'))
+                    ->badge()
+                    ->color(fn ($record) => ($record->usage_limit && $record->usage_count >= $record->usage_limit) ? 'danger' : 'gray'),
 
                 \Filament\Tables\Columns\TextColumn::make('valid_start')
                     ->dateTime()
@@ -53,10 +69,10 @@ class VouchersTable
                     ->toggleable()
                     ->placeholder('No limit'),
 
-                \Filament\Tables\Columns\TextColumn::make('user.name')
-                    ->label('User')
-                    ->toggleable()
-                    ->placeholder('All users'),
+                \Filament\Tables\Columns\IconColumn::make('is_new_user_only')
+                    ->boolean()
+                    ->label('New User Only')
+                    ->toggleable(),
 
                 \Filament\Tables\Columns\IconColumn::make('is_free_shipment')
                     ->boolean()
@@ -75,7 +91,7 @@ class VouchersTable
             ->filters([
                 \Filament\Tables\Filters\SelectFilter::make('type')
                     ->options([
-                        'number' => 'Nominal',
+                        'fixed' => 'Nominal',
                         'percentage' => 'Percentage',
                     ])
                     ->label('Type'),

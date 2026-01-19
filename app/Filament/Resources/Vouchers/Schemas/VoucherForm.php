@@ -58,12 +58,12 @@ class VoucherForm
                         \Filament\Forms\Components\Select::make('type')
                             ->required()
                             ->options([
-                                'number' => 'Nominal (Rp)',
+                                'fixed' => 'Nominal (Rp)',
                                 'percentage' => 'Persentase (%)',
                             ])
-                            ->default('number')
+                            ->default('fixed')
                             ->label('Tipe Diskon')
-                            ->reactive()
+                            ->live()
                             ->columnSpan(1),
 
                         \Filament\Forms\Components\TextInput::make('amount')
@@ -71,13 +71,30 @@ class VoucherForm
                             ->numeric()
                             ->default(0)
                             ->label('Jumlah Diskon')
-                            ->helperText(fn ($get) => $get('type') === 'percentage' ? 'Masukkan nilai 1-100 untuk persentase' : 'Masukkan nominal dalam Rupiah')
+                            ->helperText(fn ($get) => $get('type') === 'percentage' ? 'Masukkan nilai 1-100' : 'Masukkan nominal dalam Rupiah')
+                            ->columnSpan(1),
+                            
+                        \Filament\Forms\Components\TextInput::make('max_discount_amount')
+                            ->numeric()
+                            ->label('Maksimal Diskon')
+                            ->prefix('Rp')
+                            ->helperText('Maksimal nominal potongan jika menggunakan persentase')
+                            ->visible(fn ($get) => $get('type') === 'percentage')
+                            ->columnSpan(1),
+
+                        \Filament\Forms\Components\TextInput::make('min_spend')
+                            ->required()
+                            ->numeric()
+                            ->default(0)
+                            ->label('Minimal Belanja')
+                            ->prefix('Rp')
+                            ->helperText('Total belanja minimal agar voucher bisa digunakan')
                             ->columnSpan(1),
                     ])
                     ->columns(2),
 
-                \Filament\Schemas\Components\Section::make('Pembatasan')
-                    ->description('Terapkan pembatasan voucher')
+                \Filament\Schemas\Components\Section::make('Pembatasan & Target User')
+                    ->description('Atur siapa yang bisa menggunakan voucher ini')
                     ->schema([
                         \Filament\Forms\Components\Select::make('user_id')
                             ->relationship('user', 'name')
@@ -86,19 +103,44 @@ class VoucherForm
                             ->helperText('Kosongkan jika voucher berlaku untuk semua user')
                             ->columnSpan(1),
 
-                        \Filament\Forms\Components\Toggle::make('is_free_shipment')
+                        \Filament\Forms\Components\Toggle::make('is_new_user_only')
                             ->default(false)
-                            ->label('Gratis Ongkir')
-                            ->helperText('Aktifkan jika voucher memberikan gratis ongkir')
+                            ->label('Khusus Pengguna Baru')
+                            ->helperText('Hanya berlaku untuk transaksi pertama user')
                             ->inline(false)
+                            ->columnSpan(1),
+                            
+                        \Filament\Schemas\Components\Group::make([
+                            \Filament\Forms\Components\TextInput::make('usage_limit')
+                                ->numeric()
+                                ->label('Kuota Global')
+                                ->helperText('Total maksimal penggunaan voucher ini (kosongkan jika unlimited)'),
+                                
+                            \Filament\Forms\Components\TextInput::make('limit_per_user')
+                                ->numeric()
+                                ->default(1)
+                                ->label('Limit Per User')
+                                ->helperText('Maksimal penggunaan per satu user'),
+                        ])->columnSpanFull()->columns(2),
+                        
+                        \Filament\Forms\Components\TextInput::make('usage_count')
+                            ->numeric()
+                            ->label('Telah Digunakan')
+                            ->disabled()
+                            ->dehydrated(false)
                             ->columnSpan(1),
                     ])
                     ->columns(2)
                     ->collapsible(),
 
-                \Filament\Schemas\Components\Section::make('Status & Tampilan')
-                    ->description('Kelola status dan urutan voucher')
+                \Filament\Schemas\Components\Section::make('Status & Lainnya')
                     ->schema([
+                        \Filament\Forms\Components\Toggle::make('is_free_shipment')
+                            ->default(false)
+                            ->label('Gratis Ongkir')
+                            ->helperText('Aktifkan jika voucher memberikan benefit gratis ongkir')
+                            ->inline(false),
+
                         \Filament\Forms\Components\Toggle::make('is_active')
                             ->default(true)
                             ->label('Aktif')
@@ -107,9 +149,9 @@ class VoucherForm
                         \Filament\Forms\Components\TextInput::make('sort')
                             ->numeric()
                             ->default(0)
-                            ->label('Urutan'),
+                            ->label('Urutan Tampil'),
                     ])
-                    ->columns(2),
+                    ->columns(3),
             ]);
     }
 }

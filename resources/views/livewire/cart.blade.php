@@ -253,30 +253,64 @@
     <!-- Footer -->
     <x-footer />
 
-    <!-- Flash Messages -->
-    @if(session()->has('message'))
-    <div x-data="{ show: true }" 
-         x-show="show" 
-         x-init="setTimeout(() => show = false, 3000)"
-         class="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-2">
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-        </svg>
-        <span>{{ session('message') }}</span>
-    </div>
-    @endif
+    <!-- Toaster Notification -->
+    <div x-data="{ 
+            notifications: [],
+            add(message, type = 'success') {
+                const id = Date.now();
+                this.notifications.push({ id, message, type });
+                setTimeout(() => this.remove(id), 3000);
+            },
+            remove(id) {
+                this.notifications = this.notifications.filter(n => n.id !== id);
+            }
+         }"
+         @notify.window="add($event.detail.message, $event.detail.type)"
+         class="fixed top-24 right-4 z-[9999] flex flex-col space-y-2 pointer-events-none">
+        
+        <!-- Display session messages on load -->
+        @if(session()->has('message'))
+            <div x-init="add('{{ session('message') }}', 'success')"></div>
+        @endif
+        @if(session()->has('error'))
+            <div x-init="add('{{ session('error') }}', 'error')"></div>
+        @endif
 
-    @if(session()->has('error'))
-    <div x-data="{ show: true }" 
-         x-show="show" 
-         x-init="setTimeout(() => show = false, 3000)"
-         class="fixed bottom-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-2">
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-        </svg>
-        <span>{{ session('error') }}</span>
+        <template x-for="notification in notifications" :key="notification.id">
+            <div x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 translate-y-2"
+                 class="pointer-events-auto flex items-center p-3 mb-1 text-white rounded-lg shadow-sm text-xs min-w-[200px] max-w-xs"
+                 :class="{
+                    'bg-gray-800': notification.type === 'success',
+                    'bg-red-600': notification.type === 'error'
+                 }">
+                <div class="flex-shrink-0">
+                    <template x-if="notification.type === 'success'">
+                        <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </template>
+                    <template x-if="notification.type === 'error'">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </template>
+                </div>
+                <div class="ml-2 font-medium" x-text="notification.message"></div>
+                <!-- Close Button -->
+                <button @click="remove(notification.id)" class="ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 hover:bg-white hover:bg-opacity-10 focus:ring-2 focus:ring-gray-300 inline-flex h-6 w-6 text-gray-300 hover:text-white">
+                    <span class="sr-only">Close</span>
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+        </template>
     </div>
-    @endif
 
     <style>
         /* Custom styles can be added here if needed */

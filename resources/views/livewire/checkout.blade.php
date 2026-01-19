@@ -396,8 +396,13 @@
                         <div class="flex justify-between text-xs sm:text-sm">
                             <span class="text-gray-600">Ongkos Kirim</span>
                             <span class="font-medium">
-                                @if($shippingCost > 0)
-                                    {{ format_rupiah($shippingCost) }}
+                                @if($shippingCost > 0 || ($shippingCost == 0 && $this->selectedShippingOriginalCost > 0))
+                                    @if($shippingCost < $this->selectedShippingOriginalCost)
+                                        <span class="text-gray-400 line-through mr-1 text-xs">{{ format_rupiah($this->selectedShippingOriginalCost) }}</span>
+                                        <span class="text-green-600">{{ format_rupiah($shippingCost) }}</span>
+                                    @else
+                                        {{ format_rupiah($shippingCost) }}
+                                    @endif
                                 @else
                                     <span class="text-gray-500 italic text-xs">Menunggu data</span>
                                 @endif

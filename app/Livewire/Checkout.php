@@ -175,6 +175,28 @@ class Checkout extends Component
             $this->showBranchModal = true;
         }
 
+        // Validate Voucher Session EARLY
+        if (Session::has('applied_voucher')) {
+            $voucherData = Session::get('applied_voucher');
+            $this->voucherCode = $voucherData['code'];
+
+            $voucherService = new \App\Services\VoucherService;
+            $result = $voucherService->applyVoucher(
+                $this->voucherCode,
+                $this->subtotal,
+                auth()->user()
+            );
+
+            if ($result['success']) {
+                $this->discount = $result['data']['discount_amount'];
+                Session::put('applied_voucher', $result['data']);
+            } else {
+                $this->discount = 0;
+                $this->voucherCode = '';
+                Session::forget('applied_voucher');
+            }
+        }
+
         if (auth()->check()) {
             $user = auth()->user();
 
@@ -233,25 +255,7 @@ class Checkout extends Component
             }
         }
 
-        if (Session::has('applied_voucher')) {
-            $voucherData = Session::get('applied_voucher');
-            $this->voucherCode = $voucherData['code'];
 
-            $voucherService = new \App\Services\VoucherService;
-            $result = $voucherService->applyVoucher(
-                $this->voucherCode,
-                $this->subtotal,
-                auth()->user()
-            );
-
-            if ($result['success']) {
-                $this->discount = $result['data']['discount_amount'];
-            } else {
-                $this->discount = 0;
-                $this->voucherCode = '';
-                Session::forget('applied_voucher');
-            }
-        }
     }
 
     public function selectBranch($branchId)
@@ -374,16 +378,6 @@ class Checkout extends Component
         $this->updateShippingCost();
     }
 
-    protected function updateShippingCost()
-    {
-
-        $method = collect($this->shippingMethods)->firstWhere('id', $this->shippingMethod);
-
-        if ($method) {
-            $this->shippingCost = $method['cost'];
-        }
-    }
-
     public function calculateShippingCost()
     {
 
@@ -475,6 +469,24 @@ class Checkout extends Component
                 ];
             }, $shippingOptions);
 
+            // Apply Free Shipping Subsidy if applicable
+            if (Session::has('applied_voucher')) {
+                $voucherData = Session::get('applied_voucher');
+                if (!empty($voucherData['is_free_shipment']) && isset($voucherData['amount_value'])) {
+                    $subsidy = $voucherData['amount_value'];
+                    
+                    $this->shippingMethods = array_map(function ($option) use ($subsidy) {
+                        $option['original_cost'] = $option['cost'];
+                        $option['subsidy'] = $subsidy;
+                        // Cost remains original for list display
+                        return $option;
+                    }, $this->shippingMethods);
+                    
+                    // Zero out product discount to avoid double counting
+                    $this->discount = 0; 
+                }
+            }
+
             $this->shippingMethod = $this->shippingMethods[0]['id'] ?? 'regular';
         } else {
 
@@ -482,6 +494,30 @@ class Checkout extends Component
         }
 
         $this->updateShippingCost();
+    }
+
+    protected function updateShippingCost()
+    {
+        $method = collect($this->shippingMethods)->firstWhere('id', $this->shippingMethod);
+
+        if ($method) {
+            // Calculate final cost based on original cost - subsidy
+            // If original_cost exists (set by subsidy logic), use it as base. Otherwise use cost.
+            $originalCost = $method['original_cost'] ?? $method['cost']; 
+            
+            // Subsidy might be set, if not default to 0
+            $subsidy = $method['subsidy'] ?? 0;
+            
+            $this->shippingCost = max(0, $originalCost - $subsidy);
+        }
+    }
+
+    #[Computed]
+    public function selectedShippingOriginalCost()
+    {
+        $method = collect($this->shippingMethods)->firstWhere('id', $this->shippingMethod);
+        if (!$method) return 0;
+        return $method['original_cost'] ?? $method['cost'];
     }
 
     protected function initializeDefaultShippingMethods() {}

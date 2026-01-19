@@ -24,7 +24,7 @@ class VoucherService
             ];
         }
 
-        // Validate Date
+        // 1. Validate Period (Start & End)
         $now = Carbon::now();
         if ($voucher->valid_start && $now->lt($voucher->valid_start)) {
             return [
@@ -40,7 +40,15 @@ class VoucherService
             ];
         }
 
-        // Validate Specific User
+        // 2. Validate Global Usage
+        if ($voucher->usage_limit !== null && $voucher->usage_count >= $voucher->usage_limit) {
+            return [
+                'success' => false,
+                'message' => 'Kuota voucher telah habis.',
+            ];
+        }
+
+        // 3. Validate Specific User
         if ($voucher->user_id && (! $user || $user->id !== $voucher->user_id)) {
             return [
                 'success' => false,
@@ -48,11 +56,61 @@ class VoucherService
             ];
         }
 
-        // Calculate Discount
+        // 4. Validate Minimum Spend
+        if ($subtotal < $voucher->min_spend) {
+            return [
+                'success' => false,
+                'message' => 'Minimal belanja Rp ' . number_format($voucher->min_spend, 0, ',', '.') . ' untuk menggunakan voucher ini.',
+            ];
+        }
+
+        // 5. Validate New User Only
+        if ($voucher->is_new_user_only) {
+            if (! $user) {
+                return [
+                    'success' => false,
+                    'message' => 'Silakan login untuk menggunakan voucher pengguna baru.',
+                ];
+            }
+            
+            // Check if user has any existing orders (regardless of status, usually completed ones count, but strictly 'first order' implies none exist)
+            // We check for any order to be strict.
+            $hasOrders = \App\Models\Order::where('user_id', $user->id)->exists();
+            if ($hasOrders) {
+                return [
+                    'success' => false,
+                    'message' => 'Voucher ini hanya berlaku untuk transaksi pertama.',
+                ];
+            }
+        }
+
+        // 6. Validate Limit Per User
+        // Note: This requires tracking per-user usage in the database (e.g., voucher_id on orders table).
+        // Since the current orders table structure doesn't support this relation directly, 
+        // we skip the strict DB check to prevent errors, but this is where it would go.
+        /*
+        if ($user && $voucher->limit_per_user > 0) {
+            $userUsage = \App\Models\Order::where('user_id', $user->id)->where('voucher_code', $code)->count();
+            if ($userUsage >= $voucher->limit_per_user) {
+                 return ['success' => false, 'message' => 'Anda sudah mencapai batas penggunaan voucher ini.'];
+            }
+        }
+        */
+
+        // 7. Calculate Discount
         $discountAmount = 0;
-        if ($voucher->type === 'percentage') {
+        if ($voucher->is_free_shipment) {
+            // If free shipment, the amount is used for shipping subsidy, not product discount
+            $discountAmount = 0;
+        } elseif ($voucher->type === 'percentage') {
             $discountAmount = $subtotal * ($voucher->amount / 100);
+            
+            // Apply Max Discount Cap
+            if ($voucher->max_discount_amount && $discountAmount > $voucher->max_discount_amount) {
+                $discountAmount = $voucher->max_discount_amount;
+            }
         } else {
+            // Fixed amount
             $discountAmount = $voucher->amount;
         }
 
@@ -70,6 +128,7 @@ class VoucherService
                 'type' => $voucher->type,
                 'amount_value' => $voucher->amount,
                 'discount_amount' => $discountAmount,
+                'min_spend' => $voucher->min_spend,
                 'is_free_shipment' => (bool) $voucher->is_free_shipment,
             ],
         ];

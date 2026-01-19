@@ -200,11 +200,15 @@ class Cart extends Component
             // Store to session for Checkout page
             Session::put('applied_voucher', $data);
 
-            session()->flash('message', $result['message']);
+            if (!empty($data['is_free_shipment'])) {
+                 $this->dispatch('notify', message: 'Voucher Gratis Ongkir berhasil digunakan!', type: 'success');
+            } else {
+                 $this->dispatch('notify', message: $result['message'], type: 'success');
+            }
         } else {
             $this->discount = 0;
             Session::forget('applied_voucher');
-            session()->flash('error', $result['message']);
+            $this->dispatch('notify', message: $result['message'], type: 'error');
         }
     }
 
@@ -250,7 +254,6 @@ class Cart extends Component
 
     public function calculateShipping()
     {
-        // Simple shipping calculation based on subtotal
         $this->shippingCost = 25000; // Standard shipping
     }
 
