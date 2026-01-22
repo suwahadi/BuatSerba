@@ -11,14 +11,16 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
+use Spatie\Permission\Traits\HasRoles;
+
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->role === 'admin';
+        return $this->hasRole(['admin', 'finance', 'warehouse']) || $this->role === 'admin';
     }
 
     /**
@@ -33,6 +35,7 @@ class User extends Authenticatable implements FilamentUser
         'phone',
         'phone_verified_at',
         'role',
+        'grade',
         'is_guest',
         'provider',
         'provider_id',

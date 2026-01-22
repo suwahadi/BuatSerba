@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             SkuSeeder::class,
             BranchInventorySeeder::class,
             DynamicPricingSeeder::class,
+            OrderSeeder::class,
         ]);
     }
 }

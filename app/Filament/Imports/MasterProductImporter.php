@@ -21,8 +21,8 @@ class MasterProductImporter extends Importer
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
 
-            ImportColumn::make('slug')
-                ->rules(['max:255']),
+            // ImportColumn::make('slug')
+            //     ->rules(['max:255']),
 
             ImportColumn::make('category')
                 ->requiredMapping()
@@ -47,6 +47,11 @@ class MasterProductImporter extends Importer
             ImportColumn::make('sku_code')
                 ->label('SKU Code')
                 ->rules(['nullable', 'max:255'])
+                ->fillRecordUsing(fn () => null),
+
+            ImportColumn::make('unit_cost')
+                ->numeric()
+                ->rules(['nullable', 'numeric', 'min:0'])
                 ->fillRecordUsing(fn () => null),
 
             ImportColumn::make('base_price')
@@ -89,11 +94,11 @@ class MasterProductImporter extends Importer
                 ->rules(['nullable', 'numeric', 'min:0'])
                 ->fillRecordUsing(fn () => null),
 
-            ImportColumn::make('sku_is_active')
-                ->label('SKU Active')
-                ->boolean()
-                ->rules(['boolean'])
-                ->fillRecordUsing(fn () => null),
+            // ImportColumn::make('sku_is_active')
+            //     ->label('SKU Active')
+            //     ->boolean()
+            //     ->rules(['boolean'])
+            //     ->fillRecordUsing(fn () => null),
         ];
     }
 
@@ -126,6 +131,7 @@ class MasterProductImporter extends Importer
         Sku::create([
             'product_id' => $product->id,
             'sku' => $this->data['sku_code'] ?? 'SKU-'.strtoupper(Str::random(8)),
+            'unit_cost' => $this->data['unit_cost'] ?? 0,
             'base_price' => $this->data['base_price'] ?? 0,
             'selling_price' => $this->data['selling_price'],
             'stock_quantity' => $this->data['stock_quantity'] ?? 0,

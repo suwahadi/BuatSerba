@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     @livewireStyles
+    {!! global_config('tracking_code_header') !!}
 </head>
 <body style="font-family: 'Inter', sans-serif;">
     {{ $slot }}
@@ -30,5 +31,6 @@
     </a>
 
     @livewireScripts
+    {!! global_config('tracking_code_body') !!}
 </body>
 </html>

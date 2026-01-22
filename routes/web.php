@@ -4,6 +4,12 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
+Route::any('{any?}', function () {
+    return response()->json([
+        'message' => 'Website sedang dalam pengembangan',
+    ]);
+})->where('any', '.*');
+
 Route::get('/', App\Livewire\Home::class)->name('home');
 
 Route::get('/catalog', App\Livewire\Catalog::class)->name('catalog');

@@ -95,7 +95,6 @@ class SkuImporter extends Importer
 
     public function resolveRecord(): ?Sku
     {
-        // Try to find existing SKU by SKU code to update, or create new
         return Sku::firstOrNew([
             'sku' => $this->data['sku'],
         ]);

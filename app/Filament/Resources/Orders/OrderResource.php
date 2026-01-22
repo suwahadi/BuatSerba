@@ -137,6 +137,7 @@ class OrderResource extends Resource
                                         'processing' => 'Processing',
                                         'shipped' => 'Shipped',
                                         'completed' => 'Completed',
+                                        'delivered' => 'Delivered',
                                         'cancelled' => 'Cancelled',
                                     ])
                                     ->default('pending')
@@ -152,10 +153,12 @@ class OrderResource extends Resource
                             ->schema([
                                 \Filament\Forms\Components\Select::make('payment_method')
                                     ->options([
-                                        'bri' => 'BRI',
-                                        'bni' => 'BNI',
-                                        'bca' => 'BCA',
-                                        'permata' => 'Permata',
+                                        'qris' => 'QRIS',
+                                        'bca_va' => 'BCA Virtual Account',
+                                        'mandiri_va' => 'Mandiri Virtual Account',
+                                        'bni_va' => 'BNI Virtual Account',
+                                        'bri_va' => 'BRI Virtual Account',
+                                        'bank_transfer' => 'Bank Transfer',
                                     ]),
                                 \Filament\Forms\Components\Select::make('payment_status')
                                     ->options([
@@ -164,7 +167,13 @@ class OrderResource extends Resource
                                         'failed' => 'Failed',
                                     ])
                                     ->default('pending')
-                                    ->required(),
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, $record) {
+                                        if ($state === 'paid' && $record) {
+                                            \App\Events\OrderPaid::dispatch($record);
+                                        }
+                                    }),
                             ]),
 
                         \Filament\Forms\Components\Textarea::make('notes')
@@ -198,10 +207,11 @@ class OrderResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'gray',
-                        'processing' => 'info',
-                        'shipped' => 'primary',
+                        'processing' => 'warning',
+                        'shipped' => 'info',
                         'completed' => 'success',
                         'cancelled' => 'danger',
+                        'delivered' => 'success',
                         default => 'gray',
                     }),
                 \Filament\Tables\Columns\TextColumn::make('payment_status')

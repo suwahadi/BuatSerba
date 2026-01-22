@@ -8,16 +8,18 @@ use Illuminate\Support\Facades\DB;
 
 class TopProductsChart extends ChartWidget
 {
-    protected ?string $heading = '10 Produk Terlaris';
+    protected ?string $heading = '20 Produk Terlaris';
 
     protected static ?int $sort = 2;
+
+    protected int | string | array $columnSpan = 'full';
 
     protected function getData(): array
     {
         $data = OrderItem::select('product_name', DB::raw('sum(quantity) as total_sold'))
             ->groupBy('product_name')
             ->orderByDesc('total_sold')
-            ->limit(10)
+            ->limit(20)
             ->get();
 
         return [

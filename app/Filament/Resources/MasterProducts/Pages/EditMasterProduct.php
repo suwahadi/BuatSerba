@@ -35,6 +35,7 @@ class EditMasterProduct extends EditRecord
         if ($sku) {
             $data['sku'] = [
                 'sku' => $sku->sku,
+                'unit_cost' => $sku->unit_cost,
                 'base_price' => $sku->base_price,
                 'selling_price' => $sku->selling_price,
                 'stock_quantity' => $sku->stock_quantity,
@@ -72,6 +73,7 @@ class EditMasterProduct extends EditRecord
             ['product_id' => $record->id],
             [
                 'sku' => $skuData['sku'] ?? $record->sku?->sku ?? 'SKU-'.strtoupper(\Illuminate\Support\Str::random(8)),
+                'unit_cost' => $skuData['unit_cost'] ?? 0,
                 'base_price' => $skuData['base_price'] ?? 0,
                 'selling_price' => $skuData['selling_price'] ?? 0,
                 'stock_quantity' => $skuData['stock_quantity'] ?? 0,

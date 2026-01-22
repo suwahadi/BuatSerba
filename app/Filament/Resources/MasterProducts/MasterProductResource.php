@@ -78,8 +78,8 @@ class MasterProductResource extends Resource
                                     ]),
 
                                 TextInput::make('sku.sku')
-                                    ->label('SKU Code')
-                                    ->maxLength(255)
+                                    ->label('SKU')
+                                    ->maxLength(50)
                                     ->placeholder('Will be auto-generated if left empty'),
 
                                 RichEditor::make('description')
@@ -124,18 +124,18 @@ class MasterProductResource extends Resource
                             ->columns(4)
                             ->collapsible(),
 
-                        Section::make('Attributes')
-                            ->description('Additional product attributes (e.g., Color, Size, etc.)')
-                            ->schema([
-                                KeyValue::make('sku.attributes')
-                                    ->label('Product Attributes')
-                                    ->keyLabel('Kunci')
-                                    ->valueLabel('Nilai')
-                                    ->reorderable()
-                                    ->columnSpanFull(),
-                            ])
-                            ->collapsible()
-                            ->collapsed(),
+                        // Section::make('Attributes')
+                        //     ->description('Additional product attributes (e.g., Color, Size, etc.)')
+                        //     ->schema([
+                        //         KeyValue::make('sku.attributes')
+                        //             ->label('Product Attributes')
+                        //             ->keyLabel('Kunci')
+                        //             ->valueLabel('Nilai')
+                        //             ->reorderable()
+                        //             ->columnSpanFull(),
+                        //     ])
+                        //     ->collapsible()
+                        //     ->collapsed(),
                     ])
                     ->columnSpan(['lg' => 2]),
 
@@ -144,8 +144,15 @@ class MasterProductResource extends Resource
                     ->schema([
                         Section::make('Pricing & Stock')
                             ->schema([
+                                TextInput::make('sku.unit_cost')
+                                    ->label('Unit Cost (Harga Modal)')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->required()
+                                    ->placeholder('0'),
+
                                 TextInput::make('sku.base_price')
-                                    ->label('Base Price')
+                                    ->label('Base Price (Harga Coret)')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->placeholder('0'),
@@ -164,7 +171,7 @@ class MasterProductResource extends Resource
                                     ->default(0)
                                     ->placeholder('0'),
                             ])
-                            ->columns(1),
+                            ->columns(2),
 
                         Section::make('Status')
                             ->schema([
@@ -177,7 +184,8 @@ class MasterProductResource extends Resource
                                     ->label('Is Featured')
                                     ->default(false)
                                     ->inline(false),
-                            ]),
+                            ])
+                            ->columns(2),
 
                         Section::make('Main Image')
                             ->schema([
@@ -228,13 +236,23 @@ class MasterProductResource extends Resource
 
                 TextColumn::make('sku.base_price')
                     ->label('Price')
-                    ->description(fn (Product $record): string => $record->sku?->selling_price
-                            ? 'Rp '.number_format($record->sku->selling_price, 0, ',', '.')
-                            : '-'
-                    )
-                    ->money('IDR')
-                    ->sortable()
-                    ->placeholder('-'),
+                    ->html()
+                    ->formatStateUsing(function ($state, Product $record) {
+                        $basePrice = $state;
+                        $sellingPrice = $record->sku?->selling_price ?? 0;
+                        
+                        $baseText = $basePrice 
+                            ? 'Rp ' . number_format($basePrice, 0, ',', '.') 
+                            : '-';
+                            
+                        $sellingText = 'Rp ' . number_format($sellingPrice, 0, ',', '.');
+                        
+                        return '
+                            <div style="text-decoration: line-through; color: gray; font-size: 0.9em;">' . $baseText . '</div>
+                            <div>' . $sellingText . '</div>
+                        ';
+                    })
+                    ->sortable(),
 
                 TextColumn::make('sku.stock_quantity')
                     ->label('Stock')
@@ -258,17 +276,21 @@ class MasterProductResource extends Resource
                     ->searchable()
                     ->preload(),
 
-                TernaryFilter::make('sku.is_active')
+                TernaryFilter::make('sku_active')
                     ->label('Active')
                     ->placeholder('All products')
-                    ->trueLabel('Active products')
-                    ->falseLabel('Inactive products'),
+                    ->trueLabel('Active')
+                    ->falseLabel('Inactive')
+                    ->queries(
+                        true: fn (Builder $query) => $query->whereHas('sku', fn (Builder $q) => $q->where('is_active', true)),
+                        false: fn (Builder $query) => $query->whereHas('sku', fn (Builder $q) => $q->where('is_active', false)),
+                    ),
 
                 TernaryFilter::make('is_featured')
                     ->label('Featured')
                     ->placeholder('All products')
-                    ->trueLabel('Featured products')
-                    ->falseLabel('Non-featured products'),
+                    ->trueLabel('Featured')
+                    ->falseLabel('Non-featured'),
             ])
             ->actions([
                 Actions\EditAction::make(),
@@ -300,9 +322,11 @@ class MasterProductResource extends Resource
                                 \pxlrbt\FilamentExcel\Columns\Column::make('description')
                                     ->heading('Description'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.sku')
-                                    ->heading('SKU Code'),
+                                    ->heading('SKU'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('sku.unit_cost')
+                                    ->heading('Unit Cost (Harga Modal)'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.base_price')
-                                    ->heading('Base Price'),
+                                    ->heading('Base Price (Harga Coret)'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.selling_price')
                                     ->heading('Selling Price'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.stock_quantity')

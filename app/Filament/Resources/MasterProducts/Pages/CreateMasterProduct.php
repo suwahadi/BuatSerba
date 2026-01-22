@@ -31,6 +31,7 @@ class CreateMasterProduct extends CreateRecord
             Sku::create([
                 'product_id' => $product->id,
                 'sku' => $skuData['sku'] ?? 'SKU-'.strtoupper(Str::random(8)),
+                'unit_cost' => $skuData['unit_cost'] ?? 0,
                 'base_price' => $skuData['base_price'] ?? 0,
                 'selling_price' => $skuData['selling_price'] ?? 0,
                 'stock_quantity' => $skuData['stock_quantity'] ?? 0,

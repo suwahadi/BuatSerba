@@ -12,12 +12,10 @@ class GlobalConfigsTable
         return $table
             ->columns([
                 \Filament\Tables\Columns\TextColumn::make('key')
-                    ->searchable()
                     ->sortable()
                     ->label('Key'),
 
                 \Filament\Tables\Columns\TextColumn::make('value')
-                    ->searchable()
                     ->limit(50)
                     ->label('Value'),
 
@@ -41,6 +39,7 @@ class GlobalConfigsTable
             ->recordActions([
                 EditAction::make(),
             ])
-            ->defaultSort('sort', 'asc');
+            ->defaultSort('sort', 'asc')
+            ->defaultPaginationPageOption(50);
     }
 }

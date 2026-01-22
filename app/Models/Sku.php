@@ -13,6 +13,7 @@ class Sku extends Model
         'product_id',
         'sku',
         'attributes',
+        'unit_cost',
         'base_price',
         'selling_price',
         'wholesale_price',
@@ -32,6 +33,7 @@ class Sku extends Model
         return [
             'is_active' => 'boolean',
             'attributes' => 'array',
+            'unit_cost' => 'decimal:2',
             'base_price' => 'decimal:2',
             'selling_price' => 'decimal:2',
             'wholesale_price' => 'decimal:2',

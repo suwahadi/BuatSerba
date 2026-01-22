@@ -13,7 +13,15 @@ class ManageUsers extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->after(function ($record) {
+                    // Sync Spatie Roles
+                    if ($record->role === 'regular') {
+                        $record->roles()->detach();
+                    } else {
+                        $record->syncRoles([$record->role]);
+                    }
+                }),
         ];
     }
 }

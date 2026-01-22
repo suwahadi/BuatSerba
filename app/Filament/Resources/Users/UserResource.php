@@ -34,15 +34,17 @@ class UserResource extends Resource
                     ->email()
                     ->required()
                     ->maxLength(255)
-                    ->unique(User::class, 'email'),
+                    ->unique(User::class, 'email', ignoreRecord: true),
                 TextInput::make('password')
                     ->password()
                     ->dehydrated(fn ($state) => filled($state))
                     ->required(fn ($operation) => $operation === 'create'),
                 \Filament\Forms\Components\Select::make('role')
                     ->options([
-                        'admin' => 'Admin',
                         'regular' => 'Regular',
+                        'admin' => 'Admin',
+                        'finance' => 'Finance',
+                        'warehouse' => 'Warehouse',
                     ])
                     ->default('regular')
                     ->required(),
@@ -72,7 +74,8 @@ class UserResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',
-                        'customer' => 'success',
+                        'finance' => 'warning',
+                        'warehouse' => 'info',
                         default => 'gray',
                     }),
                 TextColumn::make('status')
@@ -81,6 +84,15 @@ class UserResource extends Resource
                         'active' => 'success',
                         'inactive' => 'warning',
                         'banned' => 'danger',
+                        default => 'gray',
+                    }),
+                TextColumn::make('grade')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'basic' => 'gray',
+                        'silver' => 'primary',
+                        'gold' => 'warning',
+                        'platinum' => 'info',
                         default => 'gray',
                     }),
                 TextColumn::make('created_at')
@@ -92,7 +104,9 @@ class UserResource extends Resource
                 \Filament\Tables\Filters\SelectFilter::make('role')
                     ->options([
                         'admin' => 'Admin',
-                        'customer' => 'Customer',
+                        'finance' => 'Finance',
+                        'warehouse' => 'Warehouse',
+                        'regular' => 'Regular',
                     ]),
                 \Filament\Tables\Filters\SelectFilter::make('status')
                     ->options([
@@ -102,11 +116,19 @@ class UserResource extends Resource
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->after(function ($record) {
+                        // Sync Spatie Roles
+                        if ($record->role === 'regular') {
+                            $record->roles()->detach();
+                        } else {
+                            $record->syncRoles([$record->role]);
+                        }
+                    }),
                 DeleteAction::make(),
             ])
             ->toolbarActions([
-                // No bulk actions
+                // 
             ]);
     }
 
