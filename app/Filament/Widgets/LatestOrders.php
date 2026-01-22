@@ -6,12 +6,18 @@ use App\Models\Order;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Support\Facades\Auth;
 
 class LatestOrders extends BaseWidget
 {
     protected static ?int $sort = 3;
     
     protected int | string | array $columnSpan = 'full';
+
+    public static function canView(): bool 
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'finance']) ?? false;
+    }
 
     public function table(Table $table): Table
     {

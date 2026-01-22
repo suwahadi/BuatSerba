@@ -45,7 +45,7 @@ class Expenses extends Page implements HasForms, HasTable
 
     public static function canAccess(): bool
     {
-         return Auth::check() && Auth::user()->hasAnyRole(['admin', 'warehouse', 'finance']);
+         return Auth::check() && Auth::user()->hasAnyRole(['admin', 'finance']);
     }
 
     public function mount(): void

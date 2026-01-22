@@ -32,7 +32,7 @@ class InternalSaleResource extends Resource
     {
         if (!Auth::check()) return false;
         
-        return Auth::user()->hasAnyRole(['admin', 'finance', 'warehouse', 'super_admin']);
+        return Auth::user()->hasAnyRole(['admin', 'finance']);
     }
 
     public static function form(Schema $schema): Schema
@@ -176,7 +176,8 @@ class InternalSaleResource extends Resource
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('id', 'desc');
     }
 
     public static function getRelations(): array
