@@ -1,6 +1,6 @@
 <div>
     <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Masuk ke {{ env('APP_NAME') }}
+        Masuk ke Akun Anda
     </h2>
 
     <form wire:submit.prevent="login" class="space-y-6">

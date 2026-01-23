@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.auth')]
-#[Title('Daftar - BuatSerba')]
+#[Title('Daftar Akun')]
 class Register extends Component
 {
     public $name = '';

@@ -9,7 +9,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.auth')]
-#[Title('Masuk - BuatSerba')]
+#[Title('Masuk ke Akun Anda')]
 class Login extends Component
 {
     public $email = '';
@@ -58,6 +58,19 @@ class Login extends Component
         ];
 
         if (Auth::attempt($credentials, $this->remember)) {
+            $user = Auth::user();
+
+            if (in_array($user->status, ['inactive', 'banned'])) {
+                Auth::logout();
+
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
+
+                $this->addError('email', 'Akun Anda berstatus ' . $user->status . '. Silakan hubungi admin.');
+
+                return;
+            }
+
             RateLimiter::clear($throttleKey);
             request()->session()->regenerate();
 
@@ -70,7 +83,6 @@ class Login extends Component
                 }))
             ");
 
-            // Small delay for notification then redirect
             $this->js("setTimeout(() => window.location.href = '".route('dashboard')."', 1000)");
 
             return;

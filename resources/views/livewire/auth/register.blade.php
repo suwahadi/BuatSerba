@@ -1,6 +1,6 @@
 <div>
     <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Daftar Akun {{ env('APP_NAME') }}
+        Daftar Akun
     </h2>
 
     <form wire:submit.prevent="register" class="space-y-4">
