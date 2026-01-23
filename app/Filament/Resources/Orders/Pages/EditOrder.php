@@ -18,7 +18,7 @@ class EditOrder extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            //
         ];
     }
 }

@@ -39,70 +39,64 @@ class InternalSaleResource extends Resource
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make()
+                Forms\Components\Hidden::make('user_id')
+                    ->default(fn () => Auth::id())
+                    ->required(),
+                
+                \Filament\Schemas\Components\Grid::make(2)
                     ->schema([
-                        Forms\Components\Hidden::make('user_id')
-                            ->default(fn () => Auth::id())
-                            ->required(),
+                        Forms\Components\TextInput::make('code')
+                            ->label('Kode Transaksi')
+                            ->default(fn () => 'PT-' . strtoupper(Str::random(6)))
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->maxLength(255)
+                            ->readOnly(fn (string $operation) => $operation === 'create'),
 
-                        \Filament\Schemas\Components\Grid::make(3)
-                            ->schema([
-                                Forms\Components\TextInput::make('code')
-                                    ->label('Kode Transaksi')
-                                    ->default(fn () => 'PT-' . strtoupper(Str::random(6)))
-                                    ->required()
-                                    ->unique(ignoreRecord: true)
-                                    ->maxLength(255)
-                                    ->readOnly(fn (string $operation) => $operation === 'create'),
+                        Forms\Components\DateTimePicker::make('transaction_date')
+                            ->label('Tanggal')
+                            ->required()
+                            ->default(now()),
 
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Nama Barang')
-                                    ->required()
-                                    ->maxLength(255),
+                        Forms\Components\TextInput::make('name')
+                            ->label('Informasi')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpanFull(),
 
-                                Forms\Components\DateTimePicker::make('transaction_date')
-                                    ->label('Tanggal')
-                                    ->required()
-                                    ->default(now()),
-                            ]),
+                        Forms\Components\TextInput::make('price')
+                            ->label('Harga Satuan')
+                            ->required()
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->live(debounce: 500)
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                $price = (float) $get('price');
+                                $qty = (float) $get('qty');
+                                $set('total', $price * $qty);
+                            }),
 
-                        \Filament\Schemas\Components\Grid::make(3)
-                            ->schema([
-                                Forms\Components\TextInput::make('price')
-                                    ->label('Harga Satuan')
-                                    ->required()
-                                    ->numeric()
-                                    ->prefix('Rp')
-                                    ->live(debounce: 500)
-                                    ->afterStateUpdated(function (Get $get, Set $set) {
-                                        $price = (float) $get('price');
-                                        $qty = (float) $get('qty');
-                                        $set('total', $price * $qty);
-                                    }),
+                        Forms\Components\TextInput::make('qty')
+                            ->label('Jumlah (Qty)')
+                            ->required()
+                            ->numeric()
+                            ->default(1)
+                            ->live(debounce: 500)
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                $price = (float) $get('price');
+                                $qty = (float) $get('qty');
+                                $set('total', $price * $qty);
+                            }),
 
-                                Forms\Components\TextInput::make('qty')
-                                    ->label('Jumlah (Qty)')
-                                    ->required()
-                                    ->numeric()
-                                    ->default(1)
-                                    ->live(debounce: 500)
-                                    ->afterStateUpdated(function (Get $get, Set $set) {
-                                        $price = (float) $get('price');
-                                        $qty = (float) $get('qty');
-                                        $set('total', $price * $qty);
-                                    }),
-
-                                Forms\Components\TextInput::make('total')
-                                    ->label('Total Harga')
-                                    ->required()
-                                    ->numeric()
-                                    ->prefix('Rp')
-                                    ->readOnly()
-                                    ->dehydrated(),
-                            ]),
-                    ])
-                    ->columns(1)
-                    ->columnSpanFull(),
+                        Forms\Components\TextInput::make('total')
+                            ->label('Total Harga')
+                            ->required()
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->readOnly()
+                            ->dehydrated()
+                            ->columnSpanFull(),
+                    ]),
             ])
             ->columns(1);
     }
@@ -116,6 +110,7 @@ class InternalSaleResource extends Resource
                     ->label('Trx Code')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Information')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('transaction_date')
@@ -168,7 +163,7 @@ class InternalSaleResource extends Resource
                     ->searchable()
                     ->preload(),
             ])
-            ->actions([
+            ->recordActions([
                 \Filament\Actions\EditAction::make(),
                 \Filament\Actions\DeleteAction::make(),
             ])
@@ -189,9 +184,7 @@ class InternalSaleResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListInternalSales::route('/'),
-            'create' => Pages\CreateInternalSale::route('/create'),
-            'edit' => Pages\EditInternalSale::route('/{record}/edit'),
+            'index' => Pages\ManageInternalSales::route('/'),
         ];
     }
 }

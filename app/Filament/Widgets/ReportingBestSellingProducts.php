@@ -66,7 +66,7 @@ class ReportingBestSellingProducts extends BaseWidget
                             ->whereBetween('orders.created_at', [$start, $end])
                             ->groupBy('order_items.product_id', 'order_items.product_name', 'order_items.sku_code');
                     }, 'order_items')
-                    ->orderBy('id', 'desc')
+                    ->orderBy('total_qty', 'desc')
                     ->limit(20)
             )
             ->columns([

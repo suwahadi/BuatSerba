@@ -98,25 +98,25 @@ class MasterProductResource extends Resource
                         Section::make('Dimensions & Weight')
                             ->schema([
                                 TextInput::make('sku.weight')
-                                    ->label('Weight (gram)')
+                                    ->label('Weight')
                                     ->numeric()
                                     ->suffix('g')
                                     ->placeholder('0'),
 
                                 TextInput::make('sku.length')
-                                    ->label('Length (cm)')
+                                    ->label('Length')
                                     ->numeric()
                                     ->suffix('cm')
                                     ->placeholder('0'),
 
                                 TextInput::make('sku.width')
-                                    ->label('Width (cm)')
+                                    ->label('Width')
                                     ->numeric()
                                     ->suffix('cm')
                                     ->placeholder('0'),
 
                                 TextInput::make('sku.height')
-                                    ->label('Height (cm)')
+                                    ->label('Height')
                                     ->numeric()
                                     ->suffix('cm')
                                     ->placeholder('0'),
@@ -158,7 +158,7 @@ class MasterProductResource extends Resource
                                     ->placeholder('0'),
 
                                 TextInput::make('sku.selling_price')
-                                    ->label('Selling Price')
+                                    ->label('Selling Price (Harga Jual)')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->required()
@@ -187,7 +187,7 @@ class MasterProductResource extends Resource
                             ])
                             ->columns(2),
 
-                        Section::make('Main Image')
+                        Section::make('Image')
                             ->schema([
                                 FileUpload::make('main_image')
                                     ->image()
@@ -214,10 +214,10 @@ class MasterProductResource extends Resource
         return $table
             ->columns([
                 ImageColumn::make('main_image')
-                    ->label('Main Image')
+                    ->label('Image')
                     ->disk('public')
                     ->circular()
-                    ->defaultImageUrl(url('/images/placeholder.png')),
+                    ->defaultImageUrl('https://placehold.co/100x100?text=No+Image'),
 
                 TextColumn::make('name')
                     ->label('Product')

@@ -22,7 +22,7 @@ class EditMasterProduct extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            //DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),
         ];

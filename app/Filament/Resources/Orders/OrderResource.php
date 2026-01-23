@@ -29,70 +29,86 @@ class OrderResource extends Resource
                         \Filament\Schemas\Components\Section::make('Customer Information')
                             ->schema([
                                 \Filament\Forms\Components\Select::make('user_id')
-                                    ->label('Registered User (Optional)')
+                                    ->label('User (Optional)')
                                     ->relationship('user', 'name')
                                     ->searchable()
-                                    ->preload(), // Not required anymore
+                                    ->preload(),
                                 \Filament\Forms\Components\TextInput::make('customer_name')
-                                    ->label('Customer Name (Manual)')
-                                    ->required() // Required for guest orders
+                                    ->label('Name')
+                                    ->required()
                                     ->maxLength(255),
                                 \Filament\Forms\Components\TextInput::make('customer_email')
+                                    ->label('Email')
                                     ->email()
                                     ->maxLength(255),
                                 \Filament\Forms\Components\TextInput::make('customer_phone')
+                                    ->label('Phone')
                                     ->maxLength(20),
                             ])
                             ->columns(2),
 
                         \Filament\Schemas\Components\Section::make('Order Items')
                             ->schema([
-                                \Filament\Forms\Components\Repeater::make('items')
-                                    ->relationship('items')
-                                    ->schema([
-                                        \Filament\Forms\Components\TextInput::make('sku_code')
-                                            ->label('SKU')
-                                            ->disabled()
-                                            ->dehydrated(false)
-                                            ->inlineLabel(false),
-                                        \Filament\Forms\Components\TextInput::make('quantity')
-                                            ->label('Qty')
-                                            ->disabled()
-                                            ->dehydrated(false)
-                                            ->inlineLabel(false),
-                                        \Filament\Forms\Components\TextInput::make('price')
-                                            ->label('Price')
-                                            ->disabled()
-                                            ->dehydrated(false)
-                                            ->prefix('Rp')
-                                            ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
-                                            ->inlineLabel(false),
-                                        \Filament\Forms\Components\TextInput::make('subtotal')
-                                            ->label('Subtotal')
-                                            ->disabled()
-                                            ->dehydrated(false)
-                                            ->prefix('Rp')
-                                            ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
-                                            ->inlineLabel(false),
-                                    ])
-                                    ->columns(4)
-                                    ->addable(false)
-                                    ->deletable(false)
-                                    ->reorderable(false)
-                                    ->defaultItems(0)
-                                    ->itemLabel(fn (array $state): ?string => null)
-                                    ->columnSpanFull(),
-                                \Filament\Forms\Components\Placeholder::make('grand_total_display')
-                                    ->label('Grand Total')
+                                \Filament\Forms\Components\Placeholder::make('items_table')
+                                    ->label('Items')
+                                    ->hiddenLabel()
                                     ->content(function ($record) {
                                         if (! $record) {
-                                            return 'Rp 0';
+                                            return '-';
                                         }
-                                        $itemsTotal = $record->items->sum('subtotal');
 
-                                        return 'Rp '.number_format($itemsTotal, 0, ',', '.');
+                                        $items = $record->items;
+                                        $rows = '';
+
+                                        foreach ($items as $item) {
+                                            $productName = $item->product->name ?? $item->product_name ?? '-';
+                                            $categoryName = $item->product->category->name ?? '-';
+                                            $qty = $item->quantity;
+                                            $price = number_format($item->price, 0, ',', '.');
+                                            $subtotal = number_format($item->subtotal, 0, ',', '.');
+                                            $sku = $item->sku_code ?? '-';
+
+                                            $rows .= "
+                                                <tr style='border-bottom: 1px solid #e5e7eb;'>
+                                                    <td style='padding: 12px 24px; color: #4b5563; border-right: 1px solid #e5e7eb;'>{$sku}</td>
+                                                    <td style='padding: 12px 24px; color: #4b5563; border-right: 1px solid #e5e7eb;'>
+                                                        <span style='font-weight: 500; color: #111827;'>{$productName}</span><br>
+                                                        <small style='color: #6b7280;'>{$categoryName}</small>
+                                                    </td>
+                                                    <td style='padding: 12px 24px; color: #4b5563; border-right: 1px solid #e5e7eb;'>{$qty}</td>
+                                                    <td style='padding: 12px 24px; color: #4b5563; border-right: 1px solid #e5e7eb;'>Rp {$price}</td>
+                                                    <td style='padding: 12px 24px; color: #4b5563;'>Rp {$subtotal}</td>
+                                                </tr>
+                                            ";
+                                        }
+
+                                        $grandTotal = number_format($items->sum('subtotal'), 0, ',', '.');
+
+                                        return new \Illuminate\Support\HtmlString("
+                                            <div style='border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; overflow-x: auto;'>
+                                                <table style='width: 100%; min-width: 600px; border-collapse: collapse; font-size: 0.875rem; text-align: left;'>
+                                                    <thead style='background-color: #f9fafb; border-bottom: 1px solid #e5e7eb;'>
+                                                        <tr>
+                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151; border-right: 1px solid #e5e7eb;'>SKU</th>
+                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151; border-right: 1px solid #e5e7eb;'>Nama Produk</th>
+                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151; border-right: 1px solid #e5e7eb;'>Qty</th>
+                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151; border-right: 1px solid #e5e7eb;'>Price</th>
+                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151;'>Subtotal</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {$rows}
+                                                    </tbody>
+                                                    <tfoot style='background-color: #f9fafb; border-top: 1px solid #e5e7eb;'>
+                                                        <tr>
+                                                            <td colspan='4' style='padding: 12px 24px; text-align: right; font-weight: 600; color: #111827; border-right: 1px solid #e5e7eb;'>Grand Total</td>
+                                                            <td style='padding: 12px 24px; font-weight: 600; color: #111827;'>Rp {$grandTotal}</td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        ");
                                     })
-                                    ->extraAttributes(['class' => 'text-lg font-bold'])
                                     ->columnSpanFull(),
                             ])
                             ->collapsible()
@@ -102,25 +118,21 @@ class OrderResource extends Resource
                             ->schema([
                                 \Filament\Forms\Components\Textarea::make('shipping_address')
                                     ->columnSpanFull(),
-                                \Filament\Schemas\Components\Grid::make(2) // Forms Grid
+                                \Filament\Schemas\Components\Grid::make(2)
                                     ->schema([
                                         \Filament\Forms\Components\TextInput::make('shipping_province'),
                                         \Filament\Forms\Components\TextInput::make('shipping_city'),
                                         \Filament\Forms\Components\TextInput::make('shipping_district'),
                                         \Filament\Forms\Components\TextInput::make('shipping_postal_code'),
                                     ]),
-                                \Filament\Schemas\Components\Section::make('Shipping Service')
-                                    ->schema([
-                                        \Filament\Forms\Components\TextInput::make('shipping_method')
-                                            ->label('Method (e.g. JNE)'),
-                                        \Filament\Forms\Components\TextInput::make('shipping_service')
-                                            ->label('Service (e.g. REG)'),
-                                        \Filament\Forms\Components\TextInput::make('shipping_cost')
-                                            ->numeric()
-                                            ->prefix('Rp')
-                                            ->default(0),
-                                    ])->columns(3),
-                            ]),
+                                    ]),
+                        \Filament\Schemas\Components\Section::make('Order Notes')
+                            ->schema([
+                                \Filament\Forms\Components\Textarea::make('notes')
+                                    ->label('Order Notes')
+                                    ->columnSpanFull(),
+                            ])
+                            ->collapsible(),
                     ])
                     ->columnSpan(['lg' => 2]),
 
@@ -154,10 +166,10 @@ class OrderResource extends Resource
                                 \Filament\Forms\Components\Select::make('payment_method')
                                     ->options([
                                         'qris' => 'QRIS',
-                                        'bca_va' => 'BCA Virtual Account',
-                                        'mandiri_va' => 'Mandiri Virtual Account',
-                                        'bni_va' => 'BNI Virtual Account',
-                                        'bri_va' => 'BRI Virtual Account',
+                                        'bca' => 'BCA Virtual Account',
+                                        'mandiri' => 'Mandiri Virtual Account',
+                                        'bni' => 'BNI Virtual Account',
+                                        'bri' => 'BRI Virtual Account',
                                         'bank_transfer' => 'Bank Transfer',
                                     ]),
                                 \Filament\Forms\Components\Select::make('payment_status')
@@ -176,9 +188,18 @@ class OrderResource extends Resource
                                     }),
                             ]),
 
-                        \Filament\Forms\Components\Textarea::make('notes')
-                            ->label('Order Notes')
-                            ->columnSpanFull(),
+                        \Filament\Schemas\Components\Section::make('Shipping Service')
+                            ->schema([
+                                \Filament\Forms\Components\TextInput::make('shipping_method')
+                                    ->label('Method'),
+                                \Filament\Forms\Components\TextInput::make('shipping_cost')
+                                    ->label('Cost')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->default(0),
+                            ])->columns(1),
+
+
                     ])
                     ->columnSpan(['lg' => 1]),
             ])
@@ -215,6 +236,7 @@ class OrderResource extends Resource
                         default => 'gray',
                     }),
                 \Filament\Tables\Columns\TextColumn::make('payment_status')
+                    ->label('Payment')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'paid' => 'success',

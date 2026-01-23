@@ -41,21 +41,21 @@ class CategoryResource extends Resource
                     ->relationship('parent', 'name')
                     ->searchable()
                     ->preload(),
+                TextInput::make('sort_order')
+                    ->numeric()
+                    ->default(0),
+                \Filament\Forms\Components\Toggle::make('is_active')
+                    ->required()
+                    ->default(true),
                 \Filament\Forms\Components\Textarea::make('description')
-                    ->maxLength(65535)
+                    ->maxLength(5000)
                     ->columnSpanFull(),
                 \Filament\Forms\Components\FileUpload::make('image')
                     ->image()
                     ->disk('public')
                     ->directory('categories'),
-                \Filament\Forms\Components\Toggle::make('is_active')
-                    ->required()
-                    ->default(true),
-                TextInput::make('sort_order')
-                    ->numeric()
-                    ->default(0),
             ])
-            ->columns(1);
+            ->columns(2);
     }
 
     public static function table(Table $table): Table
@@ -63,15 +63,16 @@ class CategoryResource extends Resource
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                \Filament\Tables\Columns\ImageColumn::make('image')->disk('public'),
+                \Filament\Tables\Columns\ImageColumn::make('image')
+                    ->circular()
+                    ->disk('public')
+                    ->defaultImageUrl('https://placehold.co/100x100?text=No+Image'),
                 TextColumn::make('name')
-                    ->searchable()
                     ->sortable(),
                 TextColumn::make('parent.name')
                     ->label('Parent')
                     ->sortable(),
                 TextColumn::make('slug')
-                    ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 \Filament\Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),

@@ -105,7 +105,7 @@ class Expenses extends Page implements HasForms, HasTable
             )
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Name')
+                    ->label('Information')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('code')
                     ->label('Trx Code')
@@ -139,7 +139,7 @@ class Expenses extends Page implements HasForms, HasTable
                             ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
                             ->withColumns([
                                 \pxlrbt\FilamentExcel\Columns\Column::make('name')
-                                    ->heading('Name'),
+                                    ->heading('Information'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('code')
                                     ->heading('Trx Code'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('qty')

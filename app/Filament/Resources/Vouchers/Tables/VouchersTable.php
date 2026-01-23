@@ -6,6 +6,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Table;
+use Filament\Tables\Columns;
+use Filament\Tables\Columns\ImageColumn;
 
 class VouchersTable
 {
@@ -13,6 +15,12 @@ class VouchersTable
     {
         return $table
             ->columns([
+                ImageColumn::make('image')
+                    ->label('Image')
+                    ->circular()
+                    ->disk('public')
+                    ->defaultImageUrl('https://placehold.co/100x100?text=No+Image'),
+
                 \Filament\Tables\Columns\TextColumn::make('voucher_code')
                     ->searchable()
                     ->sortable()
@@ -57,36 +65,18 @@ class VouchersTable
                     ->badge()
                     ->color(fn ($record) => ($record->usage_limit && $record->usage_count >= $record->usage_limit) ? 'danger' : 'gray'),
 
-                \Filament\Tables\Columns\TextColumn::make('valid_start')
-                    ->dateTime()
-                    ->label('Valid From')
-                    ->toggleable()
-                    ->placeholder('No limit'),
-
-                \Filament\Tables\Columns\TextColumn::make('valid_end')
-                    ->dateTime()
-                    ->label('Valid Until')
-                    ->toggleable()
-                    ->placeholder('No limit'),
-
-                \Filament\Tables\Columns\IconColumn::make('is_new_user_only')
-                    ->boolean()
-                    ->label('New User Only')
-                    ->toggleable(),
-
-                \Filament\Tables\Columns\IconColumn::make('is_free_shipment')
-                    ->boolean()
-                    ->label('Free Ship')
-                    ->toggleable(),
+                \Filament\Tables\Columns\TextColumn::make('valid_period')
+                    ->label('Validity')
+                    ->state(fn ($record) => 
+                        ($record->valid_start ? \Carbon\Carbon::parse($record->valid_start)->translatedFormat('d M Y H:i') : '-') . 
+                        '<br>' . 
+                        ($record->valid_end ? \Carbon\Carbon::parse($record->valid_end)->translatedFormat('d M Y H:i') : '-')
+                    )
+                    ->html(),
 
                 \Filament\Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
                     ->label('Active'),
-
-                \Filament\Tables\Columns\TextColumn::make('sort')
-                    ->sortable()
-                    ->label('Sort')
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 \Filament\Tables\Filters\SelectFilter::make('type')
