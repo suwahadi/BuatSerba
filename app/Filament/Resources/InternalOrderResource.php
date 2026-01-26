@@ -193,7 +193,7 @@ class InternalOrderResource extends Resource
                                     ->live()
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         $items = collect($get('items'));
-                                        $subtotal = $items->sum(fn ($item) => ($item['quantity'] ?? 0) * ($item['price'] ?? 0));
+                                        $subtotal = $items->sum(fn ($item) => (int) ($item['quantity'] ?? 0) * (int) ($item['price'] ?? 0));
                                         $set('subtotal', $subtotal);
                                         $shipping = (int) $get('shipping_cost');
                                         $set('total', $subtotal + $shipping);

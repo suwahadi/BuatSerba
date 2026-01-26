@@ -151,6 +151,7 @@ class OrderResource extends Resource
                                         'completed' => 'Completed',
                                         'delivered' => 'Delivered',
                                         'cancelled' => 'Cancelled',
+                                        'expired' => 'Expired',
                                     ])
                                     ->default('pending')
                                     ->required(),
@@ -170,13 +171,14 @@ class OrderResource extends Resource
                                         'mandiri' => 'Mandiri Virtual Account',
                                         'bni' => 'BNI Virtual Account',
                                         'bri' => 'BRI Virtual Account',
-                                        'bank_transfer' => 'Bank Transfer',
+                                        'transfer' => 'Bank Transfer',
                                     ]),
                                 \Filament\Forms\Components\Select::make('payment_status')
                                     ->options([
                                         'pending' => 'Pending',
                                         'paid' => 'Paid',
                                         'failed' => 'Failed',
+                                        'expired' => 'Expired',
                                     ])
                                     ->default('pending')
                                     ->required()
@@ -233,6 +235,7 @@ class OrderResource extends Resource
                         'completed' => 'success',
                         'cancelled' => 'danger',
                         'delivered' => 'success',
+                        'expired' => 'danger',
                         default => 'gray',
                     }),
                 \Filament\Tables\Columns\TextColumn::make('payment_status')
@@ -242,6 +245,7 @@ class OrderResource extends Resource
                         'paid' => 'success',
                         'failed' => 'danger',
                         'pending' => 'warning',
+                        'expired' => 'danger',
                         default => 'gray',
                     }),
                 \Filament\Tables\Columns\TextColumn::make('shipping_city')
@@ -260,6 +264,7 @@ class OrderResource extends Resource
                         'shipped' => 'Shipped',
                         'completed' => 'Completed',
                         'cancelled' => 'Cancelled',
+                        'expired' => 'Expired',
                     ]),
             ])
             ->actions([
@@ -274,12 +279,13 @@ class OrderResource extends Resource
     {
         return [
             'index' => ListOrders::route('/'),
+            'create' => \App\Filament\Resources\Orders\Pages\CreateOrder::route('/create'),
             'edit' => EditOrder::route('/{record}/edit'),
         ];
     }
 
     public static function canCreate(): bool
     {
-        return false;
+        return true;
     }
 }

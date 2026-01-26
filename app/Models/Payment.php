@@ -81,14 +81,13 @@ class Payment extends Model
      */
     protected function updateOrderStatusFromPayment()
     {
-        // Payment is considered paid when status is settlement/capture AND fraud_status is accept
         if (in_array($this->transaction_status, ['settlement', 'capture']) && ($this->fraud_status === 'accept' || $this->fraud_status === null)) {
             $this->order->update([
                 'payment_status' => 'paid',
                 'status' => 'processing',
                 'paid_at' => now(),
             ]);
-        } elseif (in_array($this->transaction_status, ['deny', 'cancel', 'expire'])) {
+        } elseif (in_array($this->transaction_status, ['deny', 'cancel', 'expire', 'expired'])) {
             $this->order->update([
                 'payment_status' => 'failed',
                 'status' => 'payment_failed',
@@ -96,36 +95,24 @@ class Payment extends Model
         }
     }
 
-    /**
-     * Check if payment is successful
-     */
     public function isSuccessful(): bool
     {
         return in_array($this->transaction_status, ['settlement', 'capture']) &&
                ($this->fraud_status === 'accept' || $this->fraud_status === null);
     }
 
-    /**
-     * Check if payment is pending
-     */
     public function isPending(): bool
     {
         return $this->transaction_status === 'pending';
     }
 
-    /**
-     * Check if payment has failed
-     */
     public function isFailed(): bool
     {
-        return in_array($this->transaction_status, ['deny', 'cancel', 'expire']);
+        return in_array($this->transaction_status, ['deny', 'cancel', 'expire', 'expired']);
     }
 
-    /**
-     * Check if payment is expired
-     */
     public function isExpired(): bool
     {
-        return $this->transaction_status === 'expire';
+        return in_array($this->transaction_status, ['expire', 'expired']);
     }
 }

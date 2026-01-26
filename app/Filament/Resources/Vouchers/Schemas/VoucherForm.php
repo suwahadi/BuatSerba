@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Vouchers\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Schemas\Schema;
 
 class VoucherForm
@@ -15,26 +16,34 @@ class VoucherForm
                     ->schema([
                         \Filament\Forms\Components\TextInput::make('voucher_name')
                             ->required()
-                            ->maxLength(191)
+                            ->maxLength(100)
                             ->label('Nama Voucher')
                             ->columnSpan(1),
 
                         \Filament\Forms\Components\TextInput::make('voucher_code')
                             ->required()
-                            ->maxLength(64)
+                            ->maxLength(20)
                             ->unique(ignoreRecord: true)
-                            ->label('Kode Voucher')
-                            ->helperText('Kode unik yang akan diinput pengguna')
+                            ->label('Kode Voucher (Unik)')
+                            ->default(fn () => strtoupper(\Illuminate\Support\Str::random(8)))
+                            ->suffixAction(
+                                Action::make('regenerate')
+                                    ->icon('heroicon-o-arrow-path')
+                                    ->action(function ($set) {
+                                        $set('voucher_code', strtoupper(\Illuminate\Support\Str::random(8)));
+                                    })
+                            )
                             ->columnSpan(1),
 
-                        \Filament\Forms\Components\FileUpload::make('image')
-                            ->image()
-                            ->maxSize(2048)
-                            ->disk('public')
-                            ->visibility('public')
-                            ->directory('vouchers')
-                            ->label('Gambar Voucher (Opsional)')
-                            ->columnSpanFull(),
+                        \Filament\Forms\Components\Toggle::make('is_active')
+                            ->default(true)
+                            ->label('Aktif')
+                            ->inline(false),
+
+                        \Filament\Forms\Components\TextInput::make('sort')
+                            ->numeric()
+                            ->default(0)
+                            ->label('Urutan Tampil'),
                     ])
                     ->columns(2),
 
@@ -50,6 +59,19 @@ class VoucherForm
                             ->helperText('Kosongkan jika tidak ada batas akhir'),
                     ])
                     ->columns(2)
+                    ->collapsible(),
+
+                \Filament\Schemas\Components\Section::make('Banner')
+                    ->schema([
+                        \Filament\Forms\Components\FileUpload::make('image')
+                            ->image()
+                            ->maxSize(2048)
+                            ->disk('public')
+                            ->visibility('public')
+                            ->directory('vouchers')
+                            ->label('Gambar Voucher (Opsional)')
+                            ->columnSpanFull(),
+                    ])
                     ->collapsible(),
 
                 \Filament\Schemas\Components\Section::make('Konfigurasi Diskon')
@@ -96,6 +118,20 @@ class VoucherForm
                 \Filament\Schemas\Components\Section::make('Pembatasan & Target User')
                     ->description('Atur siapa yang bisa menggunakan voucher ini')
                     ->schema([
+                        \Filament\Forms\Components\Toggle::make('is_new_user_only')
+                            ->default(false)
+                            ->label('Khusus Pengguna Baru')
+                            ->helperText('Hanya berlaku untuk transaksi pertama user')
+                            ->inline(false)
+                            ->columnSpan(1),
+
+                        \Filament\Forms\Components\Toggle::make('is_free_shipment')
+                            ->default(false)
+                            ->label('Potongan Ongkir')
+                            ->helperText('Aktifkan jika voucher ini berupa potongan ongkir')
+                            ->inline(false)
+                            ->columnSpan(1),
+
                         \Filament\Forms\Components\Select::make('user_id')
                             ->relationship('user', 'name')
                             ->searchable()
@@ -103,26 +139,19 @@ class VoucherForm
                             ->helperText('Kosongkan jika voucher berlaku untuk semua user')
                             ->columnSpan(1),
 
-                        \Filament\Forms\Components\Toggle::make('is_new_user_only')
-                            ->default(false)
-                            ->label('Khusus Pengguna Baru')
-                            ->helperText('Hanya berlaku untuk transaksi pertama user')
-                            ->inline(false)
+                        \Filament\Forms\Components\TextInput::make('usage_limit')
+                            ->numeric()
+                            ->label('Kuota Global')
+                            ->helperText('Total maksimal penggunaan voucher ini (kosongkan jika unlimited)')
                             ->columnSpan(1),
-                            
-                        \Filament\Schemas\Components\Group::make([
-                            \Filament\Forms\Components\TextInput::make('usage_limit')
-                                ->numeric()
-                                ->label('Kuota Global')
-                                ->helperText('Total maksimal penggunaan voucher ini (kosongkan jika unlimited)'),
-                                
-                            \Filament\Forms\Components\TextInput::make('limit_per_user')
-                                ->numeric()
-                                ->default(1)
-                                ->label('Limit Per User')
-                                ->helperText('Maksimal penggunaan per satu user'),
-                        ])->columnSpanFull()->columns(2),
-                        
+
+                        \Filament\Forms\Components\TextInput::make('limit_per_user')
+                            ->numeric()
+                            ->default(1)
+                            ->label('Limit Per User')
+                            ->helperText('Maksimal penggunaan per satu user')
+                            ->columnSpan(1),
+
                         \Filament\Forms\Components\TextInput::make('usage_count')
                             ->numeric()
                             ->label('Telah Digunakan')
@@ -133,25 +162,6 @@ class VoucherForm
                     ->columns(2)
                     ->collapsible(),
 
-                \Filament\Schemas\Components\Section::make('Status & Lainnya')
-                    ->schema([
-                        \Filament\Forms\Components\Toggle::make('is_free_shipment')
-                            ->default(false)
-                            ->label('Gratis Ongkir')
-                            ->helperText('Aktifkan jika voucher memberikan benefit gratis ongkir')
-                            ->inline(false),
-
-                        \Filament\Forms\Components\Toggle::make('is_active')
-                            ->default(true)
-                            ->label('Aktif')
-                            ->inline(false),
-
-                        \Filament\Forms\Components\TextInput::make('sort')
-                            ->numeric()
-                            ->default(0)
-                            ->label('Urutan Tampil'),
-                    ])
-                    ->columns(3),
             ]);
     }
 }

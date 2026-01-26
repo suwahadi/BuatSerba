@@ -20,21 +20,19 @@ class OrderService
     public function createOrder(array $data): Order
     {
         return DB::transaction(function () use ($data) {
-            // Get cart items
             $sessionId = Session::get('cart_session_id');
             $cartItems = CartItem::with(['product', 'sku'])
                 ->where('session_id', $sessionId)
                 ->when(auth()->check(), function ($query) {
                     $query->orWhere('user_id', auth()->id());
                 })
-                ->lockForUpdate() // Lock rows to prevent race condition
+                ->lockForUpdate()
                 ->get();
 
             if ($cartItems->isEmpty()) {
                 throw new Exception('Keranjang belanja kosong.');
             }
 
-            // Validate stock availability with lock
             foreach ($cartItems as $item) {
                 $sku = Sku::lockForUpdate()->find($item->sku_id);
 
@@ -47,7 +45,6 @@ class OrderService
                 }
             }
 
-            // Calculate totals
             $subtotal = $cartItems->sum(function ($item) {
                 return $item->price * $item->quantity;
             });
@@ -57,10 +54,9 @@ class OrderService
             $discount = $data['discount'] ?? 0;
             $total = $subtotal + $shippingCost + $serviceFee - $discount;
 
-            // Generate unique order number
             $orderNumber = $this->generateOrderNumber();
+            $paymentDeadline = $this->getExpirationTime();
 
-            // Create order
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => auth()->id(),
@@ -78,7 +74,7 @@ class OrderService
                 'shipping_cost' => $shippingCost,
                 'payment_method' => $data['payment_method'],
                 'payment_status' => 'pending',
-                'payment_deadline' => now()->addHours(24), // 24 hours to pay
+                'payment_deadline' => $paymentDeadline,
                 'subtotal' => $subtotal,
                 'service_fee' => $serviceFee,
                 'discount' => $discount,
@@ -86,9 +82,7 @@ class OrderService
                 'status' => 'pending',
             ]);
 
-            // Create order items and reduce stock
             foreach ($cartItems as $cartItem) {
-                // Create order item with snapshot
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
@@ -101,28 +95,22 @@ class OrderService
                     'subtotal' => $cartItem->price * $cartItem->quantity,
                 ]);
 
-                // Reduce stock (with lock already acquired)
                 $sku = Sku::lockForUpdate()->find($cartItem->sku_id);
                 $sku->decrement('stock_quantity', $cartItem->quantity);
             }
 
-            // Clear cart
             CartItem::where('session_id', $sessionId)
                 ->when(auth()->check(), function ($query) {
                     $query->orWhere('user_id', auth()->id());
                 })
                 ->delete();
 
-            // Dispatch email notification job
             \App\Jobs\SendOrderCreatedEmail::dispatch($order);
 
             return $order;
-        }, 5); // Retry 5 times if deadlock occurs
+        }, 5);
     }
 
-    /**
-     * Generate unique order number
-     */
     protected function generateOrderNumber(): string
     {
         do {
@@ -133,11 +121,6 @@ class OrderService
         return $orderNumber;
     }
 
-    /**
-     * Cancel order and restore stock
-     *
-     * @throws Exception
-     */
     public function cancelOrder(Order $order, ?string $reason = null): void
     {
         if ($order->status === 'cancelled') {
@@ -149,7 +132,6 @@ class OrderService
         }
 
         DB::transaction(function () use ($order, $reason) {
-            // Restore stock
             foreach ($order->items as $item) {
                 $sku = Sku::lockForUpdate()->find($item->sku_id);
                 if ($sku) {
@@ -157,8 +139,14 @@ class OrderService
                 }
             }
 
-            // Cancel order
             $order->cancel($reason);
         });
+    }
+
+    public function getExpirationTime()
+    {
+        $duration = (int) (global_config('expiration_time') ?? 1440);
+
+        return now()->addMinutes($duration);
     }
 }

@@ -585,10 +585,11 @@ class Checkout extends Component
                     'currency' => 'IDR',
                     'status_code' => '201',
                     'status_message' => 'Waiting for manual transfer',
+                    'expired_at' => $order->payment_deadline,
                 ]);
 
                 $order->update([
-                    'status' => 'pending_payment',
+                    'status' => 'pending',
                     'payment_status' => 'pending',
                 ]);
 
@@ -610,7 +611,7 @@ class Checkout extends Component
             } else {
 
                 $order->update([
-                    'status' => 'pending_payment',
+                    'status' => 'pending',
                     'payment_status' => 'pending',
                 ]);
             }

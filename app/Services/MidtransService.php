@@ -145,6 +145,7 @@ class MidtransService
             'status_code' => $transactionData['status_code'] ?? null,
             'status_message' => $transactionData['status_message'] ?? null,
             'midtrans_response' => $transactionData,
+            'expired_at' => $order->payment_deadline,
         ]);
 
         return $payment;
