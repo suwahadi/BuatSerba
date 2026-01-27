@@ -4,14 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InternalOrderResource\Pages;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\Sku;
+use BackedEnum;
 use Filament\Forms;
+use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use BackedEnum;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +20,7 @@ use Illuminate\Support\Str;
 class InternalOrderResource extends Resource
 {
     protected static ?string $model = Order::class;
-    
+
     protected static ?string $slug = 'internal-orders';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Internal Management';
@@ -53,14 +52,16 @@ class InternalOrderResource extends Resource
                                             ->label('Order Number')
                                             ->content(function (Get $get, Set $set) {
                                                 $state = $get('order_number');
-                                                if (!$state) {
+                                                if (! $state) {
                                                     do {
                                                         $prefix = global_config('prefix_trx') ?? 'ORD-';
-                                                        $orderNumber = $prefix . strtoupper(substr(uniqid(), -6));
+                                                        $orderNumber = $prefix.strtoupper(substr(uniqid(), -6));
                                                     } while (Order::where('order_number', $orderNumber)->exists());
                                                     $set('order_number', $orderNumber);
+
                                                     return $orderNumber;
                                                 }
+
                                                 return $state;
                                             }),
                                         Forms\Components\Hidden::make('order_number'),
@@ -75,11 +76,13 @@ class InternalOrderResource extends Resource
                                             ->label('Session ID')
                                             ->content(function (Get $get, Set $set) {
                                                 $state = $get('session_id');
-                                                if (!$state) {
+                                                if (! $state) {
                                                     $uuid = (string) Str::uuid();
                                                     $set('session_id', $uuid);
+
                                                     return $uuid;
                                                 }
+
                                                 return $state;
                                             }),
                                         Forms\Components\Hidden::make('session_id'),
@@ -137,22 +140,32 @@ class InternalOrderResource extends Resource
                                         Forms\Components\Select::make('sku_id')
                                             ->label('Product')
                                             ->columnSpanFull()
-                                            ->options(function ($search) {
+                                            ->searchable()
+                                            ->getSearchResultsUsing(function (string $search) {
                                                 return Sku::query()
                                                     ->join('products', 'skus.product_id', '=', 'products.id')
-                                                    ->where('skus.sku', 'like', "%{$search}%")
-                                                    ->orWhere('products.name', 'like', "%{$search}%")
+                                                    ->where(function ($query) use ($search) {
+                                                        $query->where('skus.sku', 'like', "%{$search}%")
+                                                            ->orWhere('products.name', 'like', "%{$search}%");
+                                                    })
+                                                    ->select('skus.id', 'skus.sku', 'products.name as product_name')
                                                     ->limit(50)
                                                     ->get()
-                                                    ->mapWithKeys(fn ($sku) => [$sku->id => "{$sku->product->name} ({$sku->sku})"]);
+                                                    ->mapWithKeys(fn ($sku) => [$sku->id => "{$sku->product_name} ({$sku->sku})"]);
                                             })
-                                            ->searchable()
-                                            ->preload() 
+                                            ->getOptionLabelUsing(function ($value) {
+                                                $sku = Sku::join('products', 'skus.product_id', '=', 'products.id')
+                                                    ->where('skus.id', $value)
+                                                    ->select('skus.sku', 'products.name as product_name')
+                                                    ->first();
+
+                                                return $sku ? "{$sku->product_name} ({$sku->sku})" : null;
+                                            })
                                             ->required()
-                                            ->reactive()
+                                            ->live()
                                             ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                                 if ($sku = Sku::with('product')->find($state)) {
-                                                    $price = $sku->price ?? $sku->selling_price ?? 0;
+                                                    $price = (int) ($sku->selling_price ?? 0);
                                                     $set('price', $price);
                                                     $set('product_name', $sku->product->name);
                                                     $set('sku_code', $sku->sku);
@@ -186,11 +199,22 @@ class InternalOrderResource extends Resource
                                             ->numeric()
                                             ->readOnly()
                                             ->prefix('Rp')
-                                            ->dehydrated() 
+                                            ->dehydrated()
                                             ->default(0),
                                     ])
                                     ->columns(3)
                                     ->live()
+                                    ->deleteAction(
+                                        fn ($action) => $action
+                                            ->requiresConfirmation()
+                                            ->after(function (Get $get, Set $set) {
+                                                $items = collect($get('items'));
+                                                $subtotal = $items->sum(fn ($item) => (int) ($item['quantity'] ?? 0) * (int) ($item['price'] ?? 0));
+                                                $set('subtotal', $subtotal);
+                                                $shipping = (int) $get('shipping_cost');
+                                                $set('total', $subtotal + $shipping);
+                                            }),
+                                    )
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         $items = collect($get('items'));
                                         $subtotal = $items->sum(fn ($item) => (int) ($item['quantity'] ?? 0) * (int) ($item['price'] ?? 0));
@@ -203,39 +227,13 @@ class InternalOrderResource extends Resource
 
                 \Filament\Schemas\Components\Group::make()
                     ->schema([
-                        \Filament\Schemas\Components\Section::make('Summary')
-                            ->extraAttributes([
-                                'style' => 'background-color: rgba(var(--primary-600), 0.1); border: 1px solid rgba(var(--primary-600), 0.2);',
-                                'class' => 'rounded-xl'
-                            ])
-                            ->schema([
-                                Forms\Components\Placeholder::make('grand_total_display')
-                                    ->label('Total Items')
-                                    ->content(fn (Get $get) => 'Rp ' . number_format($get('subtotal') ?? 0, 0, ',', '.'))
-                                    ->extraAttributes(['class' => 'text-xl font-bold']),
-                                Forms\Components\Hidden::make('total')
-                                    ->default(0),
-                                Forms\Components\Hidden::make('subtotal')
-                                    ->default(0),
-                                Forms\Components\Hidden::make('shipping_cost')
-                                    ->default(0),
-                                Forms\Components\Placeholder::make('shipping_cost_display')
-                                    ->label('Shipping Cost')
-                                    ->content(fn (Get $get) => 'Rp ' . number_format($get('shipping_cost') ?? 0, 0, ',', '.'))
-                                    ->extraAttributes(['class' => 'text-lg font-semibold']),
-                                Forms\Components\Placeholder::make('final_total_display')
-                                    ->label('Grand Total')
-                                    ->content(fn (Get $get) => 'Rp ' . number_format(((int)$get('subtotal') ?? 0) + ((int)$get('shipping_cost') ?? 0), 0, ',', '.'))
-                                    ->extraAttributes(['class' => 'text-2xl font-bold text-primary-600']),
-                            ]),
-
                         \Filament\Schemas\Components\Section::make('Shipping Details')
                             ->schema([
                                 Forms\Components\Textarea::make('shipping_address')
                                     ->label('Address')
                                     ->required()
                                     ->columnSpanFull(),
-                                
+
                                 Forms\Components\Select::make('shipping_province_id')
                                     ->label('Province')
                                     ->options(fn () => collect((new \App\Services\RajaongkirService)->getProvinces())->pluck('name', 'id'))
@@ -245,6 +243,11 @@ class InternalOrderResource extends Resource
                                         $set('shipping_city_id', null);
                                         $set('shipping_district_id', null);
                                         $set('shipping_subdistrict_id', null);
+                                        $set('shipping_courier', null);
+                                        $set('shipping_ref', null);
+                                        $set('shipping_cost', 0);
+                                        $set('shipping_method', null);
+                                        $set('shipping_service', null);
                                         $province = collect((new \App\Services\RajaongkirService)->getProvinces())->firstWhere('id', $state);
                                         $set('shipping_province', $province['name'] ?? null);
                                     })
@@ -253,16 +256,21 @@ class InternalOrderResource extends Resource
 
                                 Forms\Components\Select::make('shipping_city_id')
                                     ->label('City')
-                                    ->options(fn (Get $get) => $get('shipping_province_id') ? collect((new \App\Services\RajaongkirService)->getCities($get('shipping_province_id')))->mapWithKeys(fn($item) => [$item['id'] => ($item['type'] ?? '') . ' ' . ($item['name'] ?? '')]) : [])
+                                    ->options(fn (Get $get) => $get('shipping_province_id') ? collect((new \App\Services\RajaongkirService)->getCities($get('shipping_province_id')))->mapWithKeys(fn ($item) => [$item['id'] => ($item['type'] ?? '').' '.($item['name'] ?? '')]) : [])
                                     ->searchable()
                                     ->live()
                                     ->preload()
-                                    ->disabled(fn (Get $get) => !$get('shipping_province_id'))
+                                    ->disabled(fn (Get $get) => ! $get('shipping_province_id'))
                                     ->afterStateUpdated(function (Set $set, $state, Get $get) {
                                         $set('shipping_district_id', null);
                                         $set('shipping_subdistrict_id', null);
+                                        $set('shipping_courier', null);
+                                        $set('shipping_ref', null);
+                                        $set('shipping_cost', 0);
+                                        $set('shipping_method', null);
+                                        $set('shipping_service', null);
                                         $city = collect((new \App\Services\RajaongkirService)->getCities($get('shipping_province_id')))->firstWhere('id', $state);
-                                        $set('shipping_city', isset($city) ? (($city['type'] ?? '') . ' ' . ($city['name'] ?? '')) : null);
+                                        $set('shipping_city', isset($city) ? (($city['type'] ?? '').' '.($city['name'] ?? '')) : null);
                                     })
                                     ->dehydrated(false),
                                 Forms\Components\Hidden::make('shipping_city'),
@@ -273,9 +281,14 @@ class InternalOrderResource extends Resource
                                     ->searchable()
                                     ->live()
                                     ->preload()
-                                    ->disabled(fn (Get $get) => !$get('shipping_city_id'))
+                                    ->disabled(fn (Get $get) => ! $get('shipping_city_id'))
                                     ->afterStateUpdated(function (Set $set, $state, Get $get) {
                                         $set('shipping_subdistrict_id', null);
+                                        $set('shipping_courier', null);
+                                        $set('shipping_ref', null);
+                                        $set('shipping_cost', 0);
+                                        $set('shipping_method', null);
+                                        $set('shipping_service', null);
                                         $district = collect((new \App\Services\RajaongkirService)->getDistricts($get('shipping_city_id')))->firstWhere('id', $state);
                                         $set('shipping_district', $district['name'] ?? null);
                                     })
@@ -288,8 +301,13 @@ class InternalOrderResource extends Resource
                                     ->searchable()
                                     ->live()
                                     ->preload()
-                                    ->disabled(fn (Get $get) => !$get('shipping_district_id'))
+                                    ->disabled(fn (Get $get) => ! $get('shipping_district_id'))
                                     ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                        $set('shipping_courier', null);
+                                        $set('shipping_ref', null);
+                                        $set('shipping_cost', 0);
+                                        $set('shipping_method', null);
+                                        $set('shipping_service', null);
                                         $subdistrict = collect((new \App\Services\RajaongkirService)->getSubdistricts($get('shipping_district_id')))->firstWhere('id', $state);
                                         $set('shipping_subdistrict', $subdistrict['name'] ?? null);
                                     })
@@ -308,50 +326,59 @@ class InternalOrderResource extends Resource
                                     ->options(['jne' => 'JNE', 'jnt' => 'J&T'])
                                     ->label('Courier')
                                     ->required()
-                                    ->default('jne')
+                                    ->placeholder('Select Courier')
+                                    ->disabled(fn (Get $get) => ! $get('shipping_subdistrict_id'))
                                     ->live()
                                     ->dehydrated(false)
                                     ->afterStateHydrated(function (Set $set, Get $get, $record) {
                                         if ($record && $record->shipping_method) {
                                             $parts = explode('_', $record->shipping_method);
-                                            $set('shipping_courier', $parts[0] ?? 'jne');
+                                            $set('shipping_courier', $parts[0] ?? null);
                                         }
+                                    })
+                                    ->afterStateUpdated(function (Set $set) {
+                                        $set('shipping_ref', null);
+                                        $set('shipping_cost', 0);
+                                        $set('shipping_method', null);
+                                        $set('shipping_service', null);
                                     }),
-                                    
+
                                 Forms\Components\Select::make('shipping_ref')
                                     ->label('Service')
                                     ->required()
                                     ->placeholder('Select Service')
+                                    ->disabled(fn (Get $get) => ! $get('shipping_courier'))
                                     ->options(function (Get $get, $record) {
                                         $originBranch = \App\Models\Branch::where('is_active', true)->orderBy('priority')->first();
-                                        if (!$originBranch || !$get('shipping_district_id')) {
+                                        if (! $originBranch || ! $get('shipping_district_id') || ! $get('shipping_courier')) {
                                             return [];
                                         }
-                                        
-                                        $totalWeight = collect($get('items'))->sum(fn($item) => ($item['quantity'] ?? 0) * ($item['weight'] ?? 1000));
+
+                                        $totalWeight = collect($get('items'))->sum(fn ($item) => (int) ($item['quantity'] ?? 0) * (int) ($item['weight'] ?? 1000));
                                         $useSubdistrict = (bool) $get('shipping_subdistrict_id');
-                                        
+
                                         $params = [
                                             'origin' => $originBranch->subdistrict_id,
                                             'destination' => $useSubdistrict ? $get('shipping_subdistrict_id') : $get('shipping_district_id'),
                                             'weight' => max(200, $totalWeight),
-                                            'courier' => $get('shipping_courier') ?? 'jne',
+                                            'courier' => $get('shipping_courier'),
                                             'price' => 'lowest',
                                             '_use_subdistrict' => $useSubdistrict,
                                         ];
-                                        
+
                                         $results = (new \App\Services\RajaongkirService)->calculateDomesticCost($params);
-                                        
+
                                         $options = [];
                                         foreach ($results as $result) {
                                             $code = strtolower($result['code']);
                                             $service = $result['service'];
-                                            $cost = $result['cost'];
+                                            $cost = (int) $result['cost'];
                                             $etd = $result['etd'];
-                                            $key = "{$code}_{$service}|{$cost}|{$service}"; 
-                                            $label = strtoupper($code) . " " . $service . " - Rp " . number_format($cost, 0, ',', '.') . " ({$etd})";
+                                            $key = "{$code}_{$service}|{$cost}|{$service}";
+                                            $label = strtoupper($code).' '.$service.' - Rp '.number_format($cost, 0, ',', '.')." ({$etd})";
                                             $options[$key] = $label;
                                         }
+
                                         return $options;
                                     })
                                     ->afterStateHydrated(function (Set $set, Get $get, $record) {
@@ -374,13 +401,13 @@ class InternalOrderResource extends Resource
                                             $set('shipping_service', null);
                                         }
                                         $set('shipping_cost', $cost);
-                                        $subtotal = (int) $get('subtotal');
+                                        $subtotal = collect($get('items'))->sum(fn ($item) => (int) ($item['quantity'] ?? 0) * (int) ($item['price'] ?? 0));
                                         $set('total', $subtotal + $cost);
                                     }),
 
                                 Forms\Components\Hidden::make('shipping_method'),
                                 Forms\Components\Hidden::make('shipping_service'),
-                                
+
                                 Forms\Components\TextInput::make('shipping_cost')
                                     ->label('Cost')
                                     ->numeric()
@@ -388,6 +415,37 @@ class InternalOrderResource extends Resource
                                     ->readOnly()
                                     ->default(0),
                             ])->columns(1),
+
+                        \Filament\Schemas\Components\Section::make('Summary')
+                            ->extraAttributes([
+                                'style' => 'background-color: rgba(var(--primary-600), 0.1); border: 1px solid rgba(var(--primary-600), 0.2);',
+                                'class' => 'rounded-xl',
+                            ])
+                            ->schema([
+                                Forms\Components\Placeholder::make('grand_total_display')
+                                    ->label('Total Items')
+                                    ->content(fn (Get $get) => 'Rp '.number_format($get('subtotal') ?? 0, 0, ',', '.'))
+                                    ->extraAttributes(['class' => 'text-xl font-bold']),
+                                Forms\Components\Hidden::make('total')
+                                    ->default(0),
+                                Forms\Components\Hidden::make('subtotal')
+                                    ->default(0),
+                                Forms\Components\Hidden::make('shipping_cost')
+                                    ->default(0),
+                                Forms\Components\Placeholder::make('shipping_cost_display')
+                                    ->label('Shipping Cost')
+                                    ->content(fn (Get $get) => 'Rp '.number_format($get('shipping_cost') ?? 0, 0, ',', '.'))
+                                    ->extraAttributes(['class' => 'text-lg font-semibold']),
+                                Forms\Components\Placeholder::make('final_total_display')
+                                    ->label('Grand Total')
+                                    ->content(function (Get $get) {
+                                        $subtotal = (int) ($get('subtotal') ?? 0);
+                                        $shipping = (int) ($get('shipping_cost') ?? 0);
+
+                                        return 'Rp '.number_format($subtotal + $shipping, 0, ',', '.');
+                                    })
+                                    ->extraAttributes(['class' => 'text-2xl font-bold text-primary-600']),
+                            ]),
                     ])->columnSpan(['lg' => 1]),
             ])
             ->columns(3);
@@ -404,7 +462,7 @@ class InternalOrderResource extends Resource
                     ->label('Customer')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('total')
-                    ->formatStateUsing(fn (string $state): string => 'Rp ' . number_format($state, 0, ',', '.'))
+                    ->formatStateUsing(fn (string $state): string => 'Rp '.number_format($state, 0, ',', '.'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
