@@ -2,25 +2,31 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\ChartWidget;
 use App\Models\Order;
+use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class ReportingProfitChart extends ChartWidget
 {
-    protected function getDateRange(): array 
+    public static function canView(): bool
     {
-         return [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()];
+        $user = auth()->user();
+
+        return $user && $user->hasAnyRole(['admin', 'finance']);
+    }
+
+    protected function getDateRange(): array
+    {
+        return [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()];
     }
 
     protected ?array $reportFilter = ['period' => 'month'];
 
     protected ?string $heading = 'Grafik Keuntungan (Profit)';
-    
+
     protected ?string $maxHeight = '400px';
-    
-    protected int | string | array $columnSpan = 'full';
+
+    protected int|string|array $columnSpan = 'full';
 
     protected function getData(): array
     {
@@ -36,13 +42,13 @@ class ReportingProfitChart extends ChartWidget
         };
 
         $dateFormat = match ($groupBy) {
-             'hour' => '%H:00',
-             'day' => '%Y-%m-%d',
-             'month' => '%Y-%m',
+            'hour' => '%H:00',
+            'day' => '%Y-%m-%d',
+            'month' => '%Y-%m',
         };
 
         $dateSelect = "DATE_FORMAT(orders.created_at, '$dateFormat')";
-        
+
         $data = Order::query()
             ->join('order_items', 'orders.id', '=', 'order_items.order_id')
             ->join('skus', 'order_items.sku_id', '=', 'skus.id')

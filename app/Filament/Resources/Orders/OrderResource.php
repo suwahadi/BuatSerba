@@ -125,7 +125,7 @@ class OrderResource extends Resource
                                         \Filament\Forms\Components\TextInput::make('shipping_district'),
                                         \Filament\Forms\Components\TextInput::make('shipping_postal_code'),
                                     ]),
-                                    ]),
+                            ]),
                         \Filament\Schemas\Components\Section::make('Order Notes')
                             ->schema([
                                 \Filament\Forms\Components\Textarea::make('notes')
@@ -165,6 +165,7 @@ class OrderResource extends Resource
                         \Filament\Schemas\Components\Section::make('Payment')
                             ->schema([
                                 \Filament\Forms\Components\Select::make('payment_method')
+                                    ->label('Method')
                                     ->options([
                                         'qris' => 'QRIS',
                                         'bca' => 'BCA Virtual Account',
@@ -172,8 +173,10 @@ class OrderResource extends Resource
                                         'bni' => 'BNI Virtual Account',
                                         'bri' => 'BRI Virtual Account',
                                         'transfer' => 'Bank Transfer',
+                                        'cash' => 'Cash',
                                     ]),
                                 \Filament\Forms\Components\Select::make('payment_status')
+                                    ->label('Status')
                                     ->options([
                                         'pending' => 'Pending',
                                         'paid' => 'Paid',
@@ -193,14 +196,15 @@ class OrderResource extends Resource
                         \Filament\Schemas\Components\Section::make('Shipping Service')
                             ->schema([
                                 \Filament\Forms\Components\TextInput::make('shipping_method')
+                                    ->readOnly()
                                     ->label('Method'),
                                 \Filament\Forms\Components\TextInput::make('shipping_cost')
                                     ->label('Cost')
                                     ->numeric()
+                                    ->readOnly()
                                     ->prefix('Rp')
                                     ->default(0),
                             ])->columns(1),
-
 
                     ])
                     ->columnSpan(['lg' => 1]),
@@ -268,6 +272,7 @@ class OrderResource extends Resource
                     ]),
             ])
             ->actions([
+                \Filament\Actions\ViewAction::make(),
                 \Filament\Actions\EditAction::make(),
             ])
             ->toolbarActions([
@@ -280,6 +285,7 @@ class OrderResource extends Resource
         return [
             'index' => ListOrders::route('/'),
             'create' => \App\Filament\Resources\Orders\Pages\CreateOrder::route('/create'),
+            'view' => \App\Filament\Resources\Orders\Pages\ViewOrder::route('/{record}'),
             'edit' => EditOrder::route('/{record}/edit'),
         ];
     }

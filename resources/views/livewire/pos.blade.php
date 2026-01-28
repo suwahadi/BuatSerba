@@ -766,23 +766,197 @@
             <div class="pos-card-body">
                 {{-- Customer Info --}}
                 <div class="pos-customer-grid">
-                    <div>
+                    <div class="pos-searchable-select"
+                         x-data="{
+                             showSearch: false,
+                             searchQuery: '',
+                             selectedId: $wire.entangle('selectedCustomerId'),
+                             get customers() {
+                                 return $wire.searchResults || [];
+                             },
+                             openSearch() {
+                                 this.showSearch = true;
+                                 this.searchQuery = '';
+                                 $wire.set('searchResults', []);
+                                 $nextTick(() => {
+                                     this.$refs.searchInput?.focus();
+                                 });
+                             },
+                             doSearch() {
+                                 if (this.searchQuery.length > 0) {
+                                     $wire.set('customerSearch', this.searchQuery);
+                                 }
+                             },
+                             selectCustomer(customer) {
+                                 $wire.selectCustomer(customer.id);
+                                 this.showSearch = false;
+                                 this.searchQuery = '';
+                             },
+                             clearSelection() {
+                                 $wire.clearCustomerSelection();
+                             },
+                             closeSearch() {
+                                 this.showSearch = false;
+                                 this.searchQuery = '';
+                                 $wire.set('searchResults', []);
+                             }
+                         }"
+                         @keydown.escape.window="closeSearch()">
                         <label class="pos-label">Nama Customer <span class="pos-required">*</span></label>
-                        <input type="text" class="pos-input" wire:model="customerName" placeholder="Nama lengkap">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <div style="flex: 1; position: relative;">
+                                <input type="text"
+                                       class="pos-input"
+                                       wire:model="customerName"
+                                       placeholder="Nama lengkap"
+                                       :readonly="selectedId"
+                                       autocomplete="off">
+                            </div>
+                            <button type="button"
+                                    class="pos-btn pos-btn-outline"
+                                    style="padding: 0.5rem 0.75rem; display: flex; align-items: center; gap: 0.25rem;"
+                                    @click="openSearch()"
+                                    title="Cari Customer Terdaftar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </svg>
+                                <span style="font-size: 0.75rem;">Cari</span>
+                            </button>
+                        </div>
+
+                        <template x-if="selectedId">
+                            <div class="pos-selected-badge">
+                                <span>Customer Terdaftar</span>
+                                <button type="button" class="pos-clear-btn" @click="clearSelection()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+
+                        {{-- Search Modal --}}
+                        <template x-teleport="body">
+                            <div x-show="showSearch"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0"
+                                 x-transition:enter-end="opacity-100"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100"
+                                 x-transition:leave-end="opacity-0"
+                                 class="pos-modal-backdrop"
+                                 @click.self="closeSearch()"
+                                 style="display: none;">
+
+                                <div class="pos-modal" style="max-width: 500px;"
+                                     x-show="showSearch"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 transform scale-95"
+                                     x-transition:enter-end="opacity-100 transform scale-100"
+                                     x-transition:leave="transition ease-in duration-150"
+                                     x-transition:leave-start="opacity-100 transform scale-100"
+                                     x-transition:leave-end="opacity-0 transform scale-95"
+                                     @click.stop>
+
+                                    <div class="pos-modal-header">
+                                        <h3 class="pos-modal-title">
+                                            <span class="pos-modal-icon" style="background: #eef2ff; color: #4f46e5;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                    <path d="m21 21-4.35-4.35"></path>
+                                                </svg>
+                                            </span>
+                                            Cari Customer Terdaftar
+                                        </h3>
+                                    </div>
+
+                                    <div class="pos-modal-body">
+                                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                                            <input type="text"
+                                                   class="pos-input"
+                                                   x-ref="searchInput"
+                                                   x-model="searchQuery"
+                                                   @keydown.enter="doSearch()"
+                                                   placeholder="Ketik nama, email, atau phone..."
+                                                   style="width: 80%;">
+                                            <button type="button"
+                                                    class="pos-btn pos-btn-success"
+                                                    style="width: 20%;"
+                                                    @click="doSearch()">
+                                                Cari
+                                            </button>
+                                        </div>
+
+                                        <div style="max-height: 300px; overflow-y: auto;">
+                                            <template x-if="customers.length === 0 && searchQuery.length > 0">
+                                                <div class="pos-dropdown-empty" style="padding: 2rem; text-align: center;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 1rem; color: #9ca3af;">
+                                                        <circle cx="11" cy="11" r="8"></circle>
+                                                        <path d="m21 21-4.35-4.35"></path>
+                                                    </svg>
+                                                    <p style="color: #6b7280;">Tidak ditemukan customer dengan kata kunci tersebut.</p>
+                                                </div>
+                                            </template>
+
+                                            <template x-if="customers.length === 0 && searchQuery.length === 0">
+                                                <div class="pos-dropdown-empty" style="padding: 2rem; text-align: center;">
+                                                    <p style="color: #6b7280;">Ketik nama, email, atau nomor telepon untuk mencari.</p>
+                                                </div>
+                                            </template>
+
+                                            <template x-for="customer in customers" :key="customer.id">
+                                                <div class="pos-dropdown-item"
+                                                     style="padding: 1rem; border-bottom: 1px solid #e5e7eb; cursor: pointer;"
+                                                     :class="{ 'active': selectedId == customer.id }"
+                                                     @click="selectCustomer(customer)">
+                                                    <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; color: #111827;" x-text="customer.name"></div>
+                                                    <div style="display: flex; flex-direction: column; gap: 0.375rem;">
+                                                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #6b7280;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                                                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                                                            </svg>
+                                                            <span x-text="customer.email || '-'" style="word-break: break-all;"></span>
+                                                        </div>
+                                                        <div x-show="customer.phone" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #6b7280;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                                                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                                            </svg>
+                                                            <span x-text="customer.phone"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <div class="pos-modal-footer">
+                                        <button type="button"
+                                                class="pos-modal-btn pos-modal-btn-cancel"
+                                                @click="closeSearch()">
+                                            Tutup
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
                         @error('customerName')
                             <p class="pos-error-text">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
                         <label class="pos-label">Email <span class="pos-required">*</span></label>
-                        <input type="email" class="pos-input" wire:model="customerEmail" placeholder="email@example.com">
+                        <input type="email" class="pos-input" wire:model="customerEmail" placeholder="email@example.com" :readonly="$wire.selectedCustomerId">
                         @error('customerEmail')
                             <p class="pos-error-text">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
                         <label class="pos-label">Telepon <span class="pos-required">*</span></label>
-                        <input type="text" class="pos-input" wire:model="customerPhone" placeholder="08xxxxxxxxxx">
+                        <input type="text" class="pos-input" wire:model="customerPhone" placeholder="08xxxxxxxxxx" :readonly="$wire.selectedCustomerId">
                         @error('customerPhone')
                             <p class="pos-error-text">{{ $message }}</p>
                         @enderror
@@ -888,12 +1062,6 @@
 
                                 <div class="pos-modal-header">
                                     <h3 class="pos-modal-title">
-                                        <span class="pos-modal-icon pos-modal-icon-success">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                            </svg>
-                                        </span>
                                         Konfirmasi Checkout
                                     </h3>
                                 </div>

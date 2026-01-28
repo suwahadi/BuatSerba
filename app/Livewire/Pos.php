@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sku;
+use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,9 +26,15 @@ class Pos extends Component
 
     public $customerPhone = '';
 
+    public $selectedCustomerId = null;
+
+    public $customerSearch = '';
+
     public $items = [];
 
     public $discount = 0;
+
+    public $searchResults = [];
 
     protected $rules = [
         'customerName' => 'required|string|max:255',
@@ -38,6 +45,55 @@ class Pos extends Component
     public function mount()
     {
         $this->items = [];
+        $this->searchResults = [];
+    }
+
+    public function updatedCustomerSearch($value): void
+    {
+        if (empty($value) || strlen($value) < 1) {
+            $this->searchResults = [];
+
+            return;
+        }
+
+        $this->searchResults = User::query()
+            ->where('role', 'regular')
+            ->where('is_guest', false)
+            ->where(function ($q) use ($value) {
+                $q->where('name', 'like', "%{$value}%")
+                    ->orWhere('email', 'like', "%{$value}%")
+                    ->orWhere('phone', 'like', "%{$value}%");
+            })
+            ->orderBy('name')
+            ->limit(10)
+            ->get()
+            ->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+            ])->toArray();
+    }
+
+    public function selectCustomer(int $userId): void
+    {
+        $user = User::find($userId);
+        if ($user && $user->role === 'regular') {
+            $this->selectedCustomerId = $user->id;
+            $this->customerName = $user->name;
+            $this->customerEmail = $user->email ?? '';
+            $this->customerPhone = $user->phone ?? '';
+            $this->customerSearch = '';
+        }
+    }
+
+    public function clearCustomerSelection(): void
+    {
+        $this->selectedCustomerId = null;
+        $this->customerName = '';
+        $this->customerEmail = '';
+        $this->customerPhone = '';
+        $this->customerSearch = '';
     }
 
     public function updatedSelectedProduct($skuId)
