@@ -39,6 +39,9 @@ class UserResource extends Resource
                     ->password()
                     ->dehydrated(fn ($state) => filled($state))
                     ->required(fn ($operation) => $operation === 'create'),
+                TextInput::make('phone')
+                    ->tel()
+                    ->maxLength(20),
                 \Filament\Forms\Components\Select::make('role')
                     ->options([
                         'regular' => 'Regular',
@@ -68,8 +71,10 @@ class UserResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('email')
+                    ->label('Email / Phone')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->description(fn ($record) => $record->phone ?? '-'),
                 TextColumn::make('role')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -114,6 +119,13 @@ class UserResource extends Resource
                         'inactive' => 'Inactive',
                         'banned' => 'Banned',
                     ]),
+                \Filament\Tables\Filters\SelectFilter::make('grade')
+                    ->options([
+                        'basic' => 'Basic',
+                        'silver' => 'Silver',
+                        'gold' => 'Gold',
+                        'platinum' => 'Platinum',
+                    ]),
             ])
             ->recordActions([
                 EditAction::make()
@@ -128,7 +140,7 @@ class UserResource extends Resource
                 DeleteAction::make(),
             ])
             ->toolbarActions([
-                // 
+                //
             ]);
     }
 

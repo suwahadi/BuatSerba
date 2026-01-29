@@ -19,38 +19,6 @@
                                 </svg>
                             </button>
                         </div>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <p class="text-base sm:text-xl md:text-2xl font-bold">Rp {{ number_format($order->total, 0, ',', '.') }}</p>
-                        <p class="mt-0.5 sm:mt-1 text-xs opacity-90 text-right">Total Pembayaran</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Order Summary -->
-            <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
-                <h2 class="text-sm sm:text-base font-semibold text-gray-800 mb-2 sm:mb-4">Ringkasan Pesanan</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
-                    <div>
-                        <p class="text-xs text-gray-600">Nama Pemesan</p>
-                        <p class="text-xs sm:text-sm font-medium mt-0.5">{{ $order->customer_name }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-600">Email</p>
-                        <p class="text-xs sm:text-sm font-medium mt-0.5 break-all">{{ $order->customer_email }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-600">Metode Pembayaran</p>
-                        <p class="text-xs sm:text-sm font-medium uppercase mt-0.5">
-                            @if($order->payment_method === 'transfer')
-                                Bank Transfer
-                            @else
-                                {{ strtoupper($order->payment_method) }} VA
-                            @endif
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-600">Status Pembayaran</p>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-0.5
                             @if($order->payment_status === 'paid') bg-green-100 text-green-800
                             @elseif($order->payment_status === 'pending') bg-yellow-100 text-yellow-800
@@ -58,8 +26,134 @@
                             {{ $order->payment_status }}
                         </span>
                     </div>
+                    <div class="flex-shrink-0">
+                        {{-- Mobile: Label first, left-aligned --}}
+                        <p class="sm:hidden text-xs opacity-90 text-left">Total Pembayaran</p>
+                        <p class="text-base sm:text-xl md:text-2xl font-bold text-left sm:text-right">Rp {{ number_format($order->total, 0, ',', '.') }}</p>
+                        {{-- Desktop: Label after, right-aligned --}}
+                        <p class="hidden sm:block mt-0.5 sm:mt-1 text-xs opacity-90 text-right">Total Pembayaran</p>
+                    </div>
                 </div>
             </div>
+
+            {{-- Payment Expiration Countdown --}}
+            @if(isset($paymentData['expired_at']) && $order->payment_status === 'pending')
+            <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50"
+                 x-data="{
+                    expiredAt: '{{ $paymentData['expired_at'] }}',
+                    days: 0,
+                    hours: 0,
+                    minutes: 0,
+                    seconds: 0,
+                    isExpired: false,
+                    isUrgent: false,
+                    interval: null,
+                    init() {
+                        this.updateCountdown();
+                        this.interval = setInterval(() => this.updateCountdown(), 1000);
+                    },
+                    updateCountdown() {
+                        const now = new Date().getTime();
+                        const expiry = new Date(this.expiredAt).getTime();
+                        const distance = expiry - now;
+
+                        if (distance <= 0) {
+                            this.isExpired = true;
+                            this.days = 0;
+                            this.hours = 0;
+                            this.minutes = 0;
+                            this.seconds = 0;
+                            clearInterval(this.interval);
+                            return;
+                        }
+
+                        this.days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        this.hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        this.minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        this.seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        
+                        // Mark as urgent if less than 1 hour remaining
+                        this.isUrgent = distance < (1000 * 60 * 60);
+                    },
+                    formatNumber(num) {
+                        return num.toString().padStart(2, '0');
+                    }
+                 }">
+                <div class="text-center">
+                    <p class="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
+                        <template x-if="!isExpired">
+                            <span>Selesaikan pembayaran sebelum</span>
+                        </template>
+                        <template x-if="isExpired">
+                            <span class="text-red-600">Waktu pembayaran telah berakhir</span>
+                        </template>
+                    </p>
+                    
+                    {{-- Digital Countdown Display --}}
+                    <div class="flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3" x-show="!isExpired">
+                        {{-- Days (only show if > 0) --}}
+                        <template x-if="days > 0">
+                            <div class="flex items-center gap-1.5 sm:gap-2">
+                                <div class="flex flex-col items-center">
+                                    <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white font-mono font-bold text-lg sm:text-2xl md:text-3xl px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[50px] md:min-w-[60px]"
+                                         :class="{ 'from-red-600 to-red-800': isUrgent }">
+                                        <span x-text="formatNumber(days)"></span>
+                                    </div>
+                                    <span class="text-[10px] sm:text-xs text-gray-500 mt-1">Hari</span>
+                                </div>
+                                <span class="text-gray-400 font-bold text-lg sm:text-xl md:text-2xl pb-4">:</span>
+                            </div>
+                        </template>
+                        
+                        {{-- Hours --}}
+                        <div class="flex flex-col items-center">
+                            <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white font-mono font-bold text-lg sm:text-2xl md:text-3xl px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[50px] md:min-w-[60px]"
+                                 :class="{ 'from-red-600 to-red-800': isUrgent }">
+                                <span x-text="formatNumber(hours)"></span>
+                            </div>
+                            <span class="text-[10px] sm:text-xs text-gray-500 mt-1">Jam</span>
+                        </div>
+                        
+                        <span class="text-gray-400 font-bold text-lg sm:text-xl md:text-2xl pb-4" :class="{ 'text-red-500': isUrgent }">:</span>
+                        
+                        {{-- Minutes --}}
+                        <div class="flex flex-col items-center">
+                            <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white font-mono font-bold text-lg sm:text-2xl md:text-3xl px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[50px] md:min-w-[60px]"
+                                 :class="{ 'from-red-600 to-red-800': isUrgent }">
+                                <span x-text="formatNumber(minutes)"></span>
+                            </div>
+                            <span class="text-[10px] sm:text-xs text-gray-500 mt-1">Menit</span>
+                        </div>
+                        
+                        <span class="text-gray-400 font-bold text-lg sm:text-xl md:text-2xl pb-4" :class="{ 'text-red-500': isUrgent, 'animate-pulse': true }">:</span>
+                        
+                        {{-- Seconds --}}
+                        <div class="flex flex-col items-center">
+                            <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white font-mono font-bold text-lg sm:text-2xl md:text-3xl px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[50px] md:min-w-[60px]"
+                                 :class="{ 'from-red-600 to-red-800': isUrgent }">
+                                <span x-text="formatNumber(seconds)"></span>
+                            </div>
+                            <span class="text-[10px] sm:text-xs text-gray-500 mt-1">Detik</span>
+                        </div>
+                    </div>
+
+                    {{-- Expired State --}}
+                    <div x-show="isExpired" class="flex items-center justify-center gap-2 py-2">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="text-red-600 font-semibold text-sm sm:text-base">Pembayaran Kedaluwarsa</span>
+                    </div>
+
+                    {{-- Warning message when urgent --}}
+                    <div x-show="isUrgent && !isExpired" class="mt-2 sm:mt-3">
+                        <p class="text-xs sm:text-sm text-red-600 font-medium animate-pulse">
+                            Segera selesaikan pembayaran Anda!
+                        </p>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Payment Instructions -->
             @if($order->payment_method === 'transfer')
@@ -123,6 +217,60 @@
                     </div>
                     <p class="text-xs text-gray-600 mt-2 sm:mt-3 text-center leading-relaxed">
                         Gunakan nomor ini untuk melakukan pembayaran melalui ATM, mobile banking, atau internet banking
+                    </p>
+                </div>
+                @endif
+
+                @if($paymentInstructions['type'] === 'mandiri_echannel')
+                <div class="bg-white rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 border-2 border-green-200">
+                    <div class="flex items-center justify-between mb-3 sm:mb-4">
+                        <span class="text-xs sm:text-sm font-medium text-gray-900">Mandiri Bill Payment</span>
+                    </div>
+                    
+                    {{-- Biller Code --}}
+                    <div class="mb-3 sm:mb-4">
+                        <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                            <span class="text-xs text-gray-600">Kode Perusahaan (Biller Code)</span>
+                            <button @click="
+                                navigator.clipboard.writeText('{{ $paymentInstructions['biller_code'] }}');
+                                showToast = true;
+                                toastMessage = 'Kode Perusahaan berhasil disalin!';
+                                setTimeout(() => showToast = false, 3000);
+                            " class="flex items-center space-x-1 px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs font-medium">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Salin</span>
+                            </button>
+                        </div>
+                        <div class="text-lg sm:text-xl md:text-2xl font-mono font-bold text-center py-2 sm:py-3 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border border-yellow-300">
+                            {{ $paymentInstructions['biller_code'] }}
+                        </div>
+                    </div>
+
+                    {{-- Bill Key --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                            <span class="text-xs text-gray-600">Kode Pembayaran (Bill Key)</span>
+                            <button @click="
+                                navigator.clipboard.writeText('{{ $paymentInstructions['bill_key'] }}');
+                                showToast = true;
+                                toastMessage = 'Kode Pembayaran berhasil disalin!';
+                                setTimeout(() => showToast = false, 3000);
+                            " class="flex items-center space-x-1 px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs font-medium">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Salin</span>
+                            </button>
+                        </div>
+                        <div class="text-base sm:text-lg md:text-xl font-mono font-bold text-center py-3 sm:py-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 overflow-x-auto">
+                            <div class="min-w-0 px-2">{{ $paymentInstructions['bill_key'] }}</div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-600 mt-3 sm:mt-4 text-center leading-relaxed">
+                        Gunakan Kode Perusahaan dan Kode Pembayaran di atas untuk melakukan pembayaran melalui ATM Mandiri, Mandiri Online, atau Livin' by Mandiri
                     </p>
                 </div>
                 @endif

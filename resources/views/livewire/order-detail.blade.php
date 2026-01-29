@@ -21,11 +21,133 @@
                         </div>
                     </div>
                     <div class="flex-shrink-0">
-                        <p class="text-base sm:text-xl md:text-2xl font-bold">Rp {{ number_format($order->total, 0, ',', '.') }}</p>
-                        <p class="mt-0.5 sm:mt-1 text-xs opacity-90 text-right">Total Pembayaran</p>
+                        {{-- Mobile: Label first, left-aligned --}}
+                        <p class="sm:hidden text-xs opacity-90 text-left">Total Pembayaran</p>
+                        <p class="text-base sm:text-xl md:text-2xl font-bold text-left sm:text-right">Rp {{ number_format($order->total, 0, ',', '.') }}</p>
+                        {{-- Desktop: Label after, right-aligned --}}
+                        <p class="hidden sm:block mt-0.5 sm:mt-1 text-xs opacity-90 text-right">Total Pembayaran</p>
                     </div>
                 </div>
             </div>
+
+            {{-- Payment Expiration Countdown --}}
+            @if(isset($paymentData['expired_at']) && $order->payment_status === 'pending')
+            <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50"
+                 x-data="{
+                    expiredAt: '{{ $paymentData['expired_at'] }}',
+                    days: 0,
+                    hours: 0,
+                    minutes: 0,
+                    seconds: 0,
+                    isExpired: false,
+                    isUrgent: false,
+                    interval: null,
+                    init() {
+                        this.updateCountdown();
+                        this.interval = setInterval(() => this.updateCountdown(), 1000);
+                    },
+                    updateCountdown() {
+                        const now = new Date().getTime();
+                        const expiry = new Date(this.expiredAt).getTime();
+                        const distance = expiry - now;
+
+                        if (distance <= 0) {
+                            this.isExpired = true;
+                            this.days = 0;
+                            this.hours = 0;
+                            this.minutes = 0;
+                            this.seconds = 0;
+                            clearInterval(this.interval);
+                            return;
+                        }
+
+                        this.days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        this.hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        this.minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        this.seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        
+                        // Mark as urgent if less than 1 hour remaining
+                        this.isUrgent = distance < (1000 * 60 * 60);
+                    },
+                    formatNumber(num) {
+                        return num.toString().padStart(2, '0');
+                    }
+                 }">
+                <div class="text-center">
+                    <p class="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
+                        <template x-if="!isExpired">
+                            <span>Selesaikan pembayaran sebelum</span>
+                        </template>
+                        <template x-if="isExpired">
+                            <span class="text-red-600">Waktu pembayaran telah berakhir</span>
+                        </template>
+                    </p>
+                    
+                    {{-- Digital Countdown Display --}}
+                    <div class="flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3" x-show="!isExpired">
+                        {{-- Days (only show if > 0) --}}
+                        <template x-if="days > 0">
+                            <div class="flex items-center gap-1.5 sm:gap-2">
+                                <div class="flex flex-col items-center">
+                                    <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white font-mono font-bold text-lg sm:text-2xl md:text-3xl px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[50px] md:min-w-[60px]"
+                                         :class="{ 'from-red-600 to-red-800': isUrgent }">
+                                        <span x-text="formatNumber(days)"></span>
+                                    </div>
+                                    <span class="text-[10px] sm:text-xs text-gray-500 mt-1">Hari</span>
+                                </div>
+                                <span class="text-gray-400 font-bold text-lg sm:text-xl md:text-2xl pb-4">:</span>
+                            </div>
+                        </template>
+                        
+                        {{-- Hours --}}
+                        <div class="flex flex-col items-center">
+                            <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white font-mono font-bold text-lg sm:text-2xl md:text-3xl px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[50px] md:min-w-[60px]"
+                                 :class="{ 'from-red-600 to-red-800': isUrgent }">
+                                <span x-text="formatNumber(hours)"></span>
+                            </div>
+                            <span class="text-[10px] sm:text-xs text-gray-500 mt-1">Jam</span>
+                        </div>
+                        
+                        <span class="text-gray-400 font-bold text-lg sm:text-xl md:text-2xl pb-4" :class="{ 'text-red-500': isUrgent }">:</span>
+                        
+                        {{-- Minutes --}}
+                        <div class="flex flex-col items-center">
+                            <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white font-mono font-bold text-lg sm:text-2xl md:text-3xl px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[50px] md:min-w-[60px]"
+                                 :class="{ 'from-red-600 to-red-800': isUrgent }">
+                                <span x-text="formatNumber(minutes)"></span>
+                            </div>
+                            <span class="text-[10px] sm:text-xs text-gray-500 mt-1">Menit</span>
+                        </div>
+                        
+                        <span class="text-gray-400 font-bold text-lg sm:text-xl md:text-2xl pb-4" :class="{ 'text-red-500': isUrgent, 'animate-pulse': true }">:</span>
+                        
+                        {{-- Seconds --}}
+                        <div class="flex flex-col items-center">
+                            <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white font-mono font-bold text-lg sm:text-2xl md:text-3xl px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[50px] md:min-w-[60px]"
+                                 :class="{ 'from-red-600 to-red-800': isUrgent }">
+                                <span x-text="formatNumber(seconds)"></span>
+                            </div>
+                            <span class="text-[10px] sm:text-xs text-gray-500 mt-1">Detik</span>
+                        </div>
+                    </div>
+
+                    {{-- Expired State --}}
+                    <div x-show="isExpired" class="flex items-center justify-center gap-2 py-2">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="text-red-600 font-semibold text-sm sm:text-base">Pembayaran Kedaluwarsa</span>
+                    </div>
+
+                    {{-- Warning message when urgent --}}
+                    <div x-show="isUrgent && !isExpired" class="mt-2 sm:mt-3">
+                        <p class="text-xs sm:text-sm text-red-600 font-medium animate-pulse">
+                            ⚠️ Segera selesaikan pembayaran Anda!
+                        </p>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Order Status -->
             <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">

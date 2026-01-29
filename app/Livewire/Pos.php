@@ -259,9 +259,9 @@ class Pos extends Component
 
             DB::commit();
 
-            session()->flash('success', 'Transaksi berhasil! Order #'.$orderNumber);
+            $this->dispatch('showSuccessModal', orderNumber: $orderNumber);
 
-            $this->reset(['items', 'customerName', 'customerEmail', 'customerPhone', 'discount']);
+            $this->reset(['items', 'customerName', 'customerEmail', 'customerPhone', 'discount', 'selectedCustomerId']);
             $this->quantity = 1;
 
         } catch (\Exception $e) {

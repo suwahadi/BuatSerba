@@ -68,10 +68,16 @@ class Checkout extends Component
     public function paymentMethods()
     {
         return [
+            // [
+            //     'id' => 'bank-transfer-bca',
+            //     'name' => 'BCA Virtual Account',
+            //     'description' => 'Transfer ke rekening virtual BCA',
+            //     'icon' => 'bank',
+            // ],
             [
-                'id' => 'bank-transfer-bca',
-                'name' => 'BCA Virtual Account',
-                'description' => 'Transfer ke rekening virtual BCA',
+                'id' => 'bank-transfer-mandiri',
+                'name' => 'Mandiri Virtual Account',
+                'description' => 'Transfer ke rekening virtual Mandiri',
                 'icon' => 'bank',
             ],
             [
@@ -94,8 +100,8 @@ class Checkout extends Component
             // ],
             [
                 'id' => 'bank-transfer',
-                'name' => 'Bank Transfer (' . (global_config('manual_bank_name') ?? 'BCA') . ')',
-                'description' => 'Transfer manual ke rekening ' . (global_config('manual_bank_name') ?? 'BCA'),
+                'name' => 'Bank Transfer ('.(global_config('manual_bank_name') ?? 'BCA').')',
+                'description' => 'Transfer manual ke rekening '.(global_config('manual_bank_name') ?? 'BCA'),
                 'icon' => 'bank',
             ],
         ];
@@ -175,7 +181,6 @@ class Checkout extends Component
             $this->showBranchModal = true;
         }
 
-        // Validate Voucher Session EARLY
         if (Session::has('applied_voucher')) {
             $voucherData = Session::get('applied_voucher');
             $this->voucherCode = $voucherData['code'];
@@ -254,7 +259,6 @@ class Checkout extends Component
                 }
             }
         }
-
 
     }
 
@@ -472,18 +476,17 @@ class Checkout extends Component
             // Apply Free Shipping Subsidy if applicable
             if (Session::has('applied_voucher')) {
                 $voucherData = Session::get('applied_voucher');
-                if (!empty($voucherData['is_free_shipment']) && isset($voucherData['amount_value'])) {
+                if (! empty($voucherData['is_free_shipment']) && isset($voucherData['amount_value'])) {
                     $subsidy = $voucherData['amount_value'];
-                    
+
                     $this->shippingMethods = array_map(function ($option) use ($subsidy) {
                         $option['original_cost'] = $option['cost'];
                         $option['subsidy'] = $subsidy;
-                        // Cost remains original for list display
+
                         return $option;
                     }, $this->shippingMethods);
-                    
-                    // Zero out product discount to avoid double counting
-                    $this->discount = 0; 
+
+                    $this->discount = 0;
                 }
             }
 
@@ -501,13 +504,9 @@ class Checkout extends Component
         $method = collect($this->shippingMethods)->firstWhere('id', $this->shippingMethod);
 
         if ($method) {
-            // Calculate final cost based on original cost - subsidy
-            // If original_cost exists (set by subsidy logic), use it as base. Otherwise use cost.
-            $originalCost = $method['original_cost'] ?? $method['cost']; 
-            
-            // Subsidy might be set, if not default to 0
+            $originalCost = $method['original_cost'] ?? $method['cost'];
             $subsidy = $method['subsidy'] ?? 0;
-            
+
             $this->shippingCost = max(0, $originalCost - $subsidy);
         }
     }
@@ -516,7 +515,10 @@ class Checkout extends Component
     public function selectedShippingOriginalCost()
     {
         $method = collect($this->shippingMethods)->firstWhere('id', $this->shippingMethod);
-        if (!$method) return 0;
+        if (! $method) {
+            return 0;
+        }
+
         return $method['original_cost'] ?? $method['cost'];
     }
 
@@ -638,11 +640,12 @@ class Checkout extends Component
     {
         return view('livewire.checkout')->layout('components.layouts.guest');
     }
+
     protected function formatShippingName($courierCode, $service)
     {
         $courierCode = strtolower($courierCode);
-        
-        $shortName = match($courierCode) {
+
+        $shortName = match ($courierCode) {
             'jne' => 'JNE',
             'jnt' => 'J&T',
             'pos' => 'POS',

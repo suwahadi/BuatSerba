@@ -32,7 +32,6 @@ class MidtransService
      */
     public function createTransaction($order, $paymentMethod)
     {
-        // Handle payment method as string or object
         if (is_string($paymentMethod)) {
             $methodParts = explode('-', $paymentMethod);
             $method = $methodParts[0].(isset($methodParts[1]) ? '-'.$methodParts[1] : '');
@@ -45,7 +44,6 @@ class MidtransService
 
         $config = $paymentMethodObj->getCoreApiConfig();
 
-        // Build base payload
         $payload = [
             'payment_type' => $config['payment_type'],
             'transaction_details' => [
@@ -57,13 +55,11 @@ class MidtransService
                 'email' => $order->customer_email ?? 'customer@example.com',
                 'phone' => $order->customer_phone ?? '08123456789',
             ],
-            // Add notification callback URL for Midtrans to notify payment status
             'callbacks' => [
                 'notification_url' => config('midtrans.core_api.notification_url'),
             ],
         ];
 
-        // Add specific payment method configurations
         if (isset($config['bank'])) {
             $payload['bank_transfer'] = ['bank' => $config['bank']];
         }
@@ -80,6 +76,13 @@ class MidtransService
             $payload['shopeepay'] = $config['shopeepay'];
         }
 
+        if ($config['payment_type'] === 'echannel') {
+            $payload['echannel'] = [
+                'bill_info1' => 'Payment for',
+                'bill_info2' => 'Order '.$order->order_number,
+            ];
+        }
+
         try {
             \Log::info('Midtrans Core API Request: '.$this->coreApiUrl.'/charge', ['payload' => $payload]);
 
@@ -94,10 +97,8 @@ class MidtransService
             \Log::info('Midtrans Core API Response: '.$response->status(), ['response' => $result]);
 
             if ($response->successful() && isset($result['status_code']) && in_array($result['status_code'], ['200', '201'])) {
-                // Extract payment instructions
                 $instructions = $this->extractPaymentInstructions($result);
 
-                // Create payment record in database
                 $payment = $this->createPaymentRecord($order, $result, $paymentMethodObj);
 
                 return [
@@ -111,7 +112,7 @@ class MidtransService
 
             return [
                 'success' => false,
-                'message' => $result['status_message'] ?? 'Payment creation failed',
+                'message' => $this->getFriendlyErrorMessage($result['status_message'] ?? 'Payment creation failed', $result['status_code'] ?? null),
                 'error_details' => $result,
             ];
 
@@ -153,18 +154,21 @@ class MidtransService
 
     /**
      * Determine payment channel from transaction data
-     * Extract bank name from Midtrans response (e.g., from va_numbers array)
      */
     protected function getPaymentChannel($transactionData, $paymentMethodObj)
     {
-        // Priority 1: Get from permata_va_number (Permata specific)
+        if (isset($transactionData['bill_key']) && isset($transactionData['biller_code'])) {
+            \Log::info('Payment channel detected: mandiri (echannel)', ['bill_key' => $transactionData['bill_key']]);
+
+            return 'mandiri';
+        }
+
         if (isset($transactionData['permata_va_number'])) {
             \Log::info('Payment channel detected: permata', ['permata_va_number' => $transactionData['permata_va_number']]);
 
             return 'permata';
         }
 
-        // Priority 2: Get from va_numbers array (most accurate from Midtrans)
         if (isset($transactionData['va_numbers']) && is_array($transactionData['va_numbers']) && count($transactionData['va_numbers']) > 0) {
             $channel = $transactionData['va_numbers'][0]['bank'];
             \Log::info('Payment channel detected from va_numbers', ['channel' => $channel]);
@@ -172,12 +176,9 @@ class MidtransService
             return $channel;
         }
 
-        // Priority 3: Get from bank_transfer
         if (isset($transactionData['bank_transfer']['bank'])) {
             return $transactionData['bank_transfer']['bank'];
         }
-
-        // Priority 4: Get from payment_type
         if (isset($transactionData['payment_type'])) {
             $channel = $transactionData['payment_type'];
             \Log::info('Payment channel fallback to payment_type', ['channel' => $channel]);
@@ -185,7 +186,6 @@ class MidtransService
             return $channel;
         }
 
-        // Priority 5: Fallback to config
         $config = $paymentMethodObj->getCoreApiConfig();
         if (isset($config['bank'])) {
             return $config['bank'];
@@ -235,7 +235,6 @@ class MidtransService
 
         switch ($paymentType) {
             case 'bank_transfer':
-                // Handle Permata VA (different response structure)
                 if (isset($transactionData['permata_va_number'])) {
                     $instructions = [
                         'type' => 'virtual_account',
@@ -243,9 +242,7 @@ class MidtransService
                         'va_number' => $transactionData['permata_va_number'],
                         'instructions' => $this->getVAInstructions('permata'),
                     ];
-                }
-                // Handle other banks (BCA, BNI, BRI, etc.)
-                elseif (isset($transactionData['va_numbers'][0])) {
+                } elseif (isset($transactionData['va_numbers'][0])) {
                     $vaNumber = $transactionData['va_numbers'][0];
                     $instructions = [
                         'type' => 'virtual_account',
@@ -253,9 +250,7 @@ class MidtransService
                         'va_number' => $vaNumber['va_number'],
                         'instructions' => $this->getVAInstructions($vaNumber['bank']),
                     ];
-                }
-                // Handle Mandiri Bill Payment
-                elseif (isset($transactionData['bill_key']) && isset($transactionData['biller_code'])) {
+                } elseif (isset($transactionData['bill_key']) && isset($transactionData['biller_code'])) {
                     $instructions = [
                         'type' => 'mandiri_echannel',
                         'bill_key' => $transactionData['bill_key'],
@@ -430,5 +425,44 @@ class MidtransService
             'Konfirmasi pembayaran dengan memasukkan CVV',
             'Ikuti instruksi otentikasi jika diperlukan (3D Secure)',
         ];
+    }
+
+    /**
+     * Convert technical Midtrans error messages to user-friendly messages
+     */
+    private function getFriendlyErrorMessage(string $technicalMessage, ?string $statusCode = null): string
+    {
+        $errorMappings = [
+            'Payment channel is not activated' => 'Metode pembayaran ini sedang tidak tersedia. Silakan pilih metode pembayaran lain.',
+            'Transaction is denied' => 'Transaksi ditolak. Silakan coba lagi atau gunakan metode pembayaran lain.',
+            'Invalid transaction data' => 'Data transaksi tidak valid. Silakan periksa kembali data pembayaran Anda.',
+            'Duplicate order id' => 'Pesanan dengan nomor ini sudah ada. Silakan buat pesanan baru.',
+            'Invalid API key' => 'Terjadi kesalahan konfigurasi pembayaran. Silakan hubungi admin.',
+            'Access denied' => 'Akses ditolak. Silakan hubungi admin untuk bantuan.',
+            'Merchant not found' => 'Konfigurasi pembayaran tidak ditemukan. Silakan hubungi admin.',
+            'Transaction not found' => 'Transaksi tidak ditemukan. Silakan coba lagi.',
+            'Expired transaction' => 'Waktu transaksi telah habis. Silakan buat pesanan baru.',
+            'Transaction already processed' => 'Transaksi sudah diproses sebelumnya.',
+            'Invalid amount' => 'Jumlah pembayaran tidak valid. Silakan periksa kembali.',
+            'Bank is not supported' => 'Bank yang dipilih tidak didukung. Silakan pilih bank lain.',
+        ];
+
+        $statusCodeMappings = [
+            '402' => 'Metode pembayaran ini sedang tidak tersedia. Silakan pilih metode pembayaran lain.',
+            '500' => 'Layanan pembayaran sedang gangguan. Silakan coba beberapa saat lagi.',
+            '503' => 'Layanan pembayaran sedang dalam pemeliharaan. Silakan coba beberapa saat lagi.',
+        ];
+
+        foreach ($errorMappings as $technical => $friendly) {
+            if (stripos($technicalMessage, $technical) !== false) {
+                return $friendly;
+            }
+        }
+
+        if ($statusCode && isset($statusCodeMappings[$statusCode])) {
+            return $statusCodeMappings[$statusCode];
+        }
+
+        return 'Gagal memproses pembayaran. Silakan coba metode pembayaran lain atau hubungi customer service kami.';
     }
 }

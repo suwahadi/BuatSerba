@@ -23,6 +23,14 @@ class PaymentMethod
             case 'bank-transfer':
                 $bank = $this->subMethod ?? 'bca';
 
+                // Mandiri uses echannel (Bill Payment) instead of bank_transfer
+                if ($bank === 'mandiri') {
+                    return [
+                        'payment_type' => 'echannel',
+                        'bank' => 'mandiri',
+                    ];
+                }
+
                 return [
                     'payment_type' => 'bank_transfer',
                     'bank' => $bank,

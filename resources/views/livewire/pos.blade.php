@@ -150,6 +150,8 @@
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             overflow: hidden;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             margin-bottom: 1.5rem;
         }
         .dark .pos-table-wrapper {
@@ -157,6 +159,7 @@
         }
         .pos-table {
             width: 100%;
+            min-width: 500px;
             border-collapse: collapse;
             font-size: 0.875rem;
         }
@@ -873,20 +876,13 @@
                                     </div>
 
                                     <div class="pos-modal-body">
-                                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                                        <div style="margin-bottom: 1rem;">
                                             <input type="text"
                                                    class="pos-input"
                                                    x-ref="searchInput"
                                                    x-model="searchQuery"
-                                                   @keydown.enter="doSearch()"
-                                                   placeholder="Ketik nama, email, atau phone..."
-                                                   style="width: 80%;">
-                                            <button type="button"
-                                                    class="pos-btn pos-btn-success"
-                                                    style="width: 20%;"
-                                                    @click="doSearch()">
-                                                Cari
-                                            </button>
+                                                   @input.debounce.300ms="doSearch()"
+                                                   placeholder="Ketik nama, email, atau phone...">
                                         </div>
 
                                         <div style="max-height: 300px; overflow-y: auto;">
@@ -896,13 +892,13 @@
                                                         <circle cx="11" cy="11" r="8"></circle>
                                                         <path d="m21 21-4.35-4.35"></path>
                                                     </svg>
-                                                    <p style="color: #6b7280;">Tidak ditemukan customer dengan kata kunci tersebut.</p>
+                                                    <p style="color: #6b7280;">Tidak ditemukan data customer...</p>
                                                 </div>
                                             </template>
 
                                             <template x-if="customers.length === 0 && searchQuery.length === 0">
                                                 <div class="pos-dropdown-empty" style="padding: 2rem; text-align: center;">
-                                                    <p style="color: #6b7280;">Ketik nama, email, atau nomor telepon untuk mencari.</p>
+                                                    <p style="color: #6b7280;">Menemukan data customer...</p>
                                                 </div>
                                             </template>
 
@@ -1091,4 +1087,75 @@
             </div>
         </div>
     </div>
+
+    <div x-data="{ 
+            showSuccessModal: false, 
+            orderNumber: '' 
+         }"
+         x-on:show-success-modal.window="showSuccessModal = true; orderNumber = $event.detail.orderNumber">
+        <template x-teleport="body">
+            <div x-show="showSuccessModal"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="pos-modal-backdrop"
+                 style="display: none;">
+
+                <div class="pos-modal"
+                     x-show="showSuccessModal"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 transform scale-95"
+                     x-transition:enter-end="opacity-100 transform scale-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 transform scale-100"
+                     x-transition:leave-end="opacity-0 transform scale-95"
+                     @click.stop>
+
+                    <div class="pos-modal-header">
+                        <h3 class="pos-modal-title">
+                            <span class="pos-modal-icon pos-modal-icon-success">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 6L9 17l-5-5"></path>
+                                </svg>
+                            </span>
+                            Transaksi Berhasil
+                        </h3>
+                    </div>
+
+                    <div class="pos-modal-body">
+                        <p class="pos-modal-text">
+                            Transaksi telah berhasil disimpan dengan nomor order:
+                        </p>
+                        <p style="font-size: 1.125rem; font-weight: 700; color: #10b981; margin-top: 0.5rem;" x-text="orderNumber"></p>
+                    </div>
+
+                    <div class="pos-modal-footer">
+                        <button type="button"
+                                class="pos-modal-btn pos-modal-btn-cancel"
+                                @click="showSuccessModal = false">
+                            Tutup
+                        </button>
+                        <a :href="'/admin/pos/' + orderNumber"
+                           class="pos-modal-btn pos-modal-btn-success"
+                           style="text-decoration: none; display: inline-block; text-align: center;">
+                            Detail Struk
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <script>
+        document.addEventListener('livewire:init', function() {
+            Livewire.on('showSuccessModal', (data) => {
+                window.dispatchEvent(new CustomEvent('show-success-modal', { 
+                    detail: { orderNumber: data.orderNumber }
+                }));
+            });
+        });
+    </script>
 </div>

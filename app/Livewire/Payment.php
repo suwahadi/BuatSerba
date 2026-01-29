@@ -52,6 +52,7 @@ class Payment extends Component
                     'payment_type' => $payment->payment_type,
                     'payment_channel' => $payment->payment_channel,
                     'gross_amount' => $payment->gross_amount,
+                    'expired_at' => $payment->expired_at?->toIso8601String(),
                 ];
             }
         }

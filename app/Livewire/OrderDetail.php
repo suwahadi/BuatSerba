@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Order;
+use App\Models\Payment;
 use Livewire\Component;
 
 class OrderDetail extends Component
@@ -11,27 +12,33 @@ class OrderDetail extends Component
 
     public $orderNumber;
 
+    public $paymentData = [];
+
     public function mount($orderNumber)
     {
         $this->orderNumber = $orderNumber;
 
-        // Load order by order number with all necessary relationships
         $this->order = Order::with(['items.product.images', 'items.sku'])
             ->where('order_number', $orderNumber)
             ->firstOrFail();
 
-        // Security check: Ensure the order belongs to the current user if logged in
         if (auth()->check() && $this->order->user_id !== auth()->id()) {
             abort(403);
         }
-
-        // For guest users, we rely on the unique order number (code) which acts as a token
+        $payment = Payment::where('order_id', $this->order->id)->first();
+        if ($payment) {
+            $this->paymentData = [
+                'expired_at' => $payment->expired_at?->toIso8601String(),
+                'transaction_status' => $payment->transaction_status,
+            ];
+        }
     }
 
     public function render()
     {
         return view('livewire.order-detail', [
             'order' => $this->order,
+            'paymentData' => $this->paymentData,
         ])->layout('components.layouts.guest');
     }
 }

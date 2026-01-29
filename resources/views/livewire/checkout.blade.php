@@ -477,6 +477,140 @@
                     }
                 }, 100);
             });
+
+            // Listen for modal error event
+            Livewire.on('showModalError', (data) => {
+                window.dispatchEvent(new CustomEvent('show-payment-error', { 
+                    detail: { title: data[0].title, message: data[0].message }
+                }));
+            });
+
+            // Listen for modal success event
+            Livewire.on('showModalSuccess', (data) => {
+                window.dispatchEvent(new CustomEvent('show-payment-success', { 
+                    detail: { title: data[0].title, message: data[0].message }
+                }));
+            });
         });
     </script>
+
+    {{-- Payment Error Modal --}}
+    <div x-data="{ 
+            showError: false, 
+            errorTitle: '', 
+            errorMessage: '',
+            closeAndReload() {
+                this.showError = false;
+                setTimeout(() => window.location.reload(), 300);
+            }
+         }"
+         x-on:show-payment-error.window="showError = true; errorTitle = $event.detail.title; errorMessage = $event.detail.message"
+         x-show="showError"
+         x-cloak
+         class="fixed inset-0 z-[100] overflow-y-auto"
+         style="display: none;">
+        
+        {{-- Backdrop --}}
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+             x-show="showError"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+        </div>
+
+        {{-- Modal Content --}}
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto transform transition-all"
+                 x-show="showError"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 @click.outside="closeAndReload()">
+                
+                {{-- Header with Icon --}}
+                <div class="pt-6 pb-4 px-6">
+                    <div class="flex flex-col items-center text-center">
+                        {{-- Error Icon --}}
+                        <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                            <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        
+                        {{-- Title --}}
+                        <h3 class="text-lg sm:text-xl font-bold text-gray-900" x-text="errorTitle"></h3>
+                        
+                        {{-- Message --}}
+                        <p class="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed" x-text="errorMessage"></p>
+                        
+                        {{-- Additional Info --}}
+                        <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg w-full">
+                            <p class="text-xs sm:text-sm text-amber-800">
+                                <span class="font-semibold">Tips:</span> Coba pilih metode pembayaran lain atau hubungi kami jika masalah berlanjut.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Footer with Button --}}
+                <div class="px-6 pb-6">
+                    <button @click="closeAndReload()" 
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 text-sm sm:text-base">
+                        Saya Mengerti
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Payment Success Modal --}}
+    <div x-data="{ 
+            showSuccess: false, 
+            successTitle: '', 
+            successMessage: ''
+         }"
+         x-on:show-payment-success.window="showSuccess = true; successTitle = $event.detail.title; successMessage = $event.detail.message"
+         x-show="showSuccess"
+         x-cloak
+         class="fixed inset-0 z-[100] overflow-y-auto"
+         style="display: none;">
+        
+        {{-- Backdrop --}}
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+             x-show="showSuccess"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100">
+        </div>
+
+        {{-- Modal Content --}}
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto transform transition-all"
+                 x-show="showSuccess"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100">
+                
+                <div class="pt-6 pb-4 px-6">
+                    <div class="flex flex-col items-center text-center">
+                        {{-- Success Icon --}}
+                        <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                            <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        
+                        <h3 class="text-lg sm:text-xl font-bold text-gray-900" x-text="successTitle"></h3>
+                        <p class="mt-3 text-sm sm:text-base text-gray-600 leading-relaxed" x-text="successMessage"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
