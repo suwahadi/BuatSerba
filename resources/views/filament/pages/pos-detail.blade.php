@@ -1,7 +1,8 @@
 <x-filament-panels::page>
     <style>
         .receipt-container {
-            max-width: 520px;
+            width: 100%;
+            max-width: 500px;
             margin: 0 auto;
             font-family: 'Courier New', Courier, monospace;
         }

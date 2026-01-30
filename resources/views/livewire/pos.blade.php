@@ -758,13 +758,60 @@
                     <button type="button" class="pos-btn pos-btn-success" wire:click="addItem">+ Tambah Item</button>
                 </div>
             </div>
+
+            {{-- Recent Transactions Table --}}
+            <div class="pos-card" style="border: none !important; border-radius: 0 !important; margin-top: 10px;">
+                <div class="pos-card-header">
+                    <h3 class="pos-card-title">10 Transaksi Terakhir</h3>
+                </div>
+                <div class="pos-card-body" style="padding: 0;">
+                    <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                            <thead>
+                                <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Order</th>
+                                    <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Customer</th>
+                                    <th style="padding: 0.75rem 1rem; text-align: right; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Total (Rp)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($recentTransactions as $trx)
+                                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                                        <td style="padding: 0.75rem 1rem;">
+                                            <a href="{{ route('filament.admin.pages.pos.{orderNumber}', $trx->order_number) }}" style="font-weight: 600; color: #2563eb; text-decoration: none;">{{ $trx->order_number }}</a>
+                                            <br><span style="font-size: 0.75rem; color: #9ca3af;">{{ $trx->created_at->format('d M y - H:i:s') }}</span>
+                                        </td>
+                                        <td style="padding: 0.75rem 1rem; color: #374151;">{{ $trx->customer_name }}</td>
+                                        <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 600; color: #059669;">{{ number_format($trx->total, 0, ',', '.') }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" style="padding: 2rem 1rem; text-align: center; color: #9ca3af;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 0.5rem;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                                            <p>Belum ada transaksi</p>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
         </div>
 
         {{-- Right Panel - Order Summary --}}
         <div class="pos-card">
             <div class="pos-card-header">
                 <h3 class="pos-card-title">Keranjang Belanja</h3>
-                <p class="pos-card-subtitle">{{ count($items) }} item • Kasir: {{ Auth::user()->name }}</p>
+                <p class="pos-card-subtitle" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; color: #6b7280; font-size: 0.875rem;">
+    <span>{{ count($items) }} item</span>
+    <span style="color: #d1d5db;">•</span>
+    <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        Kasir: {{ Auth::user()->name }}
+    </span>
+</p>
             </div>
             <div class="pos-card-body">
                 {{-- Customer Info --}}

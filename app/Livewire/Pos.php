@@ -283,9 +283,15 @@ class Pos extends Component
 
         $productPrices = $skus->mapWithKeys(fn ($sku) => [$sku->id => (int) $sku->selling_price]);
 
+        $recentTransactions = Order::where('payment_method', 'cash')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
         return view('livewire.pos', [
             'products' => $products,
             'productPrices' => $productPrices,
+            'recentTransactions' => $recentTransactions,
         ]);
     }
 }
