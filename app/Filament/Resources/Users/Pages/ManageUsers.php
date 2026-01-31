@@ -14,6 +14,7 @@ class ManageUsers extends ManageRecords
     {
         return [
             CreateAction::make()
+                ->label('Tambah Data')
                 ->after(function ($record) {
                     // Sync Spatie Roles
                     if ($record->role === 'regular') {

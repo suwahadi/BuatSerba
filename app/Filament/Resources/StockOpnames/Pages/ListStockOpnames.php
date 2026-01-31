@@ -21,7 +21,7 @@ class ListStockOpnames extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Tambah Stok Opname'),
+                ->label('Tambah Data'),
         ];
     }
 }

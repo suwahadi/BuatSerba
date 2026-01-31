@@ -38,8 +38,8 @@ class Pos extends Component
 
     protected $rules = [
         'customerName' => 'required|string|max:255',
-        'customerEmail' => 'required|email|max:255',
-        'customerPhone' => 'required|string|max:20',
+        'customerEmail' => 'nullable|email|max:255',
+        'customerPhone' => 'nullable|string|max:20',
     ];
 
     public function mount()
@@ -216,7 +216,7 @@ class Pos extends Component
 
         DB::beginTransaction();
         try {
-            $prefix = global_config('prefix_trx') ?? 'ORD-';
+            $prefix = 'CSH-';
             do {
                 $orderNumber = $prefix.strtoupper(substr(uniqid(), -6));
             } while (Order::where('order_number', $orderNumber)->exists());

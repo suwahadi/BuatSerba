@@ -24,10 +24,6 @@ class GlobalConfigsTable
                     ->label('Description')
                     ->toggleable(),
 
-                \Filament\Tables\Columns\TextColumn::make('sort')
-                    ->sortable()
-                    ->label('Sort'),
-
                 \Filament\Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()

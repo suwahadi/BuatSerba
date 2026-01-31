@@ -6,7 +6,6 @@ use App\Filament\Resources\Branches\Branches\Pages\ManageBranches;
 use App\Models\Branch;
 use App\Services\RajaongkirService;
 use BackedEnum;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -27,9 +26,20 @@ class BranchResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Settings';
+    protected static UnitEnum|string|null $navigationGroup = 'Pengaturan';
 
-    protected static ?int $navigationSort = 13;
+    protected static ?string $navigationLabel = 'Cabang';
+
+    protected static ?int $navigationSort = 2;
+
+    protected static ?string $modelLabel = 'Cabang';
+
+    protected static ?string $pluralModelLabel = 'Cabang';
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -38,18 +48,18 @@ class BranchResource extends Resource
                 TextInput::make('code')
                     ->required()
                     ->maxLength(20)
-                    ->unique(Branch::class, 'code')
-                    ->label('Branch Code')
-                    ->placeholder('e.g., JKT001'),
+                    ->unique(Branch::class, 'code', ignoreRecord: true)
+                    ->label('Kode Cabang')
+                    ->placeholder('Misal: JKT001'),
 
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255)
-                    ->label('Branch Name')
-                    ->placeholder('e.g., Cabang Jakarta Pusat'),
+                    ->label('Nama Cabang')
+                    ->placeholder('Misal: Cabang Jakarta Pusat'),
 
                 Select::make('province_id')
-                    ->label('Province')
+                    ->label('Provinsi')
                     ->required()
                     ->searchable()
                     ->live()
@@ -83,7 +93,7 @@ class BranchResource extends Resource
                     }),
 
                 Select::make('city_id')
-                    ->label('City')
+                    ->label('Kota / Kabupaten')
                     ->required()
                     ->searchable()
                     ->live()
@@ -126,7 +136,7 @@ class BranchResource extends Resource
                     }),
 
                 Select::make('district_id')
-                    ->label('District (Kecamatan)')
+                    ->label('Kecamatan')
                     ->required()
                     ->searchable()
                     ->live()
@@ -163,11 +173,10 @@ class BranchResource extends Resource
                     }),
 
                 Select::make('subdistrict_id')
-                    ->label('Subdistrict (Kelurahan)')
+                    ->label('Kelurahan')
                     ->required()
                     ->searchable()
                     ->live()
-                    ->helperText('This will be used as the origin for shipping cost calculation')
                     ->options(function (Get $get) {
                         $districtId = $get('district_id');
                         if (! $districtId) {
@@ -200,12 +209,12 @@ class BranchResource extends Resource
                 TextInput::make('full_address')
                     ->maxLength(500)
                     ->columnSpanFull()
-                    ->label('Full Address'),
+                    ->label('Alamat Lengkap'),
 
                 TextInput::make('phone')
                     ->tel()
                     ->maxLength(20)
-                    ->label('Phone Number'),
+                    ->label('No. Telepon'),
 
                 TextInput::make('email')
                     ->email()
@@ -240,35 +249,35 @@ class BranchResource extends Resource
                 TextColumn::make('code')
                     ->searchable()
                     ->sortable()
-                    ->label('Code'),
+                    ->label('Kode'),
 
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable()
-                    ->label('Branch Name'),
+                    ->label('Nama Cabang'),
 
                 TextColumn::make('province_name')
-                    ->label('Province')
+                    ->label('Provinsi')
                     ->searchable()
                     ->formatStateUsing(fn ($state) => strtoupper($state)),
 
                 TextColumn::make('city_name')
-                    ->label('City')
+                    ->label('Kota / Kab')
                     ->searchable()
                     ->formatStateUsing(fn ($state) => strtoupper($state)),
 
                 TextColumn::make('district_name')
-                    ->label('District')
+                    ->label('Kecamatan')
                     ->searchable()
                     ->formatStateUsing(fn ($state) => strtoupper($state)),
 
                 TextColumn::make('subdistrict_name')
-                    ->label('Subdistrict')
+                    ->label('Kelurahan')
                     ->searchable()
                     ->formatStateUsing(fn ($state) => strtoupper($state)),
 
                 TextColumn::make('phone')
-                    ->label('Phone')
+                    ->label('No. Telp')
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('email')
@@ -280,7 +289,6 @@ class BranchResource extends Resource
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
             ])
             ->toolbarActions([
                 // No bulk actions

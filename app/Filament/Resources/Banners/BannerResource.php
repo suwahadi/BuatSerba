@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class BannerResource extends Resource
 {
@@ -18,7 +19,15 @@ class BannerResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPhoto;
 
-    protected static ?int $navigationSort = 2;
+    protected static UnitEnum|string|null $navigationGroup = 'Pengaturan';
+
+    protected static ?string $navigationLabel = 'Banner';
+
+    protected static ?int $navigationSort = 3;
+
+    protected static ?string $modelLabel = 'Banner';
+
+    protected static ?string $pluralModelLabel = 'Banner';
 
     public static function form(Schema $schema): Schema
     {

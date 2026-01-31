@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class CategoryResource extends Resource
 {
@@ -19,7 +20,15 @@ class CategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?string $navigationLabel = 'Kategori';
+
+    protected static UnitEnum|string|null $navigationGroup = 'Pengaturan';
+
+    protected static ?int $navigationSort = 5;
+
+    protected static ?string $modelLabel = 'Kategori';
+
+    protected static ?string $pluralModelLabel = 'Kategori';
 
     protected static ?string $recordTitleAttribute = 'name';
 

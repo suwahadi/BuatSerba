@@ -27,7 +27,7 @@ class StockOpnameResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Internal Management';
+    protected static string|UnitEnum|null $navigationGroup = 'Sistem Internal';
 
     protected static ?string $navigationLabel = 'Stok Opname';
 

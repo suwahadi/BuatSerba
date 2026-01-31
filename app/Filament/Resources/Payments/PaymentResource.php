@@ -19,6 +19,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class PaymentResource extends Resource
 {
@@ -26,15 +27,15 @@ class PaymentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
-    protected static ?string $navigationLabel = 'Payments';
+    protected static ?string $navigationLabel = 'Pembayaran';
 
-    protected static ?string $modelLabel = 'Payment';
+    protected static UnitEnum|string|null $navigationGroup = null;
 
-    protected static ?string $pluralModelLabel = 'Payments';
+    protected static ?int $navigationSort = 4;
 
-    protected static ?string $slug = 'payments';
+    protected static ?string $modelLabel = 'Pembayaran';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?string $pluralModelLabel = 'Pembayaran';
 
     public static function form(Schema $schema): Schema
     {

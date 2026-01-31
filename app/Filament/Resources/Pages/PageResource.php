@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class PageResource extends Resource
 {
@@ -21,7 +22,15 @@ class PageResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationLabel = 'Halaman';
+
+    protected static UnitEnum|string|null $navigationGroup = 'Pengaturan';
+
+    protected static ?int $navigationSort = 4;
+
+    protected static ?string $modelLabel = 'Halaman';
+
+    protected static ?string $pluralModelLabel = 'Halaman';
 
     public static function form(Schema $schema): Schema
     {

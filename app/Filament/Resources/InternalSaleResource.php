@@ -5,33 +5,41 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\InternalSaleResource\Pages;
 use App\Models\InternalSale;
 use BackedEnum;
-use UnitEnum;
 use Filament\Forms;
-use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use Illuminate\Support\Facades\Auth;
+use Filament\Schemas\Schema;
+use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use UnitEnum;
 
 class InternalSaleResource extends Resource
 {
     protected static ?string $model = InternalSale::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
-    protected static string|UnitEnum|null $navigationGroup = 'Internal Management';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Sistem Internal';
+
     protected static ?string $navigationLabel = 'Catatan Pengeluaran';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $modelLabel = 'Catatan Pengeluaran';
 
+    protected static ?string $pluralModelLabel = 'Catatan Pengeluaran';
+
     public static function canAccess(): bool
     {
-        if (!Auth::check()) return false;
-        
+        if (! Auth::check()) {
+            return false;
+        }
+
         return Auth::user()->hasAnyRole(['admin', 'finance']);
     }
 
@@ -42,12 +50,12 @@ class InternalSaleResource extends Resource
                 Forms\Components\Hidden::make('user_id')
                     ->default(fn () => Auth::id())
                     ->required(),
-                
+
                 \Filament\Schemas\Components\Grid::make(2)
                     ->schema([
                         Forms\Components\TextInput::make('code')
                             ->label('Kode Transaksi')
-                            ->default(fn () => 'PT-' . strtoupper(Str::random(6)))
+                            ->default(fn () => 'PT-'.strtoupper(Str::random(6)))
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
@@ -155,10 +163,8 @@ class InternalSaleResource extends Resource
                             );
                     }),
                 Tables\Filters\SelectFilter::make('user')
-                    ->relationship('user', 'name', fn (Builder $query) => 
-                        $query->whereHas('roles', fn ($q) => 
-                            $q->whereIn('name', ['admin', 'finance', 'warehouse'])
-                        )
+                    ->relationship('user', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->whereIn('name', ['admin', 'finance', 'warehouse'])
+                    )
                     )
                     ->searchable()
                     ->preload(),

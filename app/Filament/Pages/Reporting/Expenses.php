@@ -2,23 +2,23 @@
 
 namespace App\Filament\Pages\Reporting;
 
-use Filament\Pages\Page;
-use Illuminate\Support\Facades\Auth;
+use App\Models\InternalSale;
+use BackedEnum;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Components\DatePicker;
+use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Filament\Forms\Components\Select;
-use BackedEnum;
+use Filament\Tables;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Filament\Tables;
-use App\Models\InternalSale;
 use Illuminate\Support\Carbon;
-use Filament\Tables\Columns\Summarizers\Sum;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 
 class Expenses extends Page implements HasForms, HasTable
@@ -30,7 +30,7 @@ class Expenses extends Page implements HasForms, HasTable
 
     protected string $view = 'filament.pages.reporting.expenses';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Reporting';
+    protected static string|\UnitEnum|null $navigationGroup = 'Laporan';
 
     protected static ?string $navigationLabel = 'Laporan Pengeluaran';
 
@@ -45,7 +45,7 @@ class Expenses extends Page implements HasForms, HasTable
 
     public static function canAccess(): bool
     {
-         return Auth::check() && Auth::user()->hasAnyRole(['admin', 'finance']);
+        return Auth::check() && Auth::user()->hasAnyRole(['admin', 'finance']);
     }
 
     public function mount(): void
@@ -75,7 +75,7 @@ class Expenses extends Page implements HasForms, HasTable
                             ->disableOptionWhen(fn (string $value): bool => $value === '')
                             ->live()
                             ->afterStateUpdated(fn () => $this->redirect(static::getUrl(['filters' => $this->data]))),
-                        
+
                         DatePicker::make('start_date')
                             ->label('Dari Tanggal')
                             ->visible(fn (Get $get) => $get('period') === 'custom')
@@ -88,7 +88,7 @@ class Expenses extends Page implements HasForms, HasTable
                             ->live()
                             ->afterStateUpdated(fn () => $this->redirect(static::getUrl(['filters' => $this->data]))),
                     ])
-                    ->columns(3)
+                    ->columns(3),
             ])
             ->statePath('data');
     }
@@ -158,7 +158,7 @@ class Expenses extends Page implements HasForms, HasTable
     protected function getDateRange(): array
     {
         $period = $this->data['period'] ?? 'month';
-        
+
         return match ($period) {
             'today' => [Carbon::today(), Carbon::today()->endOfDay()],
             'week' => [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()],
@@ -169,7 +169,7 @@ class Expenses extends Page implements HasForms, HasTable
             'last_year' => [Carbon::now()->subYear()->startOfYear(), Carbon::now()->subYear()->endOfYear()],
             'custom' => [
                 isset($this->data['start_date']) ? Carbon::parse($this->data['start_date']) : Carbon::now()->startOfMonth(),
-                isset($this->data['end_date']) ? Carbon::parse($this->data['end_date'])->endOfDay() : Carbon::now()->endOfMonth()
+                isset($this->data['end_date']) ? Carbon::parse($this->data['end_date'])->endOfDay() : Carbon::now()->endOfMonth(),
             ],
             default => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
         };

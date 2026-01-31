@@ -179,12 +179,12 @@
 
             <div class="receipt-meta">
                 <div>
-                    <p style="margin: 0;">{{ $order->created_at->format('Y-m-d') }}</p>
+                    <p style="margin: 0;">{{ $order->created_at->format('d M Y') }}</p>
                     <p style="margin: 0;">{{ $order->created_at->format('H:i:s') }}</p>
                 </div>
                 <div style="text-align: right;">
-                    <p style="margin: 0;">{{ $order->user?->name ?? 'Kasir' }}</p>
-                    <p style="margin: 0; font-size: 0.65rem; color: #9ca3af;">{{ $order->customer_name }}</p>
+                    <p style="margin: 0;">{{ $order->customer_name }}</p>
+                    <p style="margin: 0; font-size: 0.65rem; color: #9ca3af;">Kasir: {{ $order->user?->name ?? 'Kasir' }}</p>
                 </div>
             </div>
 

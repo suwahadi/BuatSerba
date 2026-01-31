@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PointOfSale extends Page
 {
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shopping-cart';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calculator';
 
     protected string $view = 'filament.pages.point-of-sale';
 
@@ -17,15 +17,15 @@ class PointOfSale extends Page
         return Width::Full;
     }
 
-    protected static ?string $navigationLabel = 'Point of Sale';
+    protected static ?string $navigationLabel = 'Kasir (POS)';
 
-    protected static ?string $title = 'Point of Sale';
+    protected static ?string $title = 'Kasir (POS)';
 
     protected static ?string $slug = 'pos';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Internal Management';
+    protected static string|\UnitEnum|null $navigationGroup = 'Sistem Internal';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function canAccess(): bool
     {

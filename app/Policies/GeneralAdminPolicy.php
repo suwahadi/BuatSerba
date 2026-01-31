@@ -11,7 +11,7 @@ class GeneralAdminPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**
@@ -19,7 +19,7 @@ class GeneralAdminPolicy
      */
     public function view(User $user, $model): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**
@@ -35,7 +35,7 @@ class GeneralAdminPolicy
      */
     public function update(User $user, $model): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**

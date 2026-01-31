@@ -34,7 +34,7 @@ class StocksFlow extends Page implements HasForms, HasTable
 
     protected string $view = 'filament.pages.reporting.stocks-flow';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Reporting';
+    protected static string|\UnitEnum|null $navigationGroup = 'Laporan';
 
     protected static ?string $navigationLabel = 'Laporan Arus Stok';
 
@@ -42,7 +42,7 @@ class StocksFlow extends Page implements HasForms, HasTable
 
     protected static ?string $title = 'Laporan Arus Stok';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
     #[Url(as: 'filters')]
     public ?array $data = [];
@@ -243,13 +243,5 @@ class StocksFlow extends Page implements HasForms, HasTable
             ],
             default => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
         };
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            Stocks::getUrl() => 'Laporan Stok',
-            '' => 'Arus Stok',
-        ];
     }
 }

@@ -27,6 +27,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use UnitEnum;
 
 class MasterProductResource extends Resource
 {
@@ -34,17 +35,19 @@ class MasterProductResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 
-    protected static ?string $navigationLabel = 'Products';
+    protected static ?string $navigationLabel = 'Produk';
 
-    protected static ?string $modelLabel = 'Product';
+    protected static UnitEnum|string|null $navigationGroup = null;
 
-    protected static ?string $pluralModelLabel = 'Products';
+    protected static ?string $modelLabel = 'Produk';
+
+    protected static ?string $pluralModelLabel = 'Produk';
 
     protected static ?string $slug = 'master-products';
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
@@ -240,16 +243,16 @@ class MasterProductResource extends Resource
                     ->formatStateUsing(function ($state, Product $record) {
                         $basePrice = $state;
                         $sellingPrice = $record->sku?->selling_price ?? 0;
-                        
-                        $baseText = $basePrice 
-                            ? 'Rp ' . number_format($basePrice, 0, ',', '.') 
+
+                        $baseText = $basePrice
+                            ? 'Rp '.number_format($basePrice, 0, ',', '.')
                             : '-';
-                            
-                        $sellingText = 'Rp ' . number_format($sellingPrice, 0, ',', '.');
-                        
+
+                        $sellingText = 'Rp '.number_format($sellingPrice, 0, ',', '.');
+
                         return '
-                            <div style="text-decoration: line-through; color: gray; font-size: 0.9em;">' . $baseText . '</div>
-                            <div>' . $sellingText . '</div>
+                            <div style="text-decoration: line-through; color: gray; font-size: 0.9em;">'.$baseText.'</div>
+                            <div>'.$sellingText.'</div>
                         ';
                     })
                     ->sortable(),

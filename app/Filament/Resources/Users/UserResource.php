@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class UserResource extends Resource
 {
@@ -19,7 +20,15 @@ class UserResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 5;
+
+    protected static ?string $navigationLabel = 'Pengguna';
+
+    protected static UnitEnum|string|null $navigationGroup = null;
+
+    protected static ?string $modelLabel = 'Pengguna';
+
+    protected static ?string $pluralModelLabel = 'Pengguna';
 
     protected static ?string $recordTitleAttribute = 'name';
 

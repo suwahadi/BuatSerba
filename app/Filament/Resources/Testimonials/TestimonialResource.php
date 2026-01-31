@@ -20,6 +20,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class TestimonialResource extends Resource
 {
@@ -27,7 +28,15 @@ class TestimonialResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleBottomCenterText;
 
-    protected static ?int $navigationSort = 4;
+    protected static ?string $navigationLabel = 'Testimoni';
+
+    protected static UnitEnum|string|null $navigationGroup = 'Pengaturan';
+
+    protected static ?int $navigationSort = 7;
+
+    protected static ?string $modelLabel = 'Testimoni';
+
+    protected static ?string $pluralModelLabel = 'Testimoni';
 
     protected static ?string $recordTitleAttribute = 'name';
 

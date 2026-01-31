@@ -11,7 +11,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-
 use UnitEnum;
 
 class GlobalConfigResource extends Resource
@@ -20,9 +19,15 @@ class GlobalConfigResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
-    protected static UnitEnum|string|null $navigationGroup = 'Settings';
+    protected static UnitEnum|string|null $navigationGroup = 'Pengaturan';
 
-    protected static ?int $navigationSort = 12;
+    protected static ?string $navigationLabel = 'Global';
+
+    protected static ?int $navigationSort = 1;
+
+    protected static ?string $modelLabel = 'Global';
+
+    protected static ?string $pluralModelLabel = 'Global';
 
     public static function form(Schema $schema): Schema
     {

@@ -9,6 +9,7 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class OrderResource extends Resource
 {
@@ -16,9 +17,17 @@ class OrderResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-cart';
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 3;
+
+    protected static ?string $navigationLabel = 'Order';
+
+    protected static UnitEnum|string|null $navigationGroup = null;
 
     protected static ?string $recordTitleAttribute = 'order_number';
+
+    protected static ?string $modelLabel = 'Order';
+
+    protected static ?string $pluralModelLabel = 'Order';
 
     public static function form(Schema $schema): Schema
     {
@@ -82,7 +91,41 @@ class OrderResource extends Resource
                                             ";
                                         }
 
-                                        $grandTotal = number_format($items->sum('subtotal'), 0, ',', '.');
+                                        $subtotal = $record->subtotal ?: $items->sum('subtotal');
+                                        $shippingCost = $record->shipping_cost;
+                                        $serviceFee = $record->service_fee;
+                                        $discount = $record->discount;
+                                        $grandTotal = $record->total;
+
+                                        $fSubtotal = number_format($subtotal, 0, ',', '.');
+                                        $fShipping = number_format($shippingCost, 0, ',', '.');
+                                        $fServiceFee = number_format($serviceFee, 0, ',', '.');
+                                        $fDiscount = number_format($discount, 0, ',', '.');
+                                        $fGrandTotal = number_format($grandTotal, 0, ',', '.');
+
+                                        $rows_summary = "
+                                            <tr>
+                                                <td colspan='4' style='padding: 8px 24px; text-align: right; color: #374151;'>Sub Total</td>
+                                                <td style='padding: 8px 24px; color: #111827;'>Rp {$fSubtotal}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan='4' style='padding: 8px 24px; text-align: right; color: #374151;'>Biaya Layanan</td>
+                                                <td style='padding: 8px 24px; color: #111827;'>Rp {$fServiceFee}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan='4' style='padding: 8px 24px; text-align: right; color: #374151;'>Ongkos Kirim</td>
+                                                <td style='padding: 8px 24px; color: #111827;'>Rp {$fShipping}</td>
+                                            </tr>
+                                        ";
+
+                                        if ($discount > 0) {
+                                            $rows_summary .= "
+                                                <tr>
+                                                    <td colspan='4' style='padding: 8px 24px; text-align: right; color: #dc2626;'>Diskon / Voucher</td>
+                                                    <td style='padding: 8px 24px; color: #dc2626;'>- Rp {$fDiscount}</td>
+                                                </tr>
+                                            ";
+                                        }
 
                                         return new \Illuminate\Support\HtmlString("
                                             <div style='border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; overflow-x: auto;'>
@@ -99,10 +142,11 @@ class OrderResource extends Resource
                                                     <tbody>
                                                         {$rows}
                                                     </tbody>
-                                                    <tfoot style='background-color: #f9fafb; border-top: 1px solid #e5e7eb;'>
-                                                        <tr>
-                                                            <td colspan='4' style='padding: 12px 24px; text-align: right; font-weight: 600; color: #111827; border-right: 1px solid #e5e7eb;'>Grand Total</td>
-                                                            <td style='padding: 12px 24px; font-weight: 600; color: #111827;'>Rp {$grandTotal}</td>
+                                                    <tfoot style='border-top: 2px solid #e5e7eb;'>
+                                                        {$rows_summary}
+                                                        <tr style='background-color: #f9fafb; border-top: 1px solid #e5e7eb;'>
+                                                            <td colspan='4' style='padding: 12px 24px; text-align: right; font-weight: 700; color: #111827; font-size: 0.95rem;'>Grand Total</td>
+                                                            <td style='padding: 12px 24px; font-weight: 700; color: #111827; font-size: 0.95rem;'>Rp {$fGrandTotal}</td>
                                                         </tr>
                                                     </tfoot>
                                                 </table>
@@ -193,11 +237,11 @@ class OrderResource extends Resource
                                     }),
                             ]),
 
-                        \Filament\Schemas\Components\Section::make('Shipping Service')
+                        \Filament\Schemas\Components\Section::make('Shipping')
                             ->schema([
                                 \Filament\Forms\Components\TextInput::make('shipping_method')
                                     ->readOnly()
-                                    ->label('Method'),
+                                    ->label('Service'),
                                 \Filament\Forms\Components\TextInput::make('shipping_cost')
                                     ->label('Cost')
                                     ->numeric()
