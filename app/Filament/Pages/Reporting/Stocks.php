@@ -2,15 +2,14 @@
 
 namespace App\Filament\Pages\Reporting;
 
-use App\Filament\Resources\Products\ProductResource;
 use App\Models\Order;
 use App\Models\Sku;
 use BackedEnum;
 use Filament\Pages\Page;
+use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Filament\Tables;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
 
@@ -48,7 +47,7 @@ class Stocks extends Page implements HasTable
                         ->whereColumn('order_items.sku_id', 'skus.id')
                         ->where('orders.payment_status', 'paid')
                         ->latest('paid_at')
-                        ->limit(1)
+                        ->limit(1),
                     ])
             )
             ->columns([
@@ -66,7 +65,8 @@ class Stocks extends Page implements HasTable
                     ->label('Nama Produk')
                     ->formatStateUsing(function ($state, $record) {
                         $categoryName = $record->product->category->name ?? '-';
-                        return new HtmlString($state . '<br><small style="color: #555">' . $categoryName . '</small>');
+
+                        return new HtmlString($state.'<br><small style="color: #555">'.$categoryName.'</small>');
                     }),
 
                 Tables\Columns\TextColumn::make('stock_quantity')
