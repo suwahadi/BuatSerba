@@ -16,7 +16,7 @@ class LatestOrders extends BaseWidget
 
     public static function canView(): bool 
     {
-        return auth()->user()?->hasAnyRole(['admin', 'finance']) ?? false;
+        return auth()->user()?->hasPermissionTo('widget.latest_orders.access') || auth()->user()?->hasRole('admin') ?? false;
     }
 
     public function table(Table $table): Table

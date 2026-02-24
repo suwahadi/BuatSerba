@@ -20,9 +20,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Jika user adalah 'admin', izinkan semuanya (return true).
+        // Admin users have all permissions through Gate::before
+        // This ensures admin role still works while allowing granular permissions
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
-            return $user->hasRole('admin') ? true : null;
+            if ($user->hasRole('admin')) {
+                return true;
+            }
+            return null;
         });
 
         // Manually register policies to ensure Filament detects them
@@ -50,6 +54,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Register observers
         \App\Models\Branch::observe(\App\Observers\BranchObserver::class);
+        \App\Models\Sku::observe(\App\Observers\SkuObserver::class);
+        \App\Models\BranchInventory::observe(\App\Observers\BranchInventoryObserver::class);
 
         // Share categories with footer component
         \Illuminate\Support\Facades\View::composer('components.footer', function ($view) {

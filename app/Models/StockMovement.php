@@ -20,4 +20,9 @@ class StockMovement extends Model
     {
         return 'id';
     }
+
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class, 'sku_id');
+    }
 }

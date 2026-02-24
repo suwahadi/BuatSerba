@@ -8,62 +8,38 @@ use Illuminate\Auth\Access\Response;
 
 class ProductPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('warehouse');
+        return $user->hasPermissionTo('resource.master_products.view_any') || $user->hasRole('admin');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Product $product): bool
     {
-        return $user->hasRole('warehouse');
+        return $user->hasPermissionTo('resource.master_products.view') || $user->hasRole('admin');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->hasRole('warehouse');
+        return $user->hasPermissionTo('resource.master_products.create') || $user->hasRole('admin');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Product $product): bool
     {
-        return $user->hasRole('warehouse');
+        return $user->hasPermissionTo('resource.master_products.update') || $user->hasRole('admin');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Product $product): bool
     {
-        return $user->hasRole('warehouse');
+        return $user->hasPermissionTo('resource.master_products.delete') || $user->hasRole('admin');
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Product $product): bool
     {
-        return $user->hasRole('warehouse');
+        return $user->hasPermissionTo('resource.master_products.restore') || $user->hasRole('admin');
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Product $product): bool
     {
-        return $user->hasRole('warehouse');
+        return $user->hasPermissionTo('resource.master_products.force_delete') || $user->hasRole('admin');
     }
 }

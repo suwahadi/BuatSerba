@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\InventoryService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -87,11 +88,23 @@ class Payment extends Model
                 'status' => 'processing',
                 'paid_at' => now(),
             ]);
+
+            $branchId = (int) ($this->order->branch_id ?? 1);
+            $inventoryService = new InventoryService;
+            foreach ($this->order->items as $item) {
+                $inventoryService->commit($branchId, (int) $item->sku_id, (int) $item->quantity);
+            }
         } elseif (in_array($this->transaction_status, ['deny', 'cancel', 'expire', 'expired'])) {
             $this->order->update([
                 'payment_status' => 'failed',
                 'status' => 'payment_failed',
             ]);
+
+            $branchId = (int) ($this->order->branch_id ?? 1);
+            $inventoryService = new InventoryService;
+            foreach ($this->order->items as $item) {
+                $inventoryService->release($branchId, (int) $item->sku_id, (int) $item->quantity);
+            }
         }
     }
 

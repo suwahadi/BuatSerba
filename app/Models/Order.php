@@ -13,6 +13,7 @@ class Order extends Model
         'order_number',
         'user_id',
         'session_id',
+        'branch_id',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -57,6 +58,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     public function items()

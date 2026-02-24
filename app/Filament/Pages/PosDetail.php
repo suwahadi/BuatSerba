@@ -36,6 +36,6 @@ class PosDetail extends Page
 
     public static function canAccess(): bool
     {
-        return Auth::check() && Auth::user()->hasAnyRole(['admin', 'finance']);
+        return Auth::check() && (Auth::user()->hasPermissionTo('page.pos_details.access') || Auth::user()->hasRole('admin'));
     }
 }

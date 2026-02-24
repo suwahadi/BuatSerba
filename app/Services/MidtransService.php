@@ -20,10 +20,24 @@ class MidtransService
     {
         $this->serverKey = config('midtrans.server_key');
         $this->clientKey = config('midtrans.client_key');
-        $this->isProduction = config('midtrans.is_production', false);
+
+        $isProductionConfig = config('midtrans.is_production', false);
+        if (is_bool($isProductionConfig)) {
+            $this->isProduction = $isProductionConfig;
+        } else {
+            $this->isProduction = filter_var($isProductionConfig, FILTER_VALIDATE_BOOLEAN);
+        }
+
         $this->coreApiUrl = $this->isProduction
             ? 'https://api.midtrans.com/v2'
             : 'https://api.sandbox.midtrans.com/v2';
+
+        $maskedKey = $this->serverKey ? substr($this->serverKey, 0, 6).'***' : null;
+        \Log::info('Midtrans Core API Config', [
+            'is_production' => $this->isProduction,
+            'core_api_url' => $this->coreApiUrl,
+            'server_key_prefix' => $maskedKey,
+        ]);
     }
 
     /**
@@ -44,6 +58,11 @@ class MidtransService
 
         $config = $paymentMethodObj->getCoreApiConfig();
 
+        $notificationUrl = config('midtrans.core_api.notification_url');
+        if ($notificationUrl && ! preg_match('#^https?://#i', $notificationUrl)) {
+            $notificationUrl = url($notificationUrl);
+        }
+
         $payload = [
             'payment_type' => $config['payment_type'],
             'transaction_details' => [
@@ -56,7 +75,7 @@ class MidtransService
                 'phone' => $order->customer_phone ?? '08123456789',
             ],
             'callbacks' => [
-                'notification_url' => config('midtrans.core_api.notification_url'),
+                'notification_url' => $notificationUrl,
             ],
         ];
 

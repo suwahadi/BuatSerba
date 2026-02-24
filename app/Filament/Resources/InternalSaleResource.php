@@ -40,7 +40,27 @@ class InternalSaleResource extends Resource
             return false;
         }
 
-        return Auth::user()->hasAnyRole(['admin', 'finance']);
+        return Auth::user()->hasPermissionTo('resource.internal_sales.view_any') || Auth::user()->hasRole('admin');
+    }
+
+    public static function canCreate(): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.internal_sales.create') || Auth::user()->hasRole('admin'));
+    }
+
+    public static function canEdit($record): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.internal_sales.update') || Auth::user()->hasRole('admin'));
+    }
+
+    public static function canDelete($record): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.internal_sales.delete') || Auth::user()->hasRole('admin'));
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.internal_sales.delete') || Auth::user()->hasRole('admin'));
     }
 
     public static function form(Schema $schema): Schema
@@ -59,11 +79,12 @@ class InternalSaleResource extends Resource
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
-                            ->readOnly(fn (string $operation) => $operation === 'create'),
+                            ->readOnly(),
 
                         Forms\Components\DateTimePicker::make('transaction_date')
                             ->label('Tanggal')
                             ->required()
+                            ->readOnly()
                             ->default(now()),
 
                         Forms\Components\TextInput::make('name')
@@ -170,12 +191,15 @@ class InternalSaleResource extends Resource
                     ->preload(),
             ])
             ->recordActions([
-                \Filament\Actions\EditAction::make(),
-                \Filament\Actions\DeleteAction::make(),
+                \Filament\Actions\EditAction::make()
+                    ->visible(fn ($record) => static::canEdit($record)),
+                \Filament\Actions\DeleteAction::make()
+                    ->visible(fn ($record) => static::canDelete($record)),
             ])
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                    \Filament\Actions\DeleteBulkAction::make()
+                        ->visible(fn () => static::canDeleteAny()),
                 ]),
             ])
             ->defaultSort('id', 'desc');

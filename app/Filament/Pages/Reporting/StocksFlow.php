@@ -3,7 +3,9 @@
 namespace App\Filament\Pages\Reporting;
 
 use App\Models\StockMovement;
+use App\Models\Sku;
 use BackedEnum;
+use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -13,13 +15,14 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
@@ -49,7 +52,7 @@ class StocksFlow extends Page implements HasForms, HasTable
 
     public static function canAccess(): bool
     {
-        return Auth::check() && Auth::user()->hasAnyRole(['admin', 'warehouse']);
+        return Auth::check() && (Auth::user()->hasPermissionTo('page.stocks_flows.access') || Auth::user()->hasRole('admin'));
     }
 
     public function mount(): void
@@ -83,6 +86,18 @@ class StocksFlow extends Page implements HasForms, HasTable
                             ])
                             ->default('')
                             ->disableOptionWhen(fn (string $value): bool => $value === '')
+                            ->live()
+                            ->afterStateUpdated(fn () => $this->redirect(static::getUrl(['filters' => $this->data]))),
+
+                        Select::make('branch_id')
+                            ->label('Cabang')
+                            ->placeholder('Semua Cabang')
+                            ->options(function () {
+                                return \App\Models\Branch::query()
+                                    ->pluck('name', 'id')
+                                    //->prepend('Semua Cabang', '')
+                                    ->toArray();
+                            })
                             ->live()
                             ->afterStateUpdated(fn () => $this->redirect(static::getUrl(['filters' => $this->data]))),
 
@@ -137,6 +152,22 @@ class StocksFlow extends Page implements HasForms, HasTable
                     ->badge()
                     ->color(fn ($state) => $state > 20 ? 'success' : ($state > 0 ? 'warning' : 'danger')),
 
+                TextColumn::make('nominal')
+                    ->label('Nominal (Rp)')
+                    ->formatStateUsing(function ($record) {
+                        $unitCost = $record->unit_cost ?? 0;
+                        $currentStock = $record->current_stock ?? 0;
+                        $total = $unitCost * $currentStock;
+                        
+                        // Debug: show values if zero
+                        if ($total == 0) {
+                            return "DEBUG: uc={$unitCost}, cs={$currentStock}";
+                        }
+                        
+                        return 'Rp ' . number_format($total, 0, ',', '.');
+                    })
+                    ->sortable(false),
+
                 TextColumn::make('last_update')
                     ->label('Update Terakhir')
                     ->dateTime('d M Y H:i:s'),
@@ -150,6 +181,7 @@ class StocksFlow extends Page implements HasForms, HasTable
         $startDate = $dateRange[0] ?? null;
         $endDate = $dateRange[1] ?? null;
         $search = $this->data['search'] ?? '';
+        $branchId = $this->data['branch_id'] ?? null;
 
         $orderItemsQuery = DB::table('order_items')
             ->select([
@@ -163,6 +195,9 @@ class StocksFlow extends Page implements HasForms, HasTable
             ])
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->leftJoin('products', 'order_items.product_id', '=', 'products.id')
+            ->when($branchId, function ($q) use ($branchId) {
+                $q->where('orders.branch_id', $branchId);
+            })
             ->where('orders.payment_status', 'paid')
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($query) use ($search) {
@@ -200,34 +235,34 @@ class StocksFlow extends Page implements HasForms, HasTable
 
         $unionQuery = $orderItemsQuery->unionAll($stockOpnameQuery);
 
-        return StockMovement::query()
-            ->fromSub(
-                DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))
-                    ->mergeBindings($unionQuery)
-                    ->select([
-                        DB::raw('MIN(sku_id) as id'),
-                        'sku_code',
-                        DB::raw('MAX(product_name) as product_name'),
-                        DB::raw('MAX(product_image) as product_image'),
-                        DB::raw('MAX(sku_id) as sku_id'),
-                        DB::raw('SUM(stock_in) as stock_in'),
-                        DB::raw('SUM(stock_out) as stock_out'),
-                        DB::raw('MAX(transaction_date) as last_update'),
-                    ])
-                    ->groupBy('sku_code'),
-                'grouped_movements'
-            )
+        // Create a simple query without using StockMovement model
+        $query = DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))
+            ->mergeBindings($unionQuery)
             ->select([
-                'grouped_movements.*',
-                'skus.stock_quantity as current_stock',
+                DB::raw('MIN(sku_id) as id'),
+                'sku_code',
+                DB::raw('MAX(product_name) as product_name'),
+                DB::raw('MAX(product_image) as product_image'),
+                DB::raw('MAX(sku_id) as sku_id'),
+                DB::raw('SUM(stock_in) as stock_in'),
+                DB::raw('SUM(stock_out) as stock_out'),
+                DB::raw('MAX(transaction_date) as last_update'),
+                DB::raw($branchId
+                    ? '(SELECT COALESCE(SUM(quantity_available), 0) FROM branch_inventory WHERE branch_inventory.sku_id = MIN(combined.sku_id) AND branch_inventory.branch_id = ' . (int)$branchId . ') as current_stock'
+                    : '(SELECT stock_quantity FROM skus WHERE skus.id = MIN(combined.sku_id)) as current_stock'
+                ),
+                DB::raw('(SELECT unit_cost FROM skus WHERE skus.id = MIN(combined.sku_id)) as unit_cost'),
             ])
-            ->leftJoin('skus', 'grouped_movements.sku_id', '=', 'skus.id')
+            ->groupBy('sku_code')
             ->orderBy('stock_out', 'desc');
+
+        // Wrap in Eloquent Builder for Filament compatibility
+        return StockMovement::fromSub($query, 'combined');
     }
 
     protected function getDateRange(): array
     {
-        $period = $this->data['period'] ?? 'month';
+        $period = $this->data['period'] ?? 'year'; // Changed default to 'year'
 
         return match ($period) {
             'today' => [Carbon::today(), Carbon::today()->endOfDay()],
@@ -241,7 +276,7 @@ class StocksFlow extends Page implements HasForms, HasTable
                 isset($this->data['start_date']) ? Carbon::parse($this->data['start_date']) : Carbon::now()->startOfMonth(),
                 isset($this->data['end_date']) ? Carbon::parse($this->data['end_date'])->endOfDay() : Carbon::now()->endOfMonth(),
             ],
-            default => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
+            default => [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()], // Changed default
         };
     }
 }

@@ -6,6 +6,7 @@ use App\Filament\Resources\Payments\Pages\ManagePayments;
 use App\Models\Payment;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
@@ -19,6 +20,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 class PaymentResource extends Resource
@@ -36,6 +38,31 @@ class PaymentResource extends Resource
     protected static ?string $modelLabel = 'Pembayaran';
 
     protected static ?string $pluralModelLabel = 'Pembayaran';
+
+    public static function canAccess(): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.payments.view_any') || Auth::user()->hasRole('admin'));
+    }
+
+    public static function canCreate(): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.payments.create') || Auth::user()->hasRole('admin'));
+    }
+
+    public static function canEdit($record): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.payments.update') || Auth::user()->hasRole('admin'));
+    }
+
+    public static function canDelete($record): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.payments.delete') || Auth::user()->hasRole('admin'));
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.payments.delete') || Auth::user()->hasRole('admin'));
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -271,7 +298,10 @@ class PaymentResource extends Resource
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                \Filament\Actions\ViewAction::make()
+                    ->visible(fn ($record) => static::canAccess() && !static::canEdit($record)),
+                \Filament\Actions\EditAction::make()
+                    ->visible(fn ($record) => static::canEdit($record)),
             ])
             ->defaultSort('created_at', 'desc');
     }
@@ -281,11 +311,6 @@ class PaymentResource extends Resource
         return [
             'index' => ManagePayments::route('/'),
         ];
-    }
-
-    public static function canCreate(): bool
-    {
-        return false;
     }
 
     public static function getNavigationBadge(): ?string

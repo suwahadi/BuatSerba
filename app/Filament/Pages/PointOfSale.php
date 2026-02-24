@@ -29,6 +29,6 @@ class PointOfSale extends Page
 
     public static function canAccess(): bool
     {
-        return Auth::check() && Auth::user()->hasAnyRole(['admin', 'finance']);
+        return Auth::check() && (Auth::user()->hasPermissionTo('page.point_of_sales.access') || Auth::user()->hasRole('admin'));
     }
 }

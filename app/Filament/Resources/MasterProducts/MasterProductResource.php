@@ -170,7 +170,7 @@ class MasterProductResource extends Resource
                                 TextInput::make('sku.stock_quantity')
                                     ->label('Stock Quantity')
                                     ->numeric()
-                                    ->required()
+                                    ->readOnly()
                                     ->default(0)
                                     ->placeholder('0'),
                             ])

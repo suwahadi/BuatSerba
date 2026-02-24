@@ -10,9 +10,7 @@ class ReportingProfitChart extends ChartWidget
 {
     public static function canView(): bool
     {
-        $user = auth()->user();
-
-        return $user && $user->hasAnyRole(['admin', 'finance']);
+        return auth()->user()?->hasPermissionTo('widget.reporting_profit_charts.access') || auth()->user()?->hasRole('admin') ?? false;
     }
 
     protected function getDateRange(): array
@@ -22,7 +20,7 @@ class ReportingProfitChart extends ChartWidget
 
     protected ?array $reportFilter = ['period' => 'month'];
 
-    protected ?string $heading = 'Grafik Keuntungan (Profit)';
+    protected ?string $heading = 'Grafik Keuntungan';
 
     protected ?string $maxHeight = '400px';
 

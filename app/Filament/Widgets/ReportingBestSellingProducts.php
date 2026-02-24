@@ -8,11 +8,17 @@ use Filament\Tables\Table;
 use App\Models\OrderItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ReportingBestSellingProducts extends BaseWidget
 {
     public ?array $reportFilter = [];
+
+    public static function canView(): bool 
+    {
+        return auth()->user()?->hasPermissionTo('widget.reporting_best_selling_products.access') || auth()->user()?->hasRole('admin') ?? false;
+    }
 
     protected function getDateRange(): array
     {

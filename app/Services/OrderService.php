@@ -20,6 +20,8 @@ class OrderService
     public function createOrder(array $data): Order
     {
         return DB::transaction(function () use ($data) {
+            $branchId = (int) ($data['branch_id'] ?? 1);
+
             $sessionId = Session::get('cart_session_id');
             $cartItems = CartItem::with(['product', 'sku'])
                 ->where('session_id', $sessionId)
@@ -40,8 +42,10 @@ class OrderService
                     throw new Exception("Produk {$item->product->name} tidak ditemukan.");
                 }
 
-                if ($sku->stock_quantity < $item->quantity) {
-                    throw new Exception("Stok {$item->product->name} tidak mencukupi. Tersedia: {$sku->stock_quantity}");
+                $inventoryService = new InventoryService;
+                $availableQty = $inventoryService->getAvailableQuantity($branchId, (int) $sku->id);
+                if ($availableQty < $item->quantity) {
+                    throw new Exception("Stok {$item->product->name} tidak mencukupi di cabang terpilih. Tersedia: {$availableQty}");
                 }
             }
 
@@ -61,6 +65,7 @@ class OrderService
                 'order_number' => $orderNumber,
                 'user_id' => auth()->id(),
                 'session_id' => $sessionId,
+                'branch_id' => $branchId,
                 'customer_name' => $data['customer_name'],
                 'customer_email' => $data['customer_email'],
                 'customer_phone' => $data['customer_phone'],
@@ -95,8 +100,8 @@ class OrderService
                     'subtotal' => $cartItem->price * $cartItem->quantity,
                 ]);
 
-                $sku = Sku::lockForUpdate()->find($cartItem->sku_id);
-                $sku->decrement('stock_quantity', $cartItem->quantity);
+                $inventoryService = new InventoryService;
+                $inventoryService->reserve($branchId, (int) $cartItem->sku_id, (int) $cartItem->quantity);
             }
 
             CartItem::where('session_id', $sessionId)
@@ -132,11 +137,10 @@ class OrderService
         }
 
         DB::transaction(function () use ($order, $reason) {
+            $branchId = (int) ($order->branch_id ?? 1);
+            $inventoryService = new InventoryService;
             foreach ($order->items as $item) {
-                $sku = Sku::lockForUpdate()->find($item->sku_id);
-                if ($sku) {
-                    $sku->increment('stock_quantity', $item->quantity);
-                }
+                $inventoryService->release($branchId, (int) $item->sku_id, (int) $item->quantity);
             }
 
             $order->cancel($reason);

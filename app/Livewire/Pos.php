@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sku;
 use App\Models\User;
+use App\Services\InventoryService;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,8 @@ use Livewire\Component;
 
 class Pos extends Component
 {
+    protected int $branchId = 1;
+
     public $selectedProduct = null;
 
     public $price = 0;
@@ -119,7 +122,8 @@ class Pos extends Component
             return;
         }
 
-        $availableStock = $sku->stock_quantity ?? 0;
+        $inventoryService = new InventoryService;
+        $availableStock = $inventoryService->getAvailableQuantity($this->branchId, (int) $sku->id);
 
         $existingQuantityInCart = 0;
         $existingKey = null;
@@ -225,12 +229,14 @@ class Pos extends Component
                 'order_number' => $orderNumber,
                 'session_id' => (string) Str::uuid(),
                 'user_id' => Auth::id(),
+                'branch_id' => $this->branchId,
                 'customer_name' => $this->customerName,
                 'customer_email' => $this->customerEmail,
                 'customer_phone' => $this->customerPhone,
                 'subtotal' => $this->subtotal,
+                'service_fee' => 0,
                 'total' => $this->grandTotal,
-                'discount_amount' => $this->discount,
+                'discount' => $this->discount,
                 'shipping_province' => 'N/A',
                 'shipping_city' => 'N/A',
                 'shipping_district' => 'N/A',
@@ -244,6 +250,8 @@ class Pos extends Component
                 'status' => 'completed',
             ]);
 
+            $inventoryService = new InventoryService;
+
             foreach ($this->items as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -255,6 +263,9 @@ class Pos extends Component
                     'price' => $item['price'],
                     'subtotal' => $item['subtotal'],
                 ]);
+
+                $inventoryService->reserve($this->branchId, (int) $item['sku_id'], (int) $item['quantity']);
+                $inventoryService->commit($this->branchId, (int) $item['sku_id'], (int) $item['quantity']);
             }
 
             DB::commit();

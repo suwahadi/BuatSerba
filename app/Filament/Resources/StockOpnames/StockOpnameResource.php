@@ -45,7 +45,7 @@ class StockOpnameResource extends Resource
             return false;
         }
 
-        return Auth::user()->hasAnyRole(['admin', 'warehouse']);
+        return Auth::user()->hasPermissionTo('resource.stock_opnames.view_any') || Auth::user()->hasRole('admin');
     }
 
     public static function form(Schema $schema): Schema

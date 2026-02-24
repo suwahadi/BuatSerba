@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\OrderItem;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class TopProductsChart extends ChartWidget
@@ -13,6 +14,11 @@ class TopProductsChart extends ChartWidget
     protected static ?int $sort = 2;
 
     protected int | string | array $columnSpan = 'full';
+
+    public static function canView(): bool 
+    {
+        return auth()->user()?->hasPermissionTo('widget.top_products_charts.access') || auth()->user()?->hasRole('admin') ?? false;
+    }
 
     protected function getData(): array
     {

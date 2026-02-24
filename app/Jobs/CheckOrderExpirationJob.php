@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Payment;
+use App\Services\InventoryService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -42,11 +43,10 @@ class CheckOrderExpirationJob implements ShouldQueue
                             'cancellation_reason' => 'Payment expired',
                         ]);
 
-                        // Restore stock if needed
+                        $branchId = (int) ($payment->order->branch_id ?? 1);
+                        $inventoryService = new InventoryService;
                         foreach ($payment->order->items as $item) {
-                            if ($item->sku) {
-                                $item->sku->increment('stock_quantity', $item->quantity);
-                            }
+                            $inventoryService->release($branchId, (int) $item->sku_id, (int) $item->quantity);
                         }
                     }
                 });

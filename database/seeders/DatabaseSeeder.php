@@ -13,13 +13,14 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
+            RoleSeeder::class,
             BranchSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
             SkuSeeder::class,
             BranchInventorySeeder::class,
             DynamicPricingSeeder::class,
-            OrderSeeder::class,
+            TestOrdersSeeder::class, // Using our new test orders seeder
         ]);
     }
 }

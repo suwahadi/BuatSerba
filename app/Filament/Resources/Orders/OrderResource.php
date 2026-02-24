@@ -9,6 +9,7 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 class OrderResource extends Resource
@@ -28,6 +29,11 @@ class OrderResource extends Resource
     protected static ?string $modelLabel = 'Order';
 
     protected static ?string $pluralModelLabel = 'Order';
+
+    public static function canAccess(): bool
+    {
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.orders.view_any') || Auth::user()->hasRole('admin'));
+    }
 
     public static function form(Schema $schema): Schema
     {

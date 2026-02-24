@@ -14,7 +14,8 @@ class ManageInternalSales extends ManageRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah Data'),
+                ->label('Tambah Data')
+                ->visible(fn () => InternalSaleResource::canCreate()),
         ];
     }
 }

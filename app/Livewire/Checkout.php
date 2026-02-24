@@ -572,6 +572,7 @@ class Checkout extends Component
                 'payment_method' => $bankName,
                 'service_fee' => $this->serviceFee,
                 'discount' => $this->discount,
+                'branch_id' => (int) ($this->selectedBranchId ?? 1),
             ]);
 
             if ($this->paymentMethod === 'bank-transfer') {

@@ -7,11 +7,17 @@ use App\Models\Product;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
 
 class DashboardStatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
+
+    public static function canView(): bool 
+    {
+        return auth()->user()?->hasPermissionTo('widget.dashboard_stats_overviews.access') || auth()->user()?->hasRole('admin') ?? false;
+    }
 
     protected function getStats(): array
     {
