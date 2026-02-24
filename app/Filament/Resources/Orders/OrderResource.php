@@ -84,15 +84,15 @@ class OrderResource extends Resource
                                             $sku = $item->sku_code ?? '-';
 
                                             $rows .= "
-                                                <tr style='border-bottom: 1px solid #e5e7eb;'>
-                                                    <td style='padding: 12px 24px; color: #4b5563; border-right: 1px solid #e5e7eb;'>{$sku}</td>
-                                                    <td style='padding: 12px 24px; color: #4b5563; border-right: 1px solid #e5e7eb;'>
-                                                        <span style='font-weight: 500; color: #111827;'>{$productName}</span><br>
-                                                        <small style='color: #6b7280;'>{$categoryName}</small>
+                                                <tr>
+                                                    <td>{$sku}</td>
+                                                    <td>
+                                                        <span class='product-name'>{$productName}</span><br>
+                                                        <small class='category-name'>{$categoryName}</small>
                                                     </td>
-                                                    <td style='padding: 12px 24px; color: #4b5563; border-right: 1px solid #e5e7eb;'>{$qty}</td>
-                                                    <td style='padding: 12px 24px; color: #4b5563; border-right: 1px solid #e5e7eb;'>Rp {$price}</td>
-                                                    <td style='padding: 12px 24px; color: #4b5563;'>Rp {$subtotal}</td>
+                                                    <td>{$qty}</td>
+                                                    <td>Rp {$price}</td>
+                                                    <td>Rp {$subtotal}</td>
                                                 </tr>
                                             ";
                                         }
@@ -111,16 +111,16 @@ class OrderResource extends Resource
 
                                         $rows_summary = "
                                             <tr>
-                                                <td colspan='4' style='padding: 8px 24px; text-align: right; color: #374151;'>Sub Total</td>
-                                                <td style='padding: 8px 24px; color: #111827;'>Rp {$fSubtotal}</td>
+                                                <td colspan='4' style='text-align: right;'>Sub Total</td>
+                                                <td>Rp {$fSubtotal}</td>
                                             </tr>
                                             <tr>
-                                                <td colspan='4' style='padding: 8px 24px; text-align: right; color: #374151;'>Biaya Layanan</td>
-                                                <td style='padding: 8px 24px; color: #111827;'>Rp {$fServiceFee}</td>
+                                                <td colspan='4' style='text-align: right;'>Biaya Layanan</td>
+                                                <td>Rp {$fServiceFee}</td>
                                             </tr>
                                             <tr>
-                                                <td colspan='4' style='padding: 8px 24px; text-align: right; color: #374151;'>Ongkos Kirim</td>
-                                                <td style='padding: 8px 24px; color: #111827;'>Rp {$fShipping}</td>
+                                                <td colspan='4' style='text-align: right;'>Ongkos Kirim</td>
+                                                <td>Rp {$fShipping}</td>
                                             </tr>
                                         ";
 
@@ -134,25 +134,68 @@ class OrderResource extends Resource
                                         }
 
                                         return new \Illuminate\Support\HtmlString("
-                                            <div style='border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; overflow-x: auto;'>
+                                            <style>
+                                                .order-items-table {
+                                                    border: 1px solid #374151;
+                                                    border-radius: 8px;
+                                                    overflow: hidden;
+                                                    overflow-x: auto;
+                                                    background-color: #1f2937;
+                                                }
+                                                .order-items-table th {
+                                                    background-color: #374151;
+                                                    border-bottom: 1px solid #4b5563;
+                                                    color: #f9fafb;
+                                                    font-weight: 600;
+                                                    padding: 12px 24px;
+                                                    text-align: left;
+                                                    border-right: 1px solid #4b5563;
+                                                }
+                                                .order-items-table td {
+                                                    padding: 12px 24px;
+                                                    color: #d1d5db;
+                                                    border-right: 1px solid #374151;
+                                                }
+                                                .order-items-table tfoot {
+                                                    border-top: 2px solid #374151;
+                                                }
+                                                .order-items-table .grand-total-row {
+                                                    background-color: #374151;
+                                                    border-top: 1px solid #4b5563;
+                                                }
+                                                .order-items-table .grand-total-row td {
+                                                    color: #f9fafb;
+                                                    font-weight: 700;
+                                                    font-size: 0.95rem;
+                                                }
+                                                .order-items-table .product-name {
+                                                    color: #f9fafb;
+                                                    font-weight: 500;
+                                                }
+                                                .order-items-table .category-name {
+                                                    color: #9ca3af;
+                                                    font-size: 0.875rem;
+                                                }
+                                            </style>
+                                            <div class='order-items-table'>
                                                 <table style='width: 100%; min-width: 600px; border-collapse: collapse; font-size: 0.875rem; text-align: left;'>
-                                                    <thead style='background-color: #f9fafb; border-bottom: 1px solid #e5e7eb;'>
+                                                    <thead>
                                                         <tr>
-                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151; border-right: 1px solid #e5e7eb;'>SKU</th>
-                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151; border-right: 1px solid #e5e7eb;'>Nama Produk</th>
-                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151; border-right: 1px solid #e5e7eb;'>Qty</th>
-                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151; border-right: 1px solid #e5e7eb;'>Price</th>
-                                                            <th style='padding: 12px 24px; font-weight: 600; color: #374151;'>Subtotal</th>
+                                                            <th>SKU</th>
+                                                            <th>Nama Produk</th>
+                                                            <th>Qty</th>
+                                                            <th>Price</th>
+                                                            <th>Subtotal</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         {$rows}
                                                     </tbody>
-                                                    <tfoot style='border-top: 2px solid #e5e7eb;'>
+                                                    <tfoot>
                                                         {$rows_summary}
-                                                        <tr style='background-color: #f9fafb; border-top: 1px solid #e5e7eb;'>
-                                                            <td colspan='4' style='padding: 12px 24px; text-align: right; font-weight: 700; color: #111827; font-size: 0.95rem;'>Grand Total</td>
-                                                            <td style='padding: 12px 24px; font-weight: 700; color: #111827; font-size: 0.95rem;'>Rp {$fGrandTotal}</td>
+                                                        <tr class='grand-total-row'>
+                                                            <td colspan='4' style='text-align: right;'>Grand Total</td>
+                                                            <td>Rp {$fGrandTotal}</td>
                                                         </tr>
                                                     </tfoot>
                                                 </table>

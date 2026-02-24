@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Jobs\SendPaymentConfirmationEmail;
+use App\Models\PaymentConfirmation as PaymentConfirmationModel;
 use App\Models\Order;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -75,6 +76,31 @@ class PaymentConfirmation extends Component
             'notes' => $this->notes,
             'proof_url' => $proofUrl,
         ];
+
+        $existing = PaymentConfirmationModel::query()
+            ->where('order_id', $this->order->id)
+            ->first();
+
+        if ($existing?->bukti_transfer_path) {
+            $oldFullPath = storage_path('app/public/' . $existing->bukti_transfer_path);
+            if (is_file($oldFullPath)) {
+                @unlink($oldFullPath);
+            }
+        }
+
+        PaymentConfirmationModel::updateOrCreate(
+            ['order_id' => $this->order->id],
+            [
+                'nama_lengkap' => $this->sender_name,
+                'bank' => $this->sender_bank,
+                'nomor_rekening' => $this->sender_account_number,
+                'bukti_transfer_path' => $filename,
+                'catatan' => $this->notes,
+                'confirmed_at' => now(),
+                'is_read' => false,
+                'read_at' => null,
+            ]
+        );
 
         // Dispatch Job
         SendPaymentConfirmationEmail::dispatch($this->order, $data, $fullPath);
