@@ -212,9 +212,14 @@ class PaymentConfirmationResource extends Resource
                     }),
             ])
             ->recordActions([
-                \Filament\Actions\ViewAction::make()
+                \Filament\Actions\Action::make('view')
                     ->label('Detail')
                     ->icon('heroicon-o-eye')
+                    ->modalHeading('Detail Konfirmasi Pembayaran')
+                    ->modalWidth('lg')
+                    ->action(function () {
+                        // no-op, this action only shows modal content
+                    })
                     ->mountUsing(function ($record) {
                         if ($record && ! $record->is_read) {
                             $record->update([
@@ -223,6 +228,10 @@ class PaymentConfirmationResource extends Resource
                             ]);
                         }
                     })
+                    ->modalContent(function ($record) {
+                        return new \Illuminate\Support\HtmlString(view('filament.resources.payment-confirmations.view', ['record' => $record])->render());
+                    })
+                    ->modalActions([])
                     ->visible(fn ($record) => Auth::check() && (Auth::user()->hasPermissionTo('resource.payment_confirmations.view') || Auth::user()->hasRole('admin'))),
 
                 \Filament\Actions\EditAction::make()

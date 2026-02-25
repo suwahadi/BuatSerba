@@ -154,16 +154,11 @@ class StocksFlow extends Page implements HasForms, HasTable
 
                 TextColumn::make('nominal')
                     ->label('Nominal (Rp)')
-                    ->formatStateUsing(function ($record) {
+                    ->formatStateUsing(function ($state, $record) {
                         $unitCost = $record->unit_cost ?? 0;
                         $currentStock = $record->current_stock ?? 0;
                         $total = $unitCost * $currentStock;
-                        
-                        // Debug: show values if zero
-                        if ($total == 0) {
-                            return "DEBUG: uc={$unitCost}, cs={$currentStock}";
-                        }
-                        
+
                         return 'Rp ' . number_format($total, 0, ',', '.');
                     })
                     ->sortable(false),
@@ -236,6 +231,16 @@ class StocksFlow extends Page implements HasForms, HasTable
         $unionQuery = $orderItemsQuery->unionAll($stockOpnameQuery);
 
         // Create a simple query without using StockMovement model
+        // prepare SQL expressions for current_stock, unit_cost and nominal so they are available in the result set
+        $currentStockExpr = $branchId
+            ? '(SELECT COALESCE(SUM(quantity_available), 0) FROM branch_inventory WHERE branch_inventory.sku_id = MIN(combined.sku_id) AND branch_inventory.branch_id = ' . (int)$branchId . ')'
+            : '(SELECT stock_quantity FROM skus WHERE skus.id = MIN(combined.sku_id))';
+
+        $unitCostExpr = '(SELECT unit_cost FROM skus WHERE skus.id = MIN(combined.sku_id))';
+
+        // nominal = unit_cost * current_stock (both from subqueries)
+        $nominalExpr = "({$unitCostExpr}) * ({$currentStockExpr})";
+
         $query = DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))
             ->mergeBindings($unionQuery)
             ->select([
@@ -247,11 +252,9 @@ class StocksFlow extends Page implements HasForms, HasTable
                 DB::raw('SUM(stock_in) as stock_in'),
                 DB::raw('SUM(stock_out) as stock_out'),
                 DB::raw('MAX(transaction_date) as last_update'),
-                DB::raw($branchId
-                    ? '(SELECT COALESCE(SUM(quantity_available), 0) FROM branch_inventory WHERE branch_inventory.sku_id = MIN(combined.sku_id) AND branch_inventory.branch_id = ' . (int)$branchId . ') as current_stock'
-                    : '(SELECT stock_quantity FROM skus WHERE skus.id = MIN(combined.sku_id)) as current_stock'
-                ),
-                DB::raw('(SELECT unit_cost FROM skus WHERE skus.id = MIN(combined.sku_id)) as unit_cost'),
+                DB::raw($currentStockExpr . ' as current_stock'),
+                DB::raw($unitCostExpr . ' as unit_cost'),
+                DB::raw($nominalExpr . ' as nominal'),
             ])
             ->groupBy('sku_code')
             ->orderBy('stock_out', 'desc');

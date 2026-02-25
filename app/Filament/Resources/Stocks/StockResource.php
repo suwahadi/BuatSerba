@@ -131,18 +131,6 @@ class StockResource extends Resource
                     ->copyMessage('SKU copied!')
                     ->copyMessageDuration(1500),
 
-                // TextColumn::make('sku.attributes')
-                //     ->label('Variant')
-                //     ->formatStateUsing(function ($state) {
-                //         if (empty($state)) {
-                //             return '-';
-                //         }
-
-                //         return collect($state)->map(fn ($value, $key) => "{$key}: {$value}")->join(', ');
-                //     })
-                //     ->limit(30)
-                //     ->toggleable(),
-
                 TextColumn::make('quantity_available')
                     ->label('Available')
                     ->numeric()
@@ -218,7 +206,7 @@ class StockResource extends Resource
                 \Filament\Actions\ViewAction::make(),
             ])
             ->toolbarActions([
-                // Bulk actions can be added here if needed
+                //
             ])
             ->defaultSort('updated_at', 'desc');
     }
@@ -239,7 +227,6 @@ class StockResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        // Show count of low stock items
         return (string) BranchInventory::whereColumn('quantity_available', '<=', 'minimum_stock_level')->count();
     }
 
