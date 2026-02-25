@@ -1,3 +1,4 @@
+<x-layouts.app.sidebar>
     <div class="flex flex-col min-h-screen">
         <flux:main class="flex-grow">
             {{ $slot }}

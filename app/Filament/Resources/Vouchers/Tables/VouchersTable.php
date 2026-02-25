@@ -53,6 +53,23 @@ class VouchersTable
 
                         return 'Rp '.number_format($record->amount, 0, ',', '.');
                     }),
+
+                \Filament\Tables\Columns\TextColumn::make('cashback_info')
+                    ->label('Cashback')
+                    ->formatStateUsing(function ($record) {
+                        if (!$record->hasCashback()) {
+                            return '-';
+                        }
+
+                        if ($record->cashback_type === 'fixed') {
+                            return 'Rp ' . number_format($record->cashback_amount, 0, ',', '.');
+                        } else {
+                            return $record->cashback_percentage . '%';
+                        }
+                    })
+                    ->badge()
+                    ->color(fn ($record) => $record->hasCashback() ? 'success' : 'gray')
+                    ->toggleable(),
                     
                 \Filament\Tables\Columns\TextColumn::make('min_spend')
                     ->label('Min Spend')
@@ -99,6 +116,32 @@ class VouchersTable
                     ->trueLabel('Free shipping')
                     ->falseLabel('No free shipping')
                     ->native(false),
+
+                \Filament\Tables\Filters\TernaryFilter::make('has_cashback')
+                    ->label('Cashback')
+                    ->boolean()
+                    ->trueLabel('Has cashback')
+                    ->falseLabel('No cashback')
+                    ->native(false)
+                    ->query(function ($query, $state) {
+                        if ($state === 'true') {
+                            $query->where(function ($q) {
+                                $q->whereNotNull('cashback_type')
+                                  ->where(function ($subQ) {
+                                      $subQ->where('cashback_amount', '>', 0)
+                                           ->orWhere('cashback_percentage', '>', 0);
+                                  });
+                            });
+                        } elseif ($state === 'false') {
+                            $query->where(function ($q) {
+                                $q->whereNull('cashback_type')
+                                  ->orWhere(function ($subQ) {
+                                      $subQ->where('cashback_amount', '=', 0)
+                                           ->where('cashback_percentage', '=', 0);
+                                  });
+                            });
+                        }
+                    }),
             ])
             ->recordActions([
                 EditAction::make(),

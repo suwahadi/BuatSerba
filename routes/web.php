@@ -47,6 +47,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/order/{orderNumber}/rating', App\Livewire\Dashboard\OrderRating::class)->name('order.rating');
     Route::get('/profile', App\Livewire\Dashboard\Profile::class)->name('user.profile');
     Route::get('/address', App\Livewire\Dashboard\Address::class)->name('user.address');
+    Route::get('/balance', App\Livewire\Dashboard\MemberBalance::class)->name('user.balance');
 });
 
 Route::post('/logout', function () {

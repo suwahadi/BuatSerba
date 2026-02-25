@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Branch;
 use App\Models\CartItem;
+use App\Services\MemberWalletService;
 use App\Services\MidtransService;
 use App\Services\OrderService;
 use App\Services\RajaongkirService;
@@ -64,10 +65,12 @@ class Checkout extends Component
 
     public $showBranchModal = true;
 
+    public $memberBalance = 0;
+
     #[Computed]
     public function paymentMethods()
     {
-        return [
+        $methods = [
             // [
             //     'id' => 'bank-transfer-bca',
             //     'name' => 'BCA Virtual Account',
@@ -105,6 +108,17 @@ class Checkout extends Component
                 'icon' => 'bank',
             ],
         ];
+
+        if (auth()->check()) {
+            $methods[] = [
+                'id' => 'member_balance',
+                'name' => 'Saldo Member (Rp ' . number_format($this->memberBalance, 0, ',', '.') . ')',
+                'description' => 'Gunakan saldo member',
+                'icon' => 'bank',
+            ];
+        }
+
+        return $methods;
     }
 
     #[Computed]
@@ -156,6 +170,10 @@ class Checkout extends Component
 
     public function mount()
     {
+        if (auth()->check()) {
+            $walletService = app(MemberWalletService::class);
+            $this->memberBalance = $walletService->getBalance(auth()->user());
+        }
 
         $rajaongkir = new RajaongkirService;
         $provincesData = $rajaongkir->getProvinces();
@@ -545,6 +563,22 @@ class Checkout extends Component
             return;
         }
 
+        // Validate member balance if selected
+        if ($this->paymentMethod === 'member_balance') {
+            $memberWalletService = new \App\Services\MemberWalletService;
+            $currentBalance = $memberWalletService->getBalanceByUserId(auth()->id());
+            $totalAmount = $this->total;
+
+            if ($currentBalance < $totalAmount) {
+                $this->dispatch('showModalError', [
+                    'title' => 'Saldo Tidak Mencukupi',
+                    'message' => 'Saldo member Anda (Rp ' . number_format($currentBalance, 0, ',', '.') . ') tidak mencukupi untuk pembayaran sebesar Rp ' . number_format($totalAmount, 0, ',', '.') . '.',
+                ]);
+
+                return;
+            }
+        }
+
         try {
 
             $provinceName = strtoupper($this->provinces[$this->provinceId] ?? '');
@@ -596,6 +630,66 @@ class Checkout extends Component
                     'payment_status' => 'pending',
                 ]);
 
+            } elseif ($this->paymentMethod === 'member_balance') {
+                // Process member balance payment
+                $memberWalletService = new \App\Services\MemberWalletService;
+                
+                try {
+                    // Debit member balance and create ledger entry
+                    $memberWalletService->debitForOrderById(
+                        auth()->id(),
+                        $order->total,
+                        $order->id,
+                        $order->order_number
+                    );
+                    
+                    // Create payment record
+                    \App\Models\Payment::create([
+                        'order_id' => $order->id,
+                        'payment_gateway' => 'member_balance',
+                        'transaction_id' => (string) \Illuminate\Support\Str::uuid(),
+                        'transaction_time' => now(),
+                        'transaction_status' => 'settlement',
+                        'payment_type' => 'wallet',
+                        'payment_channel' => 'member_balance',
+                        'gross_amount' => $order->total,
+                        'currency' => 'IDR',
+                        'status_code' => '200',
+                        'status_message' => 'Payment successful using member balance',
+                    ]);
+                    
+                    // Update order status
+                    $order->update([
+                        'status' => 'processing',
+                        'payment_status' => 'paid',
+                    ]);
+
+                    // Process cashback if voucher was used
+                    if ($order->voucher_code) {
+                        $voucher = \App\Models\Voucher::where('voucher_code', $order->voucher_code)->first();
+                        if ($voucher && $voucher->hasCashback()) {
+                            $voucherService = new \App\Services\VoucherService();
+                            $voucherService->processCashback(
+                                auth()->id(),
+                                $voucher,
+                                $order->subtotal,
+                                $order->id
+                            );
+                        }
+                    }
+                    
+                } catch (\App\Exceptions\Wallet\InsufficientBalanceException $e) {
+                    // Cancel the order if balance insufficient
+                    $order->update(['status' => 'cancelled']);
+                    
+                    $this->dispatch('showModalError', [
+                        'title' => 'Saldo Tidak Mencukupi',
+                        'message' => 'Saldo member Anda tidak mencukupi untuk melakukan pembayaran ini.',
+                    ]);
+                    
+                    return;
+                }
+                
             } elseif ($this->paymentMethod !== 'cod') {
                 $midtransService = new MidtransService;
                 $paymentResult = $midtransService->createTransaction($order, $this->paymentMethod);

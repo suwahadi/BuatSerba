@@ -143,6 +143,21 @@ class OrderService
                 $inventoryService->release($branchId, (int) $item->sku_id, (int) $item->quantity);
             }
 
+            if ($order->payment_status === 'paid' && $order->user_id) {
+                $payment = \App\Models\Payment::where('order_id', $order->id)
+                    ->where('payment_gateway', 'member_balance')
+                    ->first();
+                
+                if ($payment) {
+                    $memberWalletService = new \App\Services\MemberWalletService();
+                    $memberWalletService->releaseOrderLock(
+                        $order->user_id,
+                        $order->id,
+                        'Pembatalan order #' . $order->order_number
+                    );
+                }
+            }
+
             $order->cancel($reason);
         });
     }

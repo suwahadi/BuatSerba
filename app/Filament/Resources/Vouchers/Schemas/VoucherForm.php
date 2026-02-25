@@ -162,6 +162,38 @@ class VoucherForm
                     ->columns(2)
                     ->collapsible(),
 
+                \Filament\Schemas\Components\Section::make('Konfigurasi Cashback')
+                    ->description('Atur cashback yang akan diberikan ke saldo member')
+                    ->schema([
+                        \Filament\Forms\Components\Select::make('cashback_type')
+                            ->label('Tipe Cashback')
+                            ->options([
+                                '' => 'Tidak Ada Cashback',
+                                'fixed' => 'Nominal Tetap (Rp)',
+                                'percentage' => 'Persentase (%)',
+                            ])
+                            ->live()
+                            ->columnSpan(1),
+
+                        \Filament\Forms\Components\TextInput::make('cashback_amount')
+                            ->label('Nominal Cashback')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->visible(fn ($get) => $get('cashback_type') === 'fixed')
+                            ->helperText('Nominal cashback yang akan diberikan')
+                            ->columnSpan(1),
+
+                        \Filament\Forms\Components\TextInput::make('cashback_percentage')
+                            ->label('Persentase Cashback')
+                            ->numeric()
+                            ->suffix('%')
+                            ->visible(fn ($get) => $get('cashback_type') === 'percentage')
+                            ->helperText('Persentase dari subtotal yang akan dicashback')
+                            ->columnSpan(1),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
+
             ]);
     }
 }

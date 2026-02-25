@@ -4,10 +4,39 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Order extends Model
 {
     use HasFactory;
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function ($order) {
+            // Check if status changed to 'completed' and payment method is member_balance
+            if ($order->wasChanged('status') && $order->status === 'completed') {
+                if ($order->payment_method === 'member_balance' && $order->user_id) {
+                    try {
+                        $memberWalletService = new \App\Services\MemberWalletService();
+                        $memberWalletService->completeOrder($order);
+                        
+                        Log::info('Locked balance released for completed order', [
+                            'order_number' => $order->order_number,
+                            'user_id' => $order->user_id,
+                            'total' => $order->total
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to release locked balance for completed order', [
+                            'order_number' => $order->order_number,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+        });
+    }
 
     protected $fillable = [
         'order_number',
@@ -132,11 +161,41 @@ class Order extends Model
                 'status' => 'processing',
                 'paid_at' => now(),
             ]);
+
+            // Process cashback if voucher was used
+            if ($this->voucher_code) {
+                $voucher = \App\Models\Voucher::where('voucher_code', $this->voucher_code)->first();
+                if ($voucher && $voucher->hasCashback() && $this->user_id) {
+                    $voucherService = new \App\Services\VoucherService();
+                    $voucherService->processCashback(
+                        $this->user_id,
+                        $voucher,
+                        $this->subtotal,
+                        $this->id
+                    );
+                }
+            }
         } elseif (in_array($transactionStatus, ['deny', 'cancel', 'expire'])) {
             $this->update([
                 'payment_status' => 'failed',
                 'status' => 'payment_failed',
             ]);
+
+            // Release member balance if payment was made with member balance and is now expired/cancelled
+            if ($this->user_id) {
+                $payment = \App\Models\Payment::where('order_id', $this->id)
+                    ->where('payment_gateway', 'member_balance')
+                    ->first();
+                
+                if ($payment) {
+                    $memberWalletService = new \App\Services\MemberWalletService();
+                    $memberWalletService->releaseOrderLock(
+                        $this->user_id,
+                        $this->id,
+                        'Pembayaran dibatalkan/expire untuk pesanan #' . $this->order_number
+                    );
+                }
+            }
         }
     }
 }

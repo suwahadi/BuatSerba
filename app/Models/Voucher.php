@@ -26,22 +26,23 @@ class Voucher extends Model
         'valid_end',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'min_spend' => 'decimal:2',
+        'max_discount_amount' => 'decimal:2',
+        'is_new_user_only' => 'boolean',
+        'is_free_shipment' => 'boolean',
+        'is_active' => 'boolean',
+        'valid_start' => 'datetime',
+        'valid_end' => 'datetime',
+        'cashback_amount' => 'decimal:2',
+        'cashback_percentage' => 'decimal:2',
+    ];
+
+    public function hasCashback(): bool
     {
-        return [
-            'amount' => 'decimal:2',
-            'min_spend' => 'decimal:2',
-            'max_discount_amount' => 'decimal:2',
-            'is_new_user_only' => 'boolean',
-            'usage_limit' => 'integer',
-            'usage_count' => 'integer',
-            'limit_per_user' => 'integer',
-            'is_free_shipment' => 'boolean',
-            'is_active' => 'boolean',
-            'sort' => 'integer',
-            'valid_start' => 'datetime',
-            'valid_end' => 'datetime',
-        ];
+        return $this->cashback_type === 'member_balance' && 
+               ($this->cashback_amount > 0 || $this->cashback_percentage > 0);
     }
 
     public function user()

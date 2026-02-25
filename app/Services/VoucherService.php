@@ -130,7 +130,53 @@ class VoucherService
                 'discount_amount' => $discountAmount,
                 'min_spend' => $voucher->min_spend,
                 'is_free_shipment' => (bool) $voucher->is_free_shipment,
+                'cashback_type' => $voucher->cashback_type,
+                'cashback_amount' => $voucher->cashback_amount,
+                'cashback_percentage' => $voucher->cashback_percentage,
+                'cashback_value' => $this->calculateCashback($voucher, $subtotal),
             ],
         ];
+    }
+
+    /**
+     * Calculate cashback amount from voucher
+     */
+    public function calculateCashback(Voucher $voucher, float $subtotal): float
+    {
+        if (!$voucher->hasCashback()) {
+            return 0;
+        }
+
+        $cashbackAmount = 0;
+
+        if ($voucher->cashback_type === 'fixed') {
+            $cashbackAmount = $voucher->cashback_amount;
+        } elseif ($voucher->cashback_type === 'percentage') {
+            $cashbackAmount = $subtotal * ($voucher->cashback_percentage / 100);
+        }
+
+        return $cashbackAmount;
+    }
+
+    /**
+     * Process cashback for an order
+     */
+    public function processCashback(int $userId, Voucher $voucher, float $subtotal, int $orderId): void
+    {
+        if (!$voucher->hasCashback()) {
+            return;
+        }
+
+        $cashbackAmount = $this->calculateCashback($voucher, $subtotal);
+
+        if ($cashbackAmount > 0) {
+            $memberWalletService = new MemberWalletService();
+            $memberWalletService->creditCashback(
+                $userId,
+                $cashbackAmount,
+                $orderId,
+                'Cashback dari voucher ' . $voucher->voucher_code
+            );
+        }
     }
 }

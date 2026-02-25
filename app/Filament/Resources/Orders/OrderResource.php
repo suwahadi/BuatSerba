@@ -260,13 +260,14 @@ class OrderResource extends Resource
                                 \Filament\Forms\Components\Select::make('payment_method')
                                     ->label('Method')
                                     ->options([
-                                        'qris' => 'QRIS',
                                         'bca' => 'BCA Virtual Account',
                                         'mandiri' => 'Mandiri Virtual Account',
                                         'bni' => 'BNI Virtual Account',
                                         'bri' => 'BRI Virtual Account',
+                                        'qris' => 'QRIS',
                                         'transfer' => 'Bank Transfer',
                                         'cash' => 'Cash',
+                                        'member_balance' => 'Member Balance',
                                     ]),
                                 \Filament\Forms\Components\Select::make('payment_status')
                                     ->label('Status')

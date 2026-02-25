@@ -105,6 +105,22 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Get user's wallet
+     */
+    public function wallet(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(MemberWallet::class);
+    }
+
+    /**
+     * Get user's balance ledgers
+     */
+    public function balanceLedgers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MemberBalanceLedger::class);
+    }
+
+    /**
      * Get the user's initials
      */
     public function initials(): string
