@@ -27,7 +27,7 @@
             <div class="space-y-3 sm:space-y-4">
                 <div class="bg-white rounded-lg shadow-lg p-3 sm:p-4">
                     <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                        <img src="{{ image_url($product->main_image) }}" 
+                            <img src="{{ image_url($selectedSku->image ?? $product->main_image) }}" 
                              alt="{{ $product->name }}" 
                              class="w-full h-full object-cover"
                              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27800%27 height=%27800%27%3E%3Crect width=%27800%27 height=%27800%27 fill=%27%23f3f4f6%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2748px%27 fill=%27%239ca3af%27%3ENo Image%3C/text%3E%3C/svg%3E'">

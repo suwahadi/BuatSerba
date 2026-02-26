@@ -67,7 +67,7 @@
                             <div class="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0">
                                 <!-- Product Image -->
                                 <div class="flex-shrink-0">
-                                    <img src="{{ image_url($item->product->main_image) }}" 
+                                     <img src="{{ image_url($item->sku->image ?? $item->product->main_image) }}" 
                                          alt="{{ $item->product->name }}" 
                                          class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
                                          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23f3f4f6%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2712px%27 fill=%27%239ca3af%27%3ENo Image%3C/text%3E%3C/svg%3E'">
@@ -76,17 +76,33 @@
                                 <!-- Product Info -->
                                 <div class="flex-1 min-w-0">
                                     <h3 class="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 sm:truncate">
-                                        <a href="/product/{{ $item->product->slug }}" class="hover:text-green-600">
+                                        <a href="/product/{{ $item->product->slug }}?sku={{ $item->sku->id }}" class="hover:text-green-600">
                                             {{ $item->product->name }}
                                         </a>
                                     </h3>
-                                    @if($item->sku->attributes)
+                                    @php
+                                        $attrs = $item->sku->attributes ?? [];
+                                    @endphp
+                                    @if(! empty($attrs))
                                     <p class="text-xs sm:text-sm text-gray-500 mt-1">
-                                        @foreach($item->sku->attributes as $key => $value)
+                                        @if(isset($attrs['name']) && trim((string) $attrs['name']) !== '')
                                             <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mr-1">
-                                                {{ $key }}: {{ $value }}
+                                                {{ $attrs['name'] }}
                                             </span>
-                                        @endforeach
+                                        @else
+                                            {{-- Fallback: show other non-image attributes joined --}}
+                                            @foreach($attrs as $k => $v)
+                                                @if($k === 'image')
+                                                    @continue
+                                                @endif
+                                                @if(trim((string) $v) === '')
+                                                    @continue
+                                                @endif
+                                                <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mr-1">
+                                                    {{ $v }}
+                                                </span>
+                                            @endforeach
+                                        @endif
                                     </p>
                                     @endif
                                     <p class="text-base sm:text-lg font-bold text-green-600 mt-1 sm:mt-2">{{ format_rupiah($item->price) }}</p>

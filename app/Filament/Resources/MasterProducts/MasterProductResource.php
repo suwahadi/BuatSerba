@@ -9,6 +9,7 @@ use App\Models\Product;
 use BackedEnum;
 use Filament\Actions;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -130,11 +131,66 @@ class MasterProductResource extends Resource
                         Section::make('Attributes')
                             ->description('Product Variants (e.g., Color, Size)')
                             ->schema([
-                                KeyValue::make('sku.attributes')
-                                    ->label('Product Attributes')
-                                    ->keyLabel('Kunci')
-                                    ->valueLabel('Nilai')
-                                    ->reorderable()
+                                Repeater::make('variants')
+                                    ->relationship('variantsForRepeater')
+                                    ->schema([
+                                        TextInput::make('name')
+                                            ->label('Variant Name')
+                                            ->required()
+                                            ->dehydrated(fn($state) => $state !== null)
+                                            ->afterStateHydrated(function ($state, $set, $get, $record) {
+                                                if ($record instanceof \App\Models\Sku) {
+                                                    $set('name', $record->name ?? '');
+                                                }
+                                            }),
+
+                                        TextInput::make('sku')
+                                            ->label('SKU')
+                                            ->maxLength(50),
+
+                                        TextInput::make('unit_cost')
+                                            ->label('Unit Cost')
+                                            ->numeric()
+                                            ->prefix('Rp')
+                                            ->default(0),
+
+                                        TextInput::make('base_price')
+                                            ->label('Base Price')
+                                            ->numeric()
+                                            ->prefix('Rp')
+                                            ->default(0),
+
+                                        TextInput::make('selling_price')
+                                            ->label('Selling Price')
+                                            ->numeric()
+                                            ->prefix('Rp')
+                                            ->default(0),
+
+                                        TextInput::make('stock_quantity')
+                                            ->label('Stock Quantity')
+                                            ->numeric()
+                                            ->default(0),
+
+                                        FileUpload::make('image')
+                                            ->label('Variant Image')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('products')
+                                            ->visibility('public')
+                                            ->maxSize(2048)
+                                            ->dehydrated(fn($state) => $state !== null)
+                                            ->afterStateHydrated(function ($state, $set, $get, $record) {
+                                                if ($record instanceof \App\Models\Sku) {
+                                                    $set('image', $record->image ?? null);
+                                                }
+                                            }),
+
+                                        Toggle::make('is_active')
+                                            ->label('Active')
+                                            ->inline(false)
+                                            ->default(true),
+                                    ])
+                                    ->columns(2)
                                     ->columnSpanFull(),
                             ])
                             ->collapsible(),
@@ -186,8 +242,8 @@ class MasterProductResource extends Resource
                                     ->label('Is Featured')
                                     ->default(false)
                                     ->inline(false),
-                            ])
-                            ->columns(2),
+                                ])
+                                ->columns(2),
 
                         Section::make('Image')
                             ->schema([
@@ -202,14 +258,14 @@ class MasterProductResource extends Resource
                                     ])
                                     ->directory('products')
                                     ->visibility('public')
-                                    ->maxSize(2048)
-                                    ->helperText('Max 2MB. Recommended: 800x800px'),
+                                    ->maxSize(2048),
                             ]),
-                    ])
-                    ->columnSpan(['lg' => 1]),
-            ])
-            ->columns(3);
-    }
+                            ])
+                            ->columnSpan(['lg' => 1]),
+                        ])
+                        ->columns(3);
+
+                    }
 
     public static function table(Table $table): Table
     {
@@ -383,7 +439,7 @@ class MasterProductResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['category', 'sku'])
+            ->with(['category', 'sku', 'variants'])
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);

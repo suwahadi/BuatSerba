@@ -9,8 +9,12 @@ class Sku extends Model
 {
     use HasFactory;
 
+    protected $table = 'skus';
+
     protected $fillable = [
         'product_id',
+        'name',
+        'image',
         'sku',
         'attributes',
         'unit_cost',
@@ -28,26 +32,125 @@ class Sku extends Model
         'use_dynamic_pricing',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'is_active' => 'boolean',
+        'attributes' => 'array',
+        'unit_cost' => 'decimal:2',
+        'base_price' => 'decimal:2',
+        'selling_price' => 'decimal:2',
+        'wholesale_price' => 'decimal:2',
+        'length' => 'decimal:2',
+        'width' => 'decimal:2',
+        'height' => 'decimal:2',
+        'pricing_tiers' => 'array',
+        'use_dynamic_pricing' => 'boolean',
+    ];
+
+    /**
+     * Provide sensible model-level defaults so new SKUs created via the
+     * Filament repeater will include non-nullable DB columns (e.g. weight).
+     */
+    protected $attributes = [
+        'weight' => 0,
+        'unit_cost' => 0,
+        'base_price' => 0,
+        'selling_price' => 0,
+        'stock_quantity' => 0,
+        'is_active' => true,
+    ];
+
+    /**
+     * Ensure attributes JSON always contains sensible defaults for the form.
+     * This avoids empty repeater fields for legacy/default SKUs that have
+     * null attributes in the database.
+     */
+    public function getAttributesAttribute($value): array
     {
-        return [
-            'is_active' => 'boolean',
-            'attributes' => 'array',
-            'unit_cost' => 'decimal:2',
-            'base_price' => 'decimal:2',
-            'selling_price' => 'decimal:2',
-            'wholesale_price' => 'decimal:2',
-            'length' => 'decimal:2',
-            'width' => 'decimal:2',
-            'height' => 'decimal:2',
-            'pricing_tiers' => 'array',
-            'use_dynamic_pricing' => 'boolean',
-        ];
+        $raw = $this->getRawOriginal('attributes');
+
+        $attrs = [];
+        if ($raw !== null) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $attrs = $decoded;
+            }
+        }
+
+        if (empty($attrs['name'])) {
+            $attrs['name'] = '';
+        }
+
+        if (! array_key_exists('image', $attrs)) {
+            $attrs['image'] = null;
+        }
+
+        return $attrs;
     }
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Virtual `name` attribute mapped into the JSON `attributes` column.
+     */
+    public function getNameAttribute(): ?string
+    {
+        $raw = $this->getRawOriginal('attributes');
+        if ($raw === null) {
+            return null;
+        }
+
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) && isset($decoded['name']) ? $decoded['name'] : null;
+    }
+
+    public function setNameAttribute($value): void
+    {
+        $raw = $this->getRawOriginal('attributes');
+        $attrs = [];
+        if ($raw !== null) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $attrs = $decoded;
+            }
+        }
+
+        $attrs['name'] = $value;
+
+        $this->setAttribute('attributes', $attrs);
+    }
+
+    /**
+     * Virtual `image` attribute mapped into the JSON `attributes` column.
+     */
+    public function getImageAttribute(): ?string
+    {
+        $raw = $this->getRawOriginal('attributes');
+        if ($raw === null) {
+            return null;
+        }
+
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) && isset($decoded['image']) ? $decoded['image'] : null;
+    }
+
+    public function setImageAttribute($value): void
+    {
+        $raw = $this->getRawOriginal('attributes');
+        $attrs = [];
+        if ($raw !== null) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $attrs = $decoded;
+            }
+        }
+
+        $attrs['image'] = $value;
+        $this->setAttribute('attributes', $attrs);
     }
 
     public function branchInventory()
@@ -60,12 +163,9 @@ class Sku extends Model
      */
     public function getPriceForQuantity(int $quantity): float
     {
-        // If dynamic pricing is enabled, use the pricing tiers
         if ($this->use_dynamic_pricing && ! empty($this->pricing_tiers)) {
-            // Sort tiers by quantity in descending order to find the best match
             $sortedTiers = collect($this->pricing_tiers)->sortByDesc('quantity');
 
-            // Find the tier that matches the quantity
             foreach ($sortedTiers as $tier) {
                 if ($quantity >= $tier['quantity']) {
                     return $tier['price'];
@@ -73,7 +173,6 @@ class Sku extends Model
             }
         }
 
-        // Fallback to existing wholesale logic
         if ($this->wholesale_price && $quantity >= $this->wholesale_min_quantity) {
             return $this->wholesale_price;
         }
@@ -86,12 +185,10 @@ class Sku extends Model
      */
     public function getPricingTiersForDisplay(): array
     {
-        // If dynamic pricing is enabled and we have tiers, use them
         if ($this->use_dynamic_pricing && ! empty($this->pricing_tiers)) {
             return $this->pricing_tiers;
         }
 
-        // Otherwise, create a default structure with retail and wholesale
         $tiers = [
             [
                 'quantity' => 1,
@@ -100,7 +197,6 @@ class Sku extends Model
             ],
         ];
 
-        // Add wholesale tier if available
         if ($this->wholesale_price && $this->wholesale_min_quantity) {
             $tiers[] = [
                 'quantity' => $this->wholesale_min_quantity,

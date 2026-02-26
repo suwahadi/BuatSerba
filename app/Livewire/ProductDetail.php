@@ -7,7 +7,6 @@ use App\Models\BranchInventory;
 use App\Models\Product;
 use App\Models\Sku;
 use Livewire\Component;
-
 class ProductDetail extends Component
 {
     public $product;
@@ -31,15 +30,21 @@ class ProductDetail extends Component
             ->where('is_active', true)
             ->firstOrFail();
 
-        // Select first available SKU by default
-        $this->selectedSku = $this->product->skus->first();
+        $skuId = request()->query('sku');
+        $this->selectedSku = null;
 
-        // Initialize selected variants based on first SKU
+        if ($skuId) {
+            $this->selectedSku = $this->product->skus->firstWhere('id', (int) $skuId);
+        }
+
+        if (! $this->selectedSku) {
+            $this->selectedSku = $this->product->skus->first();
+        }
+
         if ($this->selectedSku) {
             $this->initializeVariants();
         }
 
-        // Increment view count
         $this->product->increment('view_count');
     }
 
@@ -48,34 +53,72 @@ class ProductDetail extends Component
         $attributes = $this->selectedSku->attributes ?? [];
 
         foreach ($attributes as $key => $value) {
+            if ($key === 'image') {
+                continue;
+            }
+
+            if ($value === null) {
+                continue;
+            }
+
+            if (is_string($value) && trim($value) === '') {
+                continue;
+            }
+
             $this->selectedVariants[$key] = $value;
         }
     }
 
     public function selectVariant($attributeName, $value)
     {
+        if ($attributeName === 'image') {
+            return;
+        }
+
         $this->selectedVariants[$attributeName] = $value;
         $this->updateSelectedSku();
+
     }
 
     protected function updateSelectedSku()
     {
-        // Find SKU that matches selected variants
-        foreach ($this->product->skus as $sku) {
-            $skuAttributes = $sku->attributes ?? [];
-            $matches = true;
+        $relevantSelected = array_filter($this->selectedVariants, function ($v) {
+            if ($v === null) return false;
+            if (is_string($v) && trim($v) === '') return false;
+            return true;
+        });
 
-            foreach ($this->selectedVariants as $key => $value) {
-                if (! isset($skuAttributes[$key]) || $skuAttributes[$key] != $value) {
-                    $matches = false;
-                    break;
+        if (! empty($relevantSelected)) {
+            foreach ($this->product->skus as $sku) {
+                $skuAttributes = $sku->attributes ?? [];
+                $matches = true;
+
+                foreach ($relevantSelected as $key => $value) {
+                    if (! isset($skuAttributes[$key]) || $skuAttributes[$key] != $value) {
+                        $matches = false;
+                        break;
+                    }
+                }
+
+                if ($matches) {
+                    $this->selectedSku = $sku;
+
+                    return;
                 }
             }
+        }
 
-            if ($matches) {
-                $this->selectedSku = $sku;
+        if (! empty($relevantSelected)) {
+            foreach ($this->product->skus as $sku) {
+                $skuAttributes = $sku->attributes ?? [];
 
-                return;
+                foreach ($relevantSelected as $value) {
+                    if (in_array($value, $skuAttributes, true)) {
+                        $this->selectedSku = $sku;
+
+                        return;
+                    }
+                }
             }
         }
     }
@@ -114,13 +157,10 @@ class ProductDetail extends Component
 
     public function addTierToCart($quantity)
     {
-        // Set the quantity based on the tier clicked
         $this->quantity = $quantity;
 
-        // Add to cart
         $this->addToCart();
 
-        // Redirect to cart if no errors
         if (! session()->has('error')) {
             return redirect()->route('cart');
         }
@@ -140,14 +180,12 @@ class ProductDetail extends Component
             return;
         }
 
-        // Get or create session ID for cart
         if (! session()->has('cart_session_id')) {
             session()->put('cart_session_id', session()->getId());
         }
 
         $sessionId = session()->get('cart_session_id');
 
-        // Check if item already exists in cart
         $existingItem = \App\Models\CartItem::where('sku_id', $this->selectedSku->id)
             ->where(function ($query) use ($sessionId) {
                 $query->where('session_id', $sessionId);
@@ -158,7 +196,6 @@ class ProductDetail extends Component
             ->first();
 
         if ($existingItem) {
-            // Update quantity if item exists
             $newQuantity = $existingItem->quantity + $this->quantity;
 
             if ($newQuantity > $this->selectedSku->stock_quantity) {
@@ -167,15 +204,10 @@ class ProductDetail extends Component
                 return;
             }
 
-            // Update quantity and price
             $existingItem->quantity = $newQuantity;
             $existingItem->price = $this->selectedSku->getPriceForQuantity($newQuantity);
             $existingItem->save();
-
-            // Remove the flash message that was interfering with popup
-            // session()->flash('message', 'Jumlah produk di keranjang berhasil diupdate!');
         } else {
-            // Create new cart item
             \App\Models\CartItem::create([
                 'session_id' => $sessionId,
                 'user_id' => auth()->id(),
@@ -184,12 +216,8 @@ class ProductDetail extends Component
                 'quantity' => $this->quantity,
                 'price' => $this->selectedSku->getPriceForQuantity($this->quantity),
             ]);
-
-            // Remove the flash message that was interfering with popup
-            // session()->flash('message', 'Produk berhasil ditambahkan ke keranjang!');
         }
 
-        // Dispatch event for showing popup notification
         $this->dispatch('cartUpdated');
         $this->dispatch('show-cart-notification', [
             'productName' => $this->product->name,
@@ -222,11 +250,23 @@ class ProductDetail extends Component
             $attributes = $sku->attributes ?? [];
 
             foreach ($attributes as $key => $value) {
+                if ($key === 'image') {
+                    continue;
+                }
+
+                if ($value === null) {
+                    continue;
+                }
+
+                if (is_string($value) && trim($value) === '') {
+                    continue;
+                }
+
                 if (! isset($variants[$key])) {
                     $variants[$key] = [];
                 }
 
-                if (! in_array($value, $variants[$key])) {
+                if (! in_array($value, $variants[$key], true)) {
                     $variants[$key][] = $value;
                 }
             }
@@ -235,7 +275,6 @@ class ProductDetail extends Component
         return $variants;
     }
 
-    // Get branch inventory information for the selected SKU
     public function getBranchInventoryProperty()
     {
         if (! $this->selectedSku) {

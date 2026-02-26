@@ -53,6 +53,25 @@ class Product extends Model
         return $this->hasMany(Sku::class);
     }
 
+    public function variants()
+    {
+        $primaryId = $this->skus()->min('id');
+
+        $query = $this->hasMany(Sku::class)
+            ->where('sku', 'not like', '%-D');
+
+        if (! empty($primaryId)) {
+            $query->where('id', '!=', $primaryId);
+        }
+
+        return $query->orderBy('id');
+    }
+
+    public function variantsForRepeater()
+    {
+        return $this->variants();
+    }
+
     public function images()
     {
         return $this->hasMany(ProductImage::class);
