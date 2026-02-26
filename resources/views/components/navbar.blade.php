@@ -4,8 +4,8 @@
             <!-- Logo -->
             <div class="flex items-center flex-shrink-0">
                 <a href="/" class="flex items-start leading-none group font-['Poppins']">
-                    <span class="text-xl sm:text-3xl font-black text-green-600 tracking-tighter hover:text-green-700 transition-colors">buatserba</span>
-                    <span class="text-[0.6rem] sm:text-xs font-bold text-green-600 ml-0.5 group-hover:text-green-700 transition-colors">®</span>
+                    <span class="text-xl sm:text-3xl font-bold text-green-600 tracking-tighter hover:text-green-700 transition-colors">buatserba</span>
+                    <span class="text-[0.6rem] sm:text-xs text-green-600 ml-0.5 group-hover:text-green-700 transition-colors">®</span>
                 </a>
             </div>
             

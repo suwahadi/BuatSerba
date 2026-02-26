@@ -127,18 +127,17 @@ class MasterProductResource extends Resource
                             ->columns(4)
                             ->collapsible(),
 
-                        // Section::make('Attributes')
-                        //     ->description('Additional product attributes (e.g., Color, Size, etc.)')
-                        //     ->schema([
-                        //         KeyValue::make('sku.attributes')
-                        //             ->label('Product Attributes')
-                        //             ->keyLabel('Kunci')
-                        //             ->valueLabel('Nilai')
-                        //             ->reorderable()
-                        //             ->columnSpanFull(),
-                        //     ])
-                        //     ->collapsible()
-                        //     ->collapsed(),
+                        Section::make('Attributes')
+                            ->description('Product Variants (e.g., Color, Size)')
+                            ->schema([
+                                KeyValue::make('sku.attributes')
+                                    ->label('Product Attributes')
+                                    ->keyLabel('Kunci')
+                                    ->valueLabel('Nilai')
+                                    ->reorderable()
+                                    ->columnSpanFull(),
+                            ])
+                            ->collapsible(),
                     ])
                     ->columnSpan(['lg' => 2]),
 

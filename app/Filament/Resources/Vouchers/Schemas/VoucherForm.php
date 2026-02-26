@@ -4,6 +4,9 @@ namespace App\Filament\Resources\Vouchers\Schemas;
 
 use Filament\Actions\Action;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class VoucherForm
 {
@@ -70,6 +73,33 @@ class VoucherForm
                             ->visibility('public')
                             ->directory('vouchers')
                             ->label('Gambar Voucher (Opsional)')
+                            ->imageResizeUpscale(false)
+                            ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $component): string {
+                                $filename = \Illuminate\Support\Str::random(20).'.webp';
+                                $image = Image::read($file->getRealPath());
+                                $maxWidth = 800;
+                                $origWidth = method_exists($image, 'width') ? $image->width() : ($image->getWidth() ?? null);
+                                $origHeight = method_exists($image, 'height') ? $image->height() : ($image->getHeight() ?? null);
+
+                                if ($origWidth && $origWidth > $maxWidth) {
+                                    $newWidth = $maxWidth;
+                                    $newHeight = (int) round($origHeight * ($newWidth / $origWidth));
+                                    if (method_exists($image, 'resize')) {
+                                        $image = $image->resize($newWidth, $newHeight);
+                                    } else {
+                                        $image = $image->modify(new \Intervention\Image\Vips\Modifier\ResizeModifier($newWidth, $newHeight));
+                                    }
+                                }
+
+                                $image = $image->toWebp(90);
+                                $path = $component->getDirectory().'/'.$filename;
+                                Storage::disk($component->getDiskName())->put(
+                                    $path,
+                                    (string) $image
+                                );
+
+                                return $path;
+                            })
                             ->columnSpanFull(),
                     ])
                     ->collapsible(),

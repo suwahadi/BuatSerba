@@ -20,6 +20,9 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use UnitEnum;
 
 class TestimonialResource extends Resource
@@ -57,6 +60,19 @@ class TestimonialResource extends Resource
                     ->disk('public')
                     ->visibility('public')
                     ->directory('testimonials')
+                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $component): string {
+                        $filename = \Illuminate\Support\Str::random(20).'.webp';
+                        $image = Image::read($file->getRealPath())
+                            ->cover(200, 200)
+                            ->toWebp(90);
+                        $path = $component->getDirectory().'/'.$filename;
+                        Storage::disk($component->getDiskName())->put(
+                            $path,
+                            (string) $image
+                        );
+
+                        return $path;
+                    })
                     ->label('Foto'),
                 Textarea::make('content')
                     ->required()

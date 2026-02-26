@@ -56,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Branch::observe(\App\Observers\BranchObserver::class);
         \App\Models\Sku::observe(\App\Observers\SkuObserver::class);
         \App\Models\BranchInventory::observe(\App\Observers\BranchInventoryObserver::class);
+        \App\Models\Product::observe(\App\Observers\ProductImageObserver::class);
 
         // Share categories with footer component
         \Illuminate\Support\Facades\View::composer('components.footer', function ($view) {

@@ -86,6 +86,8 @@ class EditMasterProduct extends EditRecord
             ]
         );
 
+        $this->redirect($this->getResource()::getUrl('edit', ['record' => $record]));
+
         return $record;
     }
 }

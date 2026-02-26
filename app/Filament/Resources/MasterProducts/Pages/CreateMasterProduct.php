@@ -44,6 +44,8 @@ class CreateMasterProduct extends CreateRecord
             ]);
         }
 
+        $this->redirect($this->getResource()::getUrl('edit', ['record' => $product->id]));
+
         return $product;
     }
 }
