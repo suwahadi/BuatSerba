@@ -42,6 +42,7 @@ class User extends Authenticatable implements FilamentUser
         'avatar',
         'status',
         'last_login_at',
+        'premium_expires_at',
     ];
 
     /**
@@ -67,6 +68,7 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'premium_expires_at' => 'datetime',
             'password' => 'hashed',
             'is_guest' => 'boolean',
         ];
@@ -118,6 +120,36 @@ class User extends Authenticatable implements FilamentUser
     public function balanceLedgers(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(MemberBalanceLedger::class);
+    }
+
+    /**
+     * Get user's premium memberships
+     */
+    public function premiumMemberships(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PremiumMembership::class);
+    }
+
+    /**
+     * Get user's active premium membership
+     */
+    public function activePremiumMembership(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(PremiumMembership::class)
+            ->where('status', 'active')
+            ->where('started_at', '<=', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            });
+    }
+
+    /**
+     * Check if user is premium member
+     */
+    public function isPremium(): bool
+    {
+        return $this->premium_expires_at && $this->premium_expires_at->isFuture();
     }
 
     /**

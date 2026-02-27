@@ -51,6 +51,7 @@ class ProductReviewSeeder extends Seeder
                         'name' => $name,
                         'password' => bcrypt('password'),
                         'email_verified_at' => now(),
+                        'role' => 'customer',  // Add default role
                     ]
                 );
 

@@ -77,6 +77,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Events\OrderPaid::class,
             \App\Listeners\UpgradeUserGrade::class
         );
+        
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\OrderPaid::class,
+            \App\Listeners\GrantPremiumCashback::class
+        );
     }
 
     /**

@@ -62,6 +62,13 @@
                                     </svg>
                                     Alamat
                                 </a>
+                                <a href="{{ route('premium.purchase') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium transition-colors {{ request()->routeIs('premium.purchase', 'premium.memberships') ? 'text-purple-600 bg-purple-50 border-l-4 border-purple-600' : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent' }}">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l5-5 5 5M7 11l5-5 5 5M12 2l10 6v8l-10 6-10-6V8l10-6z"/>
+                                    </svg>
+                                    Premium Membership
+                                </a>
                                 <div class="border-t border-gray-200 my-2"></div>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf

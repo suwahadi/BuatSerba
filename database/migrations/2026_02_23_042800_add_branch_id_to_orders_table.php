@@ -10,7 +10,8 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('orders', 'branch_id')) {
             Schema::table('orders', function (Blueprint $table) {
-                $table->foreignId('branch_id')->nullable()->after('session_id')->constrained('branches')->nullOnDelete()->index();
+                $table->unsignedBigInteger('branch_id')->nullable()->after('session_id')->index();
+                $table->foreign('branch_id')->references('id')->on('branches')->nullOnDelete();
             });
         }
     }
@@ -19,7 +20,8 @@ return new class extends Migration
     {
         if (Schema::hasColumn('orders', 'branch_id')) {
             Schema::table('orders', function (Blueprint $table) {
-                $table->dropConstrainedForeignId('branch_id');
+                $table->dropForeign(['branch_id']);
+                $table->dropColumn('branch_id');
             });
         }
     }
