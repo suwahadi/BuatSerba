@@ -159,10 +159,6 @@ class PaymentResource extends Resource
                                     ->label('Expired At')
                                     ->content(fn ($record) => $record?->expired_at?->format('d M Y, H:i') ?? '-'),
 
-                                // Placeholder::make('refunded_at')
-                                //     ->label('Refunded At')
-                                //     ->content(fn ($record) => $record?->refunded_at?->format('d M Y, H:i') ?? '-'),
-
                                 Placeholder::make('created_at')
                                     ->label('Created At')
                                     ->content(fn ($record) => $record?->created_at?->format('d M Y, H:i') ?? '-'),
@@ -301,6 +297,7 @@ class PaymentResource extends Resource
                 \Filament\Actions\ViewAction::make()
                     ->visible(fn ($record) => static::canAccess() && !static::canEdit($record)),
                 \Filament\Actions\EditAction::make()
+                    ->label('Lihat')
                     ->visible(fn ($record) => static::canEdit($record)),
             ])
             ->defaultSort('created_at', 'desc');

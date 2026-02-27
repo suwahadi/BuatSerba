@@ -28,6 +28,8 @@ class MemberBalanceLedgerResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = null;
 
+    protected static ?string $slug = 'balance-ledgers';
+
     protected static ?string $modelLabel = 'Riwayat Saldo';
 
     protected static ?string $pluralModelLabel = 'Riwayat Saldo';
@@ -36,7 +38,7 @@ class MemberBalanceLedgerResource extends Resource
 
     public static function canAccess(): bool
     {
-        return Auth::check() && (Auth::user()->hasPermissionTo('resource.member_balance_ledgers.view_any') || Auth::user()->hasRole('admin'));
+        return Auth::check() && (Auth::user()->hasPermissionTo('resource.balance_ledgers.view_any') || Auth::user()->hasRole('admin'));
     }
 
     public static function form(Schema $schema): Schema

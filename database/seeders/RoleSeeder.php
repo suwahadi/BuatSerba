@@ -19,10 +19,10 @@ class RoleSeeder extends Seeder
         $finance = Role::firstOrCreate(['name' => 'finance', 'guard_name' => 'web']);
         $warehouse = Role::firstOrCreate(['name' => 'warehouse', 'guard_name' => 'web']);
 
-        // Admin gets all permissions
+        // Admin
         $admin->syncPermissions(Permission::query()->where('guard_name', 'web')->pluck('name')->all());
 
-        // Finance permissions
+        // Finance
         $financePermissions = [
             'resource.orders.view_any',
             'resource.orders.view',
@@ -39,8 +39,8 @@ class RoleSeeder extends Seeder
             'resource.internal_sales.delete',
             'resource.member_wallets.view_any',
             'resource.member_wallets.view',
-            'resource.member_balance_ledgers.view_any',
-            'resource.member_balance_ledgers.view',
+            'resource.balance_ledgers.view_any',
+            'resource.balance_ledgers.view',
             'page.orders.access',
             'page.point_of_sales.access',
             'page.pos_details.access',
@@ -53,7 +53,7 @@ class RoleSeeder extends Seeder
         ];
         $finance->syncPermissions($financePermissions);
 
-        // Warehouse permissions
+        // Warehouse
         $warehousePermissions = [
             'resource.master_products.view_any',
             'resource.master_products.view',

@@ -100,6 +100,23 @@ class FilamentPermissionSeeder extends Seeder
 
             $key = $this->makeEntityKey($fqcn);
 
+            // If the resource defines a custom slug, prefer its last segment
+            // so permissions match the URL segment (e.g. balance-ledgers -> balance_ledgers)
+            if ($prefix === 'resource') {
+                try {
+                    $reflection = new \ReflectionClass($fqcn);
+                    $statics = $reflection->getStaticProperties();
+
+                    if (! empty($statics['slug'])) {
+                        $slug = (string) $statics['slug'];
+                        $last = \Illuminate\Support\Str::of($slug)->afterLast('/')->replace('-', '_')->snake()->plural()->toString();
+                        $key = $last;
+                    }
+                } catch (\ReflectionException $e) {
+                    // ignore and keep existing key
+                }
+            }
+
             foreach ($abilities as $ability) {
                 Permission::firstOrCreate([
                     'name' => "{$prefix}.{$key}.{$ability}",

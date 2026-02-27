@@ -19,6 +19,8 @@ Route::get('/checkout', App\Livewire\Checkout::class)->name('checkout');
 Route::get('/payment/{code}', App\Livewire\Payment::class)->name('payment');
 Route::get('/order/{orderNumber}', App\Livewire\OrderDetail::class)->name('order.detail');
 Route::get('/payment/{code}/confirmation', App\Livewire\PaymentConfirmation::class)->name('payment.confirmation');
+Route::get('/orders/{order}/print-invoice', App\Http\Controllers\OrderPrintInvoiceController::class)->name('orders.print-invoice');
+Route::get('/orders/{order}/print-awb', App\Http\Controllers\OrderPrintAwbController::class)->name('orders.print-awb');
 
 Route::get('/payment/{orderNumber}/success', function ($orderNumber) {
     return redirect()->route('payment', $orderNumber);

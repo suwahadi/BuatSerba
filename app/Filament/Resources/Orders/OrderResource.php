@@ -90,9 +90,9 @@ class OrderResource extends Resource
                                                         <span class='product-name'>{$productName}</span><br>
                                                         <small class='category-name'>{$categoryName}</small>
                                                     </td>
-                                                    <td>{$qty}</td>
-                                                    <td>Rp {$price}</td>
-                                                    <td>Rp {$subtotal}</td>
+                                                    <td style='text-align: center;'>{$qty}</td>
+                                                    <td style='text-align: right;'>Rp {$price}</td>
+                                                    <td style='text-align: right;'>Rp {$subtotal}</td>
                                                 </tr>
                                             ";
                                         }
@@ -111,24 +111,24 @@ class OrderResource extends Resource
 
                                         $rows_summary = "
                                             <tr>
-                                                <td colspan='4' style='text-align: right;'>Sub Total</td>
-                                                <td>Rp {$fSubtotal}</td>
+                                                <td colspan='4' style='text-align: right; padding: 12px;'>Sub Total</td>
+                                                <td style='text-align: right; padding: 12px;'>Rp {$fSubtotal}</td>
                                             </tr>
                                             <tr>
-                                                <td colspan='4' style='text-align: right;'>Biaya Layanan</td>
-                                                <td>Rp {$fServiceFee}</td>
+                                                <td colspan='4' style='text-align: right; padding: 12px;'>Biaya Layanan</td>
+                                                <td style='text-align: right; padding: 12px;'>Rp {$fServiceFee}</td>
                                             </tr>
                                             <tr>
-                                                <td colspan='4' style='text-align: right;'>Ongkos Kirim</td>
-                                                <td>Rp {$fShipping}</td>
+                                                <td colspan='4' style='text-align: right; padding: 12px;'>Ongkos Kirim</td>
+                                                <td style='text-align: right; padding: 12px;'>Rp {$fShipping}</td>
                                             </tr>
                                         ";
 
                                         if ($discount > 0) {
                                             $rows_summary .= "
                                                 <tr>
-                                                    <td colspan='4' style='padding: 8px 24px; text-align: right; color: #dc2626;'>Diskon / Voucher</td>
-                                                    <td style='padding: 8px 24px; color: #dc2626;'>- Rp {$fDiscount}</td>
+                                                    <td colspan='4' style='text-align: right; padding: 12px; color: #dc2626;'>Diskon / Voucher</td>
+                                                    <td style='text-align: right; padding: 12px; color: #dc2626;'>- Rp {$fDiscount}</td>
                                                 </tr>
                                             ";
                                         }
@@ -136,56 +136,94 @@ class OrderResource extends Resource
                                         return new \Illuminate\Support\HtmlString("
                                             <style>
                                                 .order-items-table {
-                                                    border: 1px solid #374151;
-                                                    border-radius: 8px;
+                                                    border: 1px solid #e5e7eb;
+                                                    border-radius: 6px;
                                                     overflow: hidden;
                                                     overflow-x: auto;
-                                                    background-color: #1f2937;
+                                                    background-color: #ffffff;
                                                 }
                                                 .order-items-table th {
-                                                    background-color: #374151;
-                                                    border-bottom: 1px solid #4b5563;
-                                                    color: #f9fafb;
+                                                    background-color: #f3f4f6;
+                                                    border-bottom: 1px solid #e5e7eb;
+                                                    color: #111827;
                                                     font-weight: 600;
-                                                    padding: 12px 24px;
+                                                    padding: 12px;
                                                     text-align: left;
-                                                    border-right: 1px solid #4b5563;
+                                                    font-size: 0.875rem;
                                                 }
                                                 .order-items-table td {
-                                                    padding: 12px 24px;
-                                                    color: #d1d5db;
-                                                    border-right: 1px solid #374151;
+                                                    padding: 12px;
+                                                    color: #374151;
+                                                    border-bottom: 1px solid #e5e7eb;
+                                                    font-size: 0.875rem;
+                                                }
+                                                .order-items-table tbody tr:last-child td {
+                                                    border-bottom: none;
                                                 }
                                                 .order-items-table tfoot {
-                                                    border-top: 2px solid #374151;
+                                                    border-top: 2px solid #e5e7eb;
                                                 }
-                                                .order-items-table .grand-total-row {
-                                                    background-color: #374151;
-                                                    border-top: 1px solid #4b5563;
+                                                .order-items-table tfoot td {
+                                                    padding: 12px;
+                                                    border-bottom: 1px solid #e5e7eb;
+                                                    color: #374151;
                                                 }
                                                 .order-items-table .grand-total-row td {
-                                                    color: #f9fafb;
+                                                    background-color: #f3f4f6;
+                                                    color: #111827;
                                                     font-weight: 700;
-                                                    font-size: 0.95rem;
+                                                    border-bottom: none;
                                                 }
                                                 .order-items-table .product-name {
-                                                    color: #f9fafb;
+                                                    color: #111827;
                                                     font-weight: 500;
                                                 }
                                                 .order-items-table .category-name {
-                                                    color: #9ca3af;
-                                                    font-size: 0.875rem;
+                                                    color: #6b7280;
+                                                    font-size: 0.75rem;
+                                                }
+                                                @media (prefers-color-scheme: dark) {
+                                                    .order-items-table {
+                                                        border-color: #374151;
+                                                        background-color: #111827;
+                                                    }
+                                                    .order-items-table th {
+                                                        background-color: #1f2937;
+                                                        border-bottom-color: #374151;
+                                                        color: #f3f4f6;
+                                                    }
+                                                    .order-items-table td {
+                                                        color: #e5e7eb;
+                                                        border-bottom-color: #374151;
+                                                    }
+                                                    .order-items-table tfoot {
+                                                        border-top-color: #374151;
+                                                    }
+                                                    .order-items-table tfoot td {
+                                                        border-bottom-color: #374151;
+                                                        color: #e5e7eb;
+                                                    }
+                                                    .order-items-table .grand-total-row td {
+                                                        background-color: #1f2937;
+                                                        color: #f3f4f6;
+                                                    }
+                                                    .order-items-table .product-name {
+                                                        color: #f3f4f6;
+                                                    }
+                                                    .order-items-table .category-name {
+                                                        color: #9ca3af;
+                                                    }
                                                 }
                                             </style>
                                             <div class='order-items-table'>
-                                                <table style='width: 100%; min-width: 600px; border-collapse: collapse; font-size: 0.875rem; text-align: left;'>
+                                                <table style='width: 100%; border-collapse: collapse;'>
                                                     <thead>
                                                         <tr>
                                                             <th>SKU</th>
                                                             <th>Nama Produk</th>
-                                                            <th>Qty</th>
-                                                            <th>Price</th>
-                                                            <th>Subtotal</th>
+                                                            <th style='text-align: center;'>Qty</th>
+                                                            <th style='text-align: right;'>Price</th>
+                                                            <th style='text-align: right;'>Subtotal</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -194,8 +232,8 @@ class OrderResource extends Resource
                                                     <tfoot>
                                                         {$rows_summary}
                                                         <tr class='grand-total-row'>
-                                                            <td colspan='4' style='text-align: right;'>Grand Total</td>
-                                                            <td>Rp {$fGrandTotal}</td>
+                                                            <td colspan='4' style='text-align: right; padding: 12px;'>Grand Total</td>
+                                                            <td style='text-align: right; padding: 12px;'>Rp {$fGrandTotal}</td>
                                                         </tr>
                                                     </tfoot>
                                                 </table>
