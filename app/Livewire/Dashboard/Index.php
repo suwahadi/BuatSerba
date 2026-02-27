@@ -63,8 +63,8 @@ class Index extends Component
                     case 'completed':
                         $query->where('status', 'completed');
                         break;
-                    case 'failed':
-                        $query->whereIn('status', ['cancelled', 'payment_failed']);
+                    case 'expired':
+                        $query->where('status', 'expired');
                         break;
                 }
             })

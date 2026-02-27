@@ -154,16 +154,8 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
                     <div>
                         <h2 class="text-sm sm:text-base font-semibold text-gray-800 mb-1 sm:mb-2">Status Pesanan</h2>
-                        <span class="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium 
-                            @if($order->status === 'delivered') bg-green-100 text-green-800
-                            @elseif($order->status === 'shipped') bg-blue-100 text-blue-800
-                            @elseif($order->status === 'processing') bg-orange-100 text-orange-800
-                            @elseif($order->status === 'pending') bg-yellow-100 text-yellow-800
-                            @elseif($order->status === 'failed') bg-red-100 text-red-800
-                            @elseif($order->status === 'cancelled') bg-red-100 text-red-800
-                            @elseif($order->status === 'completed') bg-green-100 text-green-800
-                            @else bg-red-100 text-red-800 @endif">
-                            {{ $order->status }}
+                        <span class="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium {{ $order->getOrderStatusBadgeClasses() }}">
+                            {{ $order->getOrderStatusLabel() }}
                         </span>
                     </div>
                     <div class="text-left sm:text-right">
@@ -189,16 +181,26 @@
                             <h3 class="text-xs sm:text-sm font-medium text-gray-900 line-clamp-2">{{ $item->product->name ?? 'Product' }}</h3>
                             @if($item->sku->attributes)
                                 <p class="text-xs text-gray-500 mt-0.5 sm:mt-1">
-                                    @if(is_string($item->sku->attributes))
-                                        {{ implode(', ', json_decode($item->sku->attributes, true)) }}
-                                    @elseif(is_array($item->sku->attributes))
-                                        @foreach($item->sku->attributes as $key => $value)
+                                    @php
+                                        $attrs = is_array($item->sku->attributes) ? $item->sku->attributes : json_decode($item->sku->attributes, true);
+                                        $displayAttrs = [];
+                                        if (is_array($attrs)) {
+                                            foreach ($attrs as $key => $value) {
+                                                if ($key === 'image' || $value === null || ($key === 'image' && is_string($value) && str_contains($value, 'products/'))) {
+                                                    continue;
+                                                }
+                                                if (is_string($value) && trim($value) !== '') {
+                                                    $displayAttrs[$key] = $value;
+                                                }
+                                            }
+                                        }
+                                    @endphp
+                                    @if(!empty($displayAttrs))
+                                        @foreach($displayAttrs as $key => $value)
                                             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mr-1">
-                                                {{ $key }}: {{ $value }}
+                                                Size: {{ $value }}
                                             </span>
                                         @endforeach
-                                    @else
-                                        {{ $item->sku->attributes }}
                                     @endif
                                 </p>
                             @endif
@@ -277,15 +279,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                     <div>
                         <p class="text-xs text-gray-600">Metode Pembayaran</p>
-                        <p class="text-xs sm:text-sm font-medium mt-0.5">{{ strtoupper($order->payment_method) }} VA</p>
+                        <p class="text-xs sm:text-sm font-medium mt-0.5">{{ $order->getPaymentMethodLabel() }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-600">Status Pembayaran</p>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-0.5
-                            @if($order->payment_status === 'paid') bg-green-100 text-green-800
-                            @elseif($order->payment_status === 'pending') bg-yellow-100 text-yellow-800
-                            @else bg-red-100 text-red-800 @endif">
-                            {{ $order->payment_status }}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-0.5 {{ $order->getPaymentStatusBadgeClasses() }}">
+                            {{ $order->getPaymentStatusShortLabel() }}
                         </span>
                     </div>
                     @if($order->paid_at)
@@ -304,8 +303,8 @@
                     Kembali ke Beranda
                 </a>
                 
-                @if($order->payment_status !== 'paid')
-                    @if($order->payment_status === 'failed')
+                @if($order->getPaymentStatusEnum() !== \App\Enums\PaymentStatus::PAID)
+                    @if($order->getPaymentStatusEnum() === \App\Enums\PaymentStatus::FAILED)
                     <a href="{{ route('catalog') }}" 
                        class="flex-1 px-4 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 text-center transition font-medium">
                         Order Lagi

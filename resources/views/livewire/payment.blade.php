@@ -19,11 +19,8 @@
                                 </svg>
                             </button>
                         </div>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-0.5
-                            @if($order->payment_status === 'paid') bg-green-100 text-green-800
-                            @elseif($order->payment_status === 'pending') bg-yellow-100 text-yellow-800
-                            @else bg-red-100 text-red-800 @endif">
-                            {{ $order->payment_status }}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-0.5 {{ $order->getPaymentStatusBadgeClasses() }}">
+                            {{ $order->getPaymentStatusShortLabel() }}
                         </span>
                     </div>
                     <div class="flex-shrink-0">

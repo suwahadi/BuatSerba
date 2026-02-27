@@ -129,20 +129,16 @@ class MasterProductResource extends Resource
                             ->collapsible(),
 
                         Section::make('Attributes')
-                            ->description('Product Variants (e.g., Color, Size)')
+                            ->description('Product Variants (Size)')
                             ->schema([
                                 Repeater::make('variants')
                                     ->relationship('variantsForRepeater')
                                     ->schema([
                                         TextInput::make('name')
-                                            ->label('Variant Name')
+                                            ->statePath('attributes.name')
+                                            ->label('Variant Size')
                                             ->required()
-                                            ->dehydrated(fn($state) => $state !== null)
-                                            ->afterStateHydrated(function ($state, $set, $get, $record) {
-                                                if ($record instanceof \App\Models\Sku) {
-                                                    $set('name', $record->name ?? '');
-                                                }
-                                            }),
+                                            ->dehydrated(fn($state) => $state !== null),
 
                                         TextInput::make('sku')
                                             ->label('SKU')
@@ -172,18 +168,14 @@ class MasterProductResource extends Resource
                                             ->default(0),
 
                                         FileUpload::make('image')
+                                            ->statePath('attributes.image')
                                             ->label('Variant Image')
                                             ->image()
                                             ->disk('public')
                                             ->directory('products')
                                             ->visibility('public')
                                             ->maxSize(2048)
-                                            ->dehydrated(fn($state) => $state !== null)
-                                            ->afterStateHydrated(function ($state, $set, $get, $record) {
-                                                if ($record instanceof \App\Models\Sku) {
-                                                    $set('image', $record->image ?? null);
-                                                }
-                                            }),
+                                            ->dehydrated(fn($state) => $state !== null),
 
                                         Toggle::make('is_active')
                                             ->label('Active')

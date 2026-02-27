@@ -34,11 +34,11 @@ class ProductDetail extends Component
         $this->selectedSku = null;
 
         if ($skuId) {
-            $this->selectedSku = $this->product->skus->firstWhere('id', (int) $skuId);
+            $this->selectedSku = $this->product->skus()->where('is_active', true)->where('id', (int) $skuId)->first();
         }
 
         if (! $this->selectedSku) {
-            $this->selectedSku = $this->product->skus->first();
+            $this->selectedSku = $this->product->skus()->where('is_active', true)->first();
         }
 
         if ($this->selectedSku) {
@@ -89,7 +89,7 @@ class ProductDetail extends Component
         });
 
         if (! empty($relevantSelected)) {
-            foreach ($this->product->skus as $sku) {
+            foreach ($this->product->skus()->where('is_active', true)->get() as $sku) {
                 $skuAttributes = $sku->attributes ?? [];
                 $matches = true;
 
@@ -109,7 +109,7 @@ class ProductDetail extends Component
         }
 
         if (! empty($relevantSelected)) {
-            foreach ($this->product->skus as $sku) {
+            foreach ($this->product->skus()->where('is_active', true)->get() as $sku) {
                 $skuAttributes = $sku->attributes ?? [];
 
                 foreach ($relevantSelected as $value) {
@@ -245,8 +245,7 @@ class ProductDetail extends Component
     public function getAvailableVariantsProperty()
     {
         $variants = [];
-
-        foreach ($this->product->skus as $sku) {
+        foreach ($this->product->skus()->where('is_active', true)->get() as $sku) {
             $attributes = $sku->attributes ?? [];
 
             foreach ($attributes as $key => $value) {

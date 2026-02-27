@@ -150,6 +150,71 @@ class Order extends Model
     }
 
     /**
+     * Get human-readable payment method label
+     */
+    public function getPaymentMethodLabel()
+    {
+        return \App\Enums\PaymentMethod::fromValue($this->payment_method)?->label() 
+            ?? ucfirst(str_replace('_', ' ', $this->payment_method));
+    }
+
+    /**
+     * Get order status enum instance
+     */
+    public function getOrderStatusEnum(): \App\Enums\OrderStatus
+    {
+        return \App\Enums\OrderStatus::tryFrom($this->status) ?? \App\Enums\OrderStatus::FAILED;
+    }
+
+    /**
+     * Get order status label
+     */
+    public function getOrderStatusLabel(): string
+    {
+        return $this->getOrderStatusEnum()->label();
+    }
+
+    /**
+     * Get order status badge classes (for Tailwind)
+     */
+    public function getOrderStatusBadgeClasses(): string
+    {
+        return $this->getOrderStatusEnum()->badgeClasses();
+    }
+
+    /**
+     * Get payment status enum instance
+     */
+    public function getPaymentStatusEnum(): \App\Enums\PaymentStatus
+    {
+        return \App\Enums\PaymentStatus::tryFrom($this->payment_status) ?? \App\Enums\PaymentStatus::FAILED;
+    }
+
+    /**
+     * Get payment status label
+     */
+    public function getPaymentStatusLabel(): string
+    {
+        return $this->getPaymentStatusEnum()->label();
+    }
+
+    /**
+     * Get payment status short label (for badges)
+     */
+    public function getPaymentStatusShortLabel(): string
+    {
+        return $this->getPaymentStatusEnum()->shortLabel();
+    }
+
+    /**
+     * Get payment status badge classes (for Tailwind)
+     */
+    public function getPaymentStatusBadgeClasses(): string
+    {
+        return $this->getPaymentStatusEnum()->badgeClasses();
+    }
+
+    /**
      * Update payment status from Midtrans notification
      */
     public function updatePaymentStatus($transactionStatus, $fraudStatus = null, $notificationData = [])

@@ -367,18 +367,29 @@
                     <div class="space-y-2 sm:space-y-3 mb-3 sm:mb-4 max-h-48 sm:max-h-60 overflow-y-auto">
                         @foreach($this->cartItems as $item)
                         <div class="flex items-start space-x-2 sm:space-x-3 pb-2 sm:pb-3 border-b border-gray-100" wire:key="cart-item-{{ $item->id }}">
-                            <img src="{{ image_url($item->product->main_image) }}" 
-                                 alt="{{ $item->product->name }}" 
-                                 class="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23f3f4f6%27/%3E%3C/svg%3E'">
+                               <img src="{{ image_url($item->sku->image ?? $item->product->main_image) }}" 
+                                   alt="{{ $item->product->name }}" 
+                                   class="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0"
+                                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23f3f4f6%27/%3E%3C/svg%3E'">
                             <div class="flex-1 min-w-0">
                                 <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">{{ $item->product->name }}</p>
-                                @if($item->sku->attributes)
-                                <p class="text-xs text-gray-500">
-                                    @foreach($item->sku->attributes as $key => $value)
-                                        {{ $value }}{{ !$loop->last ? ', ' : '' }}
-                                    @endforeach
-                                </p>
+                                @php
+                                    $variantName = null;
+                                    $attrs = $item->sku->attributes ?? [];
+                                    if (! empty($attrs['name']) && is_string($attrs['name']) && trim($attrs['name']) !== '') {
+                                        $variantName = $attrs['name'];
+                                    } else {
+                                        foreach ($attrs as $k => $v) {
+                                            if ($k === 'image') continue;
+                                            if ($v === null) continue;
+                                            if (is_string($v) && trim($v) === '') continue;
+                                            $variantName = $v;
+                                            break;
+                                        }
+                                    }
+                                @endphp
+                                @if($variantName)
+                                <p class="text-xs text-gray-500">{{ $variantName }}</p>
                                 @endif
                                 <p class="text-xs text-gray-600 mt-0.5 sm:mt-1">{{ $item->quantity }} x {{ format_rupiah($item->price) }}</p>
                             </div>

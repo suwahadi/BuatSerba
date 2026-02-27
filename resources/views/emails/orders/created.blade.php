@@ -45,7 +45,7 @@ Terima kasih atas pesanan Anda. Berikut adalah detail pesanan Anda:
 
 ## Metode Pembayaran
 
-{{ ucwords(str_replace('-', ' ', $order->payment_method)) }}
+{{ $order->getPaymentMethodLabel() }}
 
 Batas waktu pembayaran: **{{ $order->payment_deadline->format('d F Y, H:i') }} WIB**
 

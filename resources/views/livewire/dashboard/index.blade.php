@@ -44,9 +44,9 @@
                         class="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors {{ $statusFilter === 'completed' ? 'bg-green-50 border-green-600 text-green-600' : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50' }}">
                     Berhasil
                 </button>
-                <button wire:click="$set('statusFilter', 'failed')"
-                        class="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors {{ $statusFilter === 'failed' ? 'bg-green-50 border-green-600 text-green-600' : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50' }}">
-                    Tidak Berhasil
+                <button wire:click="$set('statusFilter', 'expired')"
+                        class="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors {{ $statusFilter === 'expired' ? 'bg-green-50 border-green-600 text-green-600' : 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50' }}">
+                    Kedaluwarsa
                 </button>
             </div>
             <button wire:click="resetFilters"
@@ -70,11 +70,8 @@
                                     {{ $order->created_at->format('d M Y, H:i') }}
                                 </p>
                             </div>
-                            <span class="px-3 py-1 text-xs font-medium rounded-full
-                                {{ $order->payment_status === 'paid' ? 'bg-green-100 text-green-800' : 
-                                   ($order->payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                {{ $order->payment_status === 'paid' ? 'Lunas' : 
-                                   ($order->payment_status === 'pending' ? 'Menunggu' : 'Dibatalkan') }}
+                            <span class="px-3 py-1 text-xs font-medium rounded-full {{ $order->getPaymentStatusBadgeClasses() }}">
+                                {{ $order->getPaymentStatusShortLabel() }}
                             </span>
                         </div>
                         <div class="text-sm text-gray-700">
@@ -86,14 +83,14 @@
                                class="text-sm text-green-600 hover:text-green-700 font-medium">
                                 Lihat Detail
                             </a>
-                            @if($order->payment_status === 'pending')
+                            @if($order->getPaymentStatusEnum() === \App\Enums\PaymentStatus::PENDING)
                                 <span class="text-gray-300">|</span>
                                 <a href="{{ route('payment', $order->order_number) }}" 
                                    class="text-sm text-green-600 hover:text-green-700 font-medium">
                                     Bayar Sekarang
                                 </a>
                             @endif
-                            @if($order->status === 'completed')
+                            @if($order->getOrderStatusEnum() === \App\Enums\OrderStatus::COMPLETED)
                                 <span class="text-gray-300">|</span>
                                 @if($order->reviews->isNotEmpty())
                                     <span class="text-sm text-gray-500 font-medium">

@@ -136,7 +136,7 @@
                 <div class="space-y-3 sm:space-y-4">
                     @foreach($availableVariants as $attributeName => $values)
                     <div>
-                        <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Pilih {{ ucfirst($attributeName) }}</h3>
+                        <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Pilih Ukuran:</h3>
                         <div class="flex flex-wrap gap-2 sm:gap-3">
                             @foreach($values as $value)
                             <button 

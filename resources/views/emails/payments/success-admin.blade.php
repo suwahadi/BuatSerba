@@ -9,7 +9,7 @@ Order **{{ $order->order_number }}** telah berhasil divalidasi. Silakan diproses
 **Tanggal Order:** {{ $order->created_at->format('d F Y, H:i') }} WIB  
 **Tanggal Pembayaran:** {{ $order->paid_at->format('d F Y, H:i') }} WIB  
 **Status Pembayaran:** Lunas  
-**Metode Pembayaran:** {{ ucwords(str_replace('-', ' ', $order->payment_method)) }}
+**Metode Pembayaran:** {{ $order->getPaymentMethodLabel() }}
 
 ## Detail Pelanggan
 
