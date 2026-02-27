@@ -153,7 +153,99 @@
             @endif
 
             <!-- Payment Instructions -->
-            @if($order->payment_method === 'transfer')
+            {{-- Success Message for All Payment Methods --}}
+            @if($order->payment_status === 'paid')
+            <div class="p-4 sm:p-6 md:p-8 border-b border-gray-100 bg-gradient-to-br from-green-50 to-emerald-50">
+                <div class="flex flex-col items-center text-center">
+                    <div class="mb-4 flex items-center justify-center">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                            <svg class="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-green-800 mb-2">Pembayaran Berhasil! 🎉</h2>
+                    <p class="text-sm sm:text-base text-green-700 leading-relaxed max-w-md mb-4">
+                        @if($order->payment_method === 'member_balance')
+                            Pembayaran melalui saldo member Anda telah berhasil diproses.
+                        @elseif($order->payment_method === 'cash')
+                            Pembayaran tunai Anda telah berhasil dicatat.
+                        @else
+                            Pembayaran Anda telah berhasil dikonfirmasi dan diproses.
+                        @endif
+                    </p>
+                    <div class="bg-white rounded-lg p-4 sm:p-6 border-2 border-green-200 w-full max-w-sm">
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 text-sm">Metode Pembayaran:</span>
+                                <span class="font-semibold text-gray-900">{{ $order->getPaymentMethodLabel() }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 text-sm">Total Pembayaran:</span>
+                                <span class="font-bold text-lg text-green-600">Rp {{ number_format($order->total, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 text-sm">Status:</span>
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">{{ $order->getPaymentStatusShortLabel() }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @elseif(in_array($order->payment_method, ['member_balance', 'cash']) && $order->payment_status === 'pending')
+            <div class="p-4 sm:p-6 md:p-8 border-b border-gray-100 bg-gradient-to-br from-blue-50 to-sky-50">
+                <div class="flex flex-col items-center text-center">
+                    <div class="mb-4">
+                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto animate-spin">
+                            <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 class="text-lg sm:text-xl font-bold text-blue-800 mb-2">Pembayaran Sedang Diproses</h2>
+                    <p class="text-sm sm:text-base text-blue-700 leading-relaxed max-w-md">
+                        @if($order->payment_method === 'member_balance')
+                            Pembayaran melalui saldo member sedang diproses. Pesanan Anda akan segera dikonfirmasi.
+                        @else
+                            Pembayaran tunai sedang diproses. Pesanan Anda akan segera dikonfirmasi.
+                        @endif
+                    </p>
+                </div>
+            </div>
+            {{-- Expired Payment Section --}}
+            @elseif($order->payment_status === 'expired')
+            <div class="p-4 sm:p-6 md:p-8 border-b border-gray-100 bg-gradient-to-br from-red-50 to-orange-50">
+                <div class="flex flex-col items-center text-center">
+                    <div class="mb-4">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-red-500 rounded-full flex items-center justify-center">
+                            <svg class="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 class="text-xl sm:text-xl font-bold text-red-800 mb-3">Pembayaran Kedaluwarsa</h2>
+                    <p class="text-sm sm:text-base text-red-700 leading-relaxed mb-6 max-w-xl">
+                        Waktu pembayaran untuk pesanan ini telah berakhir. Untuk melanjutkan, Anda perlu membuat pesanan baru dengan metode pembayaran yang berbeda.
+                    </p>
+                    <div class="bg-white rounded-lg p-4 sm:p-6 border-2 border-red-200 w-full max-w-sm mb-6">
+                        <div class="space-y-4">
+                            <div class="text-left">
+                                <h4 class="font-semibold text-gray-900 text-sm mb-2">Mengapa Pesanan Kadaluarsa?</h4>
+                                <ul class="text-xs sm:text-sm text-gray-700 space-y-1 list-disc list-inside">
+                                    <li>Pembayaran tidak diselesaikan dalam waktu yang diberikan</li>
+                                    <li>Metode pembayaran yang dipilih mungkin sedang gangguan atau tidak tersedia</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs sm:text-sm text-gray-600 mb-4">
+                        Jika Anda mengalami kesulitan, silakan hubungi tim customer service kami untuk bantuan lebih lanjut.
+                    </p>
+                </div>
+            </div>
+            @elseif($order->payment_method === 'transfer' && $order->payment_status !== 'expired')
             <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100 bg-white">
                 <h3 class="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">Cara Pembayaran</h3>
                 
@@ -189,7 +281,7 @@
                     <li class="text-xs sm:text-sm text-gray-700">Klik tombol <strong>Konfirmasi Pembayaran</strong> di bawah ini.</li>
                 </ol>
             </div>
-            @elseif(isset($paymentInstructions) && !empty($paymentInstructions) && $order->payment_status !== 'paid' && $order->status !== 'cancelled' && (!isset($paymentData['transaction_status']) || !in_array($paymentData['transaction_status'], ['expire', 'expired'])))
+            @elseif(isset($paymentInstructions) && !empty($paymentInstructions) && $order->payment_status === 'pending' && $order->status !== 'cancelled' && !in_array($order->payment_method, ['member_balance', 'cash']) && (!isset($paymentData['transaction_status']) || !in_array($paymentData['transaction_status'], ['expire', 'expired'])))
             <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100 bg-white">
                 <h3 class="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">Cara Pembayaran</h3>
                 
@@ -315,7 +407,12 @@
                     Kembali ke Beranda
                 </a>
                 
-                @if($order->payment_method === 'transfer')
+                @if($order->payment_status === 'expired')
+                <a href="{{ route('catalog') }}" 
+                   class="flex-1 px-4 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 text-center transition font-medium">
+                    Order Lagi
+                </a>
+                @elseif($order->payment_method === 'transfer')
                 <a href="{{ route('payment.confirmation', ['code' => $order->order_number]) }}" 
                    class="flex-1 px-4 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 text-center transition font-medium">
                     Konfirmasi Pembayaran

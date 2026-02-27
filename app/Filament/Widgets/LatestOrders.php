@@ -42,11 +42,11 @@ class LatestOrders extends BaseWidget
                 Tables\Columns\TextColumn::make('payment_status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'paid' => 'success',
-                        'pending' => 'warning',
-                        'failed', 'expired' => 'danger',
-                        default => 'gray',
+                    ->formatStateUsing(fn (string $state): string => \App\Enums\PaymentStatus::from($state)->shortLabel())
+                    ->color(fn (string $state): string => match (\App\Enums\PaymentStatus::from($state)) {
+                        \App\Enums\PaymentStatus::PAID => 'success',
+                        \App\Enums\PaymentStatus::PENDING => 'warning',
+                        \App\Enums\PaymentStatus::FAILED, \App\Enums\PaymentStatus::EXPIRED => 'danger',
                     }),
             ])
             ->headerActions([

@@ -268,7 +268,7 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-600">Metode Pengiriman</p>
-                        <p class="text-xs sm:text-sm font-medium mt-0.5">{{ $order->shipping_method }}</p>
+                        <p class="text-xs sm:text-sm font-medium mt-0.5">{{ strtoupper($order->shipping_method) }}</p>
                     </div>
                 </div>
             </div>

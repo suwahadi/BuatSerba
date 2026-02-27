@@ -271,12 +271,9 @@ class OrderResource extends Resource
                                     ]),
                                 \Filament\Forms\Components\Select::make('payment_status')
                                     ->label('Status')
-                                    ->options([
-                                        'pending' => 'Pending',
-                                        'paid' => 'Paid',
-                                        'failed' => 'Failed',
-                                        'expired' => 'Expired',
-                                    ])
+                                    ->options(fn () => collect(\App\Enums\PaymentStatus::cases())
+                                        ->mapWithKeys(fn ($case) => [$case->value => $case->label()])
+                                        ->toArray())
                                     ->default('pending')
                                     ->required()
                                     ->live()
@@ -339,12 +336,12 @@ class OrderResource extends Resource
                 \Filament\Tables\Columns\TextColumn::make('payment_status')
                     ->label('Payment')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'paid' => 'success',
-                        'failed' => 'danger',
-                        'pending' => 'warning',
-                        'expired' => 'danger',
-                        default => 'gray',
+                    ->formatStateUsing(fn (string $state): string => \App\Enums\PaymentStatus::from($state)->shortLabel())
+                    ->color(fn (string $state): string => match (\App\Enums\PaymentStatus::from($state)) {
+                        \App\Enums\PaymentStatus::PAID => 'success',
+                        \App\Enums\PaymentStatus::FAILED => 'danger',
+                        \App\Enums\PaymentStatus::PENDING => 'warning',
+                        \App\Enums\PaymentStatus::EXPIRED => 'danger',
                     }),
                 \Filament\Tables\Columns\TextColumn::make('shipping_city')
                     ->label('City')
