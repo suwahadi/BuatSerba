@@ -17,6 +17,7 @@ class PremiumMembershipPurchase extends Component
     public $pendingMembership;
     public $daysRemaining = 0;
     public $showPurchaseModal = false;
+    public $showRenewalConfirmModal = false;
     public $showUploadModal = false;
     public $currentMembershipId;
     
@@ -160,6 +161,7 @@ class PremiumMembershipPurchase extends Component
         ]);
 
         $this->currentMembershipId = $membership->id;
+        $this->showRenewalConfirmModal = false;
         $this->showUploadModal = true;
         
         $this->dispatch('success', message: 'Perpanjangan membership dibuat. Silakan upload bukti transfer.');

@@ -19,6 +19,8 @@ class ProductDetail extends Component
 
     public $activeTab = 'description';
 
+    public $currentCarouselIndex = 0;
+
     public function mount($slug)
     {
         $this->product = Product::with(['category', 'reviews' => function ($query) {
@@ -43,6 +45,12 @@ class ProductDetail extends Component
 
         if ($this->selectedSku) {
             $this->initializeVariants();
+            
+            // Set initial carousel index for selected SKU
+            $variantImageIndex = $this->variantImageIndex;
+            if (isset($variantImageIndex[$this->selectedSku->id])) {
+                $this->currentCarouselIndex = $variantImageIndex[$this->selectedSku->id];
+            }
         }
 
         $this->product->increment('view_count');
@@ -78,6 +86,13 @@ class ProductDetail extends Component
         $this->selectedVariants[$attributeName] = $value;
         $this->updateSelectedSku();
 
+        // Update carousel index when SKU has an image
+        if ($this->selectedSku) {
+            $variantImageIndex = $this->variantImageIndex;
+            if (isset($variantImageIndex[$this->selectedSku->id])) {
+                $this->currentCarouselIndex = $variantImageIndex[$this->selectedSku->id];
+            }
+        }
     }
 
     protected function updateSelectedSku()
@@ -299,12 +314,61 @@ class ProductDetail extends Component
         return $this->product->reviews->count();
     }
 
+    public function getCarouselImagesProperty()
+    {
+        $images = [];
+        
+        // Start with main image
+        if ($this->product->main_image) {
+            $images[] = $this->product->main_image;
+        }
+        
+        // Add variant images from SKUs
+        foreach ($this->product->skus()->where('is_active', true)->get() as $sku) {
+            $attributes = $sku->attributes ?? [];
+            
+            if (isset($attributes['image']) && !empty($attributes['image'])) {
+                // Avoid duplicates
+                if (!in_array($attributes['image'], $images)) {
+                    $images[] = $attributes['image'];
+                }
+            }
+        }
+        
+        return $images;
+    }
+
+    public function getVariantImageIndexProperty()
+    {
+        $mapping = [];
+        $images = $this->carouselImages;
+        
+        // Map SKU ID to carousel image index
+        foreach ($this->product->skus()->where('is_active', true)->get() as $sku) {
+            $attributes = $sku->attributes ?? [];
+            
+            if (isset($attributes['image']) && !empty($attributes['image'])) {
+                $index = array_search($attributes['image'], $images);
+                if ($index !== false) {
+                    $mapping[$sku->id] = $index;
+                }
+            } else {
+                // If SKU doesn't have specific image, fallback to main image (index 0)
+                $mapping[$sku->id] = 0;
+            }
+        }
+        
+        return $mapping;
+    }
+
     public function render()
     {
         return view('livewire.product-detail', [
             'relatedProducts' => $this->relatedProducts,
             'availableVariants' => $this->availableVariants,
             'branchInventory' => $this->branchInventory,
+            'carouselImages' => $this->carouselImages,
+            'variantImageIndex' => $this->variantImageIndex,
         ])->layout('components.layouts.guest');
     }
 }

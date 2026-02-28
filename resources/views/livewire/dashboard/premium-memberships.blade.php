@@ -1,4 +1,4 @@
-<div>
+<div class="font-['Poppins']">
     <h1 class="text-xl font-bold text-gray-900 mb-4">Membership Saya</h1>
 
     <!-- Active Membership Banner -->
@@ -7,7 +7,10 @@
             <div class="flex items-start justify-between">
                 <div>
                     <div class="flex items-center gap-2 mb-2">
-                        <span class="text-lg font-bold text-green-900">🌟 MEMBERSHIP AKTIF</span>
+                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L5 10.274zm10 0l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L15 10.274z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-lg font-bold text-green-900">MEMBERSHIP AKTIF</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mt-3">
                         <div>
@@ -240,8 +243,11 @@
                             <p class="text-xs text-gray-500 font-bold uppercase mb-3">Bukti Transfer</p>
                             <a href="{{ Storage::disk('public')->url($selectedMembership->payment_proof_path) }}"
                                target="_blank"
-                               class="inline-block px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-sm rounded-lg transition-colors">
-                                📎 Lihat Bukti Transfer
+                               class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-sm rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                </svg>
+                                Lihat Bukti Transfer
                             </a>
                         </div>
                     @endif

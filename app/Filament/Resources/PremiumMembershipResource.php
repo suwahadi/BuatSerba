@@ -71,7 +71,7 @@ class PremiumMembershipResource extends Resource
                     ->schema([
                         Placeholder::make('created_at')
                             ->label('Created At')
-                            ->content(fn (PremiumMembership $record): string => $record->created_at?->format('d M Y H:i:s') ?? '-'),
+                            ->content(fn (?PremiumMembership $record): string => $record?->created_at?->format('d M Y H:i:s') ?? '-'),
 
                         DateTimePicker::make('started_at')
                             ->label('Activated At')

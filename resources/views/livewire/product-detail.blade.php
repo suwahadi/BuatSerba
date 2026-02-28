@@ -23,28 +23,222 @@
     <!-- Product Detail Content -->
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-            <!-- Product Images -->
-            <div class="space-y-3 sm:space-y-4">
+            <!-- Product Images Carousel -->
+            <div class="space-y-3 sm:space-y-4"
+                 x-data="{
+                     currentSlide: @entangle('currentCarouselIndex').live,
+                     lightbox: false,
+                     images: {{ json_encode($carouselImages) }},
+                     productName: '{{ addslashes($product->name) }}',
+                     totalSlides() {
+                         return this.images.length;
+                     },
+                     imageUrl(imagePath) {
+                         if (imagePath.startsWith('http')) {
+                             return imagePath;
+                         }
+                         return '/storage/' + imagePath;
+                     },
+                     next() {
+                         this.currentSlide = (this.currentSlide + 1) % this.totalSlides();
+                     },
+                     prev() {
+                         this.currentSlide = (this.currentSlide - 1 + this.totalSlides()) % this.totalSlides();
+                     },
+                     goToSlide(index) {
+                         this.currentSlide = parseInt(index);
+                     },
+                     openLightbox() {
+                         this.lightbox = true;
+                         document.body.style.overflow = 'hidden';
+                     },
+                     closeLightbox() {
+                         this.lightbox = false;
+                         document.body.style.overflow = '';
+                     },
+                     touchStartX: 0,
+                     touchEndX: 0,
+                     handleTouchStart(e) {
+                         this.touchStartX = e.touches[0].clientX;
+                     },
+                     handleTouchMove(e) {
+                         this.touchEndX = e.touches[0].clientX;
+                     },
+                     handleTouchEnd() {
+                         const swipeThreshold = 50;
+                         const diff = this.touchStartX - this.touchEndX;
+                         if (Math.abs(diff) > swipeThreshold) {
+                             if (diff > 0) {
+                                 this.next();
+                             } else {
+                                 this.prev();
+                             }
+                         }
+                     }
+                 }">
+                <!-- Main Carousel -->
                 <div class="bg-white rounded-lg shadow-lg p-3 sm:p-4">
-                    <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                            <img src="{{ image_url($selectedSku->image ?? $product->main_image) }}" 
-                             alt="{{ $product->name }}" 
-                             class="w-full h-full object-cover"
-                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27800%27 height=%27800%27%3E%3Crect width=%27800%27 height=%27800%27 fill=%27%23f3f4f6%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2748px%27 fill=%27%239ca3af%27%3ENo Image%3C/text%3E%3C/svg%3E'">
+                    <div class="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group"
+                         @touchstart="handleTouchStart($event)"
+                         @touchmove="handleTouchMove($event)"
+                         @touchend="handleTouchEnd()"
+                         @keydown.window.arrow-left.prevent="prev()"
+                         @keydown.window.arrow-right.prevent="next()">
+                        
+                        <!-- Images -->
+                        @foreach($carouselImages as $index => $image)
+                        <div x-show="currentSlide === {{ $index }}"
+                             x-transition:enter="transition-opacity duration-300"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             x-transition:leave="transition-opacity duration-300"
+                             x-transition:leave-start="opacity-100"
+                             x-transition:leave-end="opacity-0"
+                             class="absolute inset-0 cursor-pointer group/zoom"
+                             @click="openLightbox()">
+                            <img src="{{ image_url($image) }}" 
+                                 alt="{{ $product->name }}" 
+                                 title="{{ $product->name }}"
+                                 class="w-full h-full object-cover select-none"
+                                 draggable="false"
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27800%27 height=%27800%27%3E%3Crect width=%27800%27 height=%27800%27 fill=%27%23f3f4f6%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2748px%27 fill=%27%239ca3af%27%3ENo Image%3C/text%3E%3C/svg%3E'">
+                            <!-- Zoom Icon -->
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/zoom:opacity-100 transition-opacity duration-300 bg-black/10">
+                                <div class="bg-white/90 rounded-full p-3 sm:p-4 shadow-lg">
+                                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+
+                        <!-- Navigation Buttons -->
+                        <template x-if="totalSlides() > 1">
+                            <div>
+                                <!-- Previous Button -->
+                                <button @click="prev()" 
+                                        class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 sm:p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:outline-none focus:opacity-100 z-10"
+                                        aria-label="Previous image">
+                                    <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                </button>
+
+                                <!-- Next Button -->
+                                <button @click="next()" 
+                                        class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 sm:p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:outline-none focus:opacity-100 z-10"
+                                        aria-label="Next image">
+                                    <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+
+                        <!-- Slide Indicators -->
+                        <template x-if="totalSlides() > 1">
+                            <div class="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+                                <template x-for="(image, index) in images" :key="index">
+                                    <button @click="goToSlide(index)"
+                                            class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-300"
+                                            :class="currentSlide === index ? 'bg-white w-6 sm:w-8' : 'bg-white/50 hover:bg-white/75'"
+                                            :aria-label="'Go to image ' + (index + 1)">
+                                    </button>
+                                </template>
+                            </div>
+                        </template>
                     </div>
                 </div>
                 
-                @if($product->images && count($product->images) > 1)
-                <div class="grid grid-cols-4 gap-2">
-                    @foreach(array_slice($product->images, 0, 4) as $image)
-                    <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-75 transition-opacity">
+                <!-- Thumbnail Navigation -->
+                @if(count($carouselImages) > 1)
+                <div class="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                    @foreach($carouselImages as $index => $image)
+                    <button @click="goToSlide({{ $index }})"
+                            :class="currentSlide === {{ $index }} ? 'ring-2 ring-green-600 ring-offset-2' : 'hover:opacity-75'"
+                            class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2">
                         <img src="{{ image_url($image) }}" 
-                             alt="{{ $product->name }}" 
-                             class="w-full h-full object-cover">
-                    </div>
+                             alt="{{ $product->name }} - Image {{ $index + 1 }}" 
+                             title="{{ $product->name }}"
+                             class="w-full h-full object-cover select-none"
+                             draggable="false"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Crect width=%27200%27 height=%27200%27 fill=%27%23f3f4f6%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2720px%27 fill=%27%239ca3af%27%3ENo Image%3C/text%3E%3C/svg%3E'">
+                    </button>
                     @endforeach
                 </div>
                 @endif
+
+                <!-- Lightbox Modal -->
+                <template x-teleport="body">
+                <div x-show="lightbox"
+                     x-transition:enter="transition-opacity duration-250"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition-opacity duration-250"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed top-0 left-0 right-0 bottom-0 z-[99999] flex items-center justify-center bg-black/95 p-4"
+                     @click.self="closeLightbox()"
+                     @keydown.window.escape.prevent="if(lightbox) closeLightbox()"
+                     @keydown.window.arrow-right.prevent="if(lightbox) next()"
+                     @keydown.window.arrow-left.prevent="if(lightbox) prev()">
+                    
+                    <div class="relative max-w-7xl max-h-full w-full flex items-center justify-center">
+                        <!-- Previous Button -->
+                        <template x-if="totalSlides() > 1">
+                            <button @click.stop="prev()" 
+                                    class="absolute left-0 sm:-left-16 text-white hover:text-gray-300 p-2 sm:p-3 focus:outline-none z-10 bg-black/50 sm:bg-transparent rounded-full sm:rounded-none m-2 sm:m-0"
+                                    aria-label="Previous image">
+                                <svg class="w-8 h-8 sm:w-12 sm:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                        </template>
+
+                        <!-- Main Image -->
+                        <div class="relative w-full max-h-[90vh] flex items-center justify-center">
+                            <template x-for="(image, index) in images" :key="index">
+                                <div x-show="currentSlide === index" class="flex items-center justify-center">
+                                    <img :src="imageUrl(image)"
+                                         :alt="productName"
+                                         :title="productName"
+                                         class="max-w-full max-h-[90vh] object-contain rounded-lg select-none"
+                                         draggable="false">
+                                </div>
+                            </template>
+                        </div>
+                        
+                        <!-- Next Button -->
+                        <template x-if="totalSlides() > 1">
+                            <button @click.stop="next()" 
+                                    class="absolute right-0 sm:-right-16 text-white hover:text-gray-300 p-2 sm:p-3 focus:outline-none z-10 bg-black/50 sm:bg-transparent rounded-full sm:rounded-none m-2 sm:m-0"
+                                    aria-label="Next image">
+                                <svg class="w-8 h-8 sm:w-12 sm:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </template>
+
+                        <!-- Close Button -->
+                        <button @click="closeLightbox()" 
+                                class="absolute -top-12 right-0 sm:-right-12 text-white hover:text-gray-300 p-2 focus:outline-none"
+                                aria-label="Close lightbox">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Counter & Product Name -->
+                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 text-center">
+                            <p class="text-white text-sm sm:text-base font-medium mb-1" x-text="productName"></p>
+                            <p class="text-white/80 text-xs sm:text-sm">
+                                <span x-text="currentSlide + 1"></span> / <span x-text="totalSlides()"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                </template>
             </div>
 
             <!-- Product Info -->
@@ -136,7 +330,7 @@
                 <div class="space-y-3 sm:space-y-4">
                     @foreach($availableVariants as $attributeName => $values)
                     <div>
-                        <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Pilih Ukuran:</h3>
+                        <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Pilih Varian:</h3>
                         <div class="flex flex-wrap gap-2 sm:gap-3">
                             @foreach($values as $value)
                             <button 
