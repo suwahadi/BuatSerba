@@ -45,6 +45,14 @@ class Index extends Component
     }
 
     #[Computed]
+    public function totalCashback()
+    {
+        return auth()->user()->wallet->ledgers()
+            ->where('description', 'like', 'Premium cashback%')
+            ->sum('amount');
+    }
+
+    #[Computed]
     public function orders()
     {
         return Order::with(['items.product', 'reviews'])
@@ -61,7 +69,7 @@ class Index extends Component
                         $query->where('payment_status', 'pending');
                         break;
                     case 'completed':
-                        $query->where('status', 'completed');
+                        $query->where('payment_status', 'paid');
                         break;
                     case 'expired':
                         $query->where('status', 'expired');

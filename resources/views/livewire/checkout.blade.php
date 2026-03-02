@@ -339,14 +339,25 @@
                     
                     <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                         @foreach($this->paymentMethods as $method)
-                        <label class="flex flex-col p-2.5 sm:p-3 border-2 rounded-lg cursor-pointer transition-all {{ $paymentMethod === $method['id'] ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300' }}" wire:key="payment-{{ $method['id'] }}">
+                        @php
+                            $isMemberBalance = $method['id'] === 'member_balance';
+                            $isDisabled = $isMemberBalance && !$isPremiumMember;
+                        @endphp
+                        <label class="flex flex-col p-2.5 sm:p-3 border-2 rounded-lg transition-all 
+                                    {{ $isDisabled 
+                                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' 
+                                        : ($paymentMethod === $method['id'] 
+                                            ? 'border-green-600 bg-green-50 cursor-pointer' 
+                                            : 'border-gray-200 hover:border-green-300 cursor-pointer') }}" 
+                               wire:key="payment-{{ $method['id'] }}">
                             <div class="flex items-start gap-2">
                                 <input type="radio" wire:model.live="paymentMethod" value="{{ $method['id'] }}" 
-                                       class="mt-0.5 text-green-600 focus:ring-green-500 flex-shrink-0">
+                                       class="mt-0.5 text-green-600 focus:ring-green-500 flex-shrink-0"
+                                       @if($isDisabled) disabled @endif>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-xs sm:text-sm font-semibold text-gray-900 leading-tight">{{ $method['name'] }}</p>
-                                    <p class="text-xs text-gray-600 mt-0.5 leading-tight">{{ $method['description'] }}</p>
-                                    @if($method['id'] === 'cod')
+                                    <p class="text-xs sm:text-sm font-semibold leading-tight {{ $isDisabled ? 'text-gray-400' : 'text-gray-900' }}">{{ $method['name'] }}</p>
+                                    <p class="text-xs mt-0.5 leading-tight {{ $isDisabled ? 'text-gray-400' : 'text-gray-600' }}">{{ $method['description'] }}</p>
+                                    @if($method['id'] === 'cod' && !$isDisabled)
                                     <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-1.5 py-0.5 rounded mt-1">POPULER</span>
                                     @endif
                                 </div>

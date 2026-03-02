@@ -298,9 +298,9 @@
 
             <!-- Actions -->
             <div class="p-3 sm:p-4 md:p-6 flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <a href="{{ route('home') }}" 
+                <a href="{{ route('dashboard') }}" 
                    class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 text-xs sm:text-sm rounded-lg hover:bg-gray-50 text-center transition font-medium">
-                    Kembali ke Beranda
+                    Kembali ke Dashboard
                 </a>
                 
                 @if($order->getPaymentStatusEnum() !== \App\Enums\PaymentStatus::PAID)

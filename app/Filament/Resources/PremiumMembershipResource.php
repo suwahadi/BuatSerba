@@ -25,7 +25,7 @@ class PremiumMembershipResource extends Resource
 {
     protected static ?string $model = PremiumMembership::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-star';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-sparkles';
 
     protected static ?string $navigationLabel = 'Premium Membership';
 
@@ -33,9 +33,9 @@ class PremiumMembershipResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Premium Memberships';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Membership';
+    protected static UnitEnum|string|null $navigationGroup = null;
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 11;
 
     public static function getEloquentQuery(): Builder
     {

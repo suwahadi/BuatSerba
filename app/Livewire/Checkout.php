@@ -67,6 +67,8 @@ class Checkout extends Component
 
     public $memberBalance = 0;
 
+    public bool $isPremiumMember = false;
+
     #[Computed]
     public function paymentMethods()
     {
@@ -171,8 +173,14 @@ class Checkout extends Component
     public function mount()
     {
         if (auth()->check()) {
+            $user = auth()->user();
             $walletService = app(MemberWalletService::class);
-            $this->memberBalance = $walletService->getBalance(auth()->user());
+            $this->memberBalance = $walletService->getBalance($user);
+
+            $this->isPremiumMember = $user->premiumMembership()
+                ->where('status', 'active')
+                ->where('expires_at', '>', now())
+                ->exists();
         }
 
         $rajaongkir = new RajaongkirService;

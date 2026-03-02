@@ -8,6 +8,9 @@ use App\Filament\Resources\MasterProducts\Pages\ListMasterProducts;
 use App\Models\Product;
 use BackedEnum;
 use Filament\Actions;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\KeyValue;
@@ -133,10 +136,11 @@ class MasterProductResource extends Resource
                             ->schema([
                                 Repeater::make('variants')
                                     ->relationship('variantsForRepeater')
+                                    ->addActionLabel('Tambah Varian Produk')
                                     ->schema([
-                                        TextInput::make('name')
-                                            ->statePath('attributes.name')
-                                            ->label('Variant Size')
+                                        TextInput::make('size')
+                                            ->statePath('attributes.size')
+                                            ->label('Size')
                                             ->required()
                                             ->dehydrated(fn($state) => $state !== null),
 
@@ -165,16 +169,28 @@ class MasterProductResource extends Resource
                                         TextInput::make('stock_quantity')
                                             ->label('Stock Quantity')
                                             ->numeric()
+                                            ->readonly()
                                             ->default(0),
 
                                         FileUpload::make('image')
                                             ->statePath('attributes.image')
                                             ->label('Variant Image')
-                                            ->image()
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
+                                            ->maxSize(10240)
                                             ->disk('public')
-                                            ->directory('products')
                                             ->visibility('public')
-                                            ->maxSize(2048)
+                                            ->directory('products/variants')
+                                            ->helperText('Max 10MB. Auto convert to WebP.')
+                                            ->imageResizeUpscale(false)
+                                            ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $component): string {
+                                                $filename = \Illuminate\Support\Str::random(20).'.webp';
+                                                $image = Image::read($file->getRealPath())
+                                                    ->cover(800, 800)
+                                                    ->toWebp(90);
+                                                $path = $component->getDirectory().'/'.$filename;
+                                                Storage::disk($component->getDiskName())->put($path, (string) $image);
+                                                return $path;
+                                            })
                                             ->dehydrated(fn($state) => $state !== null),
 
                                         Toggle::make('is_active')
@@ -240,18 +256,62 @@ class MasterProductResource extends Resource
                         Section::make('Image')
                             ->schema([
                                 FileUpload::make('main_image')
-                                    ->image()
+                                    ->label('Main Product Image')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
+                                    ->maxSize(10240)
                                     ->disk('public')
-                                    ->imageEditor()
-                                    ->imageEditorAspectRatios([
-                                        '1:1',
-                                        '4:3',
-                                        '16:9',
-                                    ])
-                                    ->directory('products')
                                     ->visibility('public')
-                                    ->maxSize(2048),
+                                    ->directory('products')
+                                    ->helperText('Ukuran file maksimal 10MB. Akan dikonversi ke WebP.')
+                                    ->imageResizeUpscale(false)
+                                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $component): string {
+                                        $filename = \Illuminate\Support\Str::random(20).'.webp';
+                                        $image = Image::read($file->getRealPath())
+                                            ->cover(800, 800)
+                                            ->toWebp(90);
+                                        $path = $component->getDirectory().'/'.$filename;
+                                        Storage::disk($component->getDiskName())->put($path, (string) $image);
+                                        return $path;
+                                    }),
                             ]),
+
+                        Section::make('Product Gallery')
+                            ->description('Upload hingga 5 gambar galeri produk')
+                            ->schema([
+                                Repeater::make('gallery_images')
+                                    ->label('Gallery Images')
+                                    ->schema([
+                                        FileUpload::make('image_path')
+                                            ->label('Gallery Image')
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
+                                            ->maxSize(10240)
+                                            ->disk('public')
+                                            ->visibility('public')
+                                            ->directory('products/gallery')
+                                            ->helperText('Max 10MB')
+                                            ->imageResizeUpscale(false)
+                                            ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $component): string {
+                                                $filename = \Illuminate\Support\Str::random(20).'.webp';
+                                                $image = Image::read($file->getRealPath())
+                                                    ->cover(800, 800)
+                                                    ->toWebp(90);
+                                                $path = $component->getDirectory().'/'.$filename;
+                                                Storage::disk($component->getDiskName())->put($path, (string) $image);
+                                                return $path;
+                                            })
+                                            ->required(),
+                                    ])
+                                    ->addActionLabel('Tambah Gambar')
+                                    ->reorderable()
+                                    ->maxItems(5)
+                                    ->grid(2)
+                                    ->collapsible()
+                                    ->collapsed(false)
+                                    ->defaultItems(0)
+                                    ->itemLabel(fn (array $state): ?string => !empty($state['image_path']) ? 'Gambar Galeri' : null),
+                            ])
+                            ->collapsible()
+                            ->collapsed(false),
                             ])
                             ->columnSpan(['lg' => 1]),
                         ])
@@ -304,19 +364,8 @@ class MasterProductResource extends Resource
                     })
                     ->sortable(),
 
-                TextColumn::make('sku.stock_quantity')
-                    ->label('Stock')
-                    ->badge()
-                    ->color(fn (string $state): string => match (true) {
-                        $state == 0 => 'danger',
-                        $state < 10 => 'warning',
-                        default => 'success',
-                    })
-                    ->sortable()
-                    ->placeholder('0'),
-
                 IconColumn::make('sku.is_active')
-                    ->label('Is Active')
+                    ->label('Active')
                     ->boolean()
                     ->sortable(),
             ])

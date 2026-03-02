@@ -27,6 +27,8 @@ class ProductDetail extends Component
             $query->where('is_approved', true);
         }, 'reviews.user', 'skus' => function ($query) {
             $query->where('is_active', true);
+        }, 'images' => function ($query) {
+            $query->orderBy('sort_order');
         }])
             ->where('slug', $slug)
             ->where('is_active', true)
@@ -321,6 +323,14 @@ class ProductDetail extends Component
         // Start with main image
         if ($this->product->main_image) {
             $images[] = $this->product->main_image;
+        }
+        
+        // Add gallery images from product_images table
+        $galleryImages = $this->product->images()->orderBy('sort_order')->get();
+        foreach ($galleryImages as $galleryImage) {
+            if (!empty($galleryImage->image_path) && !in_array($galleryImage->image_path, $images)) {
+                $images[] = $galleryImage->image_path;
+            }
         }
         
         // Add variant images from SKUs

@@ -1,6 +1,13 @@
 <div>
     <h1 class="text-xl font-bold text-gray-900 mb-4">Daftar Transaksi</h1>
 
+    @if($this->totalCashback > 0)
+    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+        <strong class="font-bold">Total Cashback Premium Anda:</strong>
+        <span class="block sm:inline">{{ format_rupiah($this->totalCashback) }}</span>
+    </div>
+    @endif
+
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 min-h-[600px]">
         <!-- Filters -->
         <div class="flex flex-col md:flex-row gap-3 mb-6">

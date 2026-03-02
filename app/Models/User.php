@@ -99,6 +99,14 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Get the user's premium membership.
+     */
+    public function premiumMembership()
+    {
+        return $this->hasOne(PremiumMembership::class);
+    }
+
+    /**
      * Get user's addresses
      */
     public function addresses()
