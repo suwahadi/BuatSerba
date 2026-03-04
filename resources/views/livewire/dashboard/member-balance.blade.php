@@ -134,7 +134,7 @@
                             </div>
                         </div>
                         <div class="text-sm text-gray-700">
-                            <p class="mb-1">{{ $transaction->description }}</p>
+                            <p class="mb-1 font-medium">{{ $this->getDescriptionLabel($transaction) }}</p>
                             <p class="text-xs text-gray-500">
                                 Referensi: {{ $this->getReferenceLabel($transaction) }}
                             </p>

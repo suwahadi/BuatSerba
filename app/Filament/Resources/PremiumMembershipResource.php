@@ -37,6 +37,11 @@ class PremiumMembershipResource extends Resource
 
     protected static ?int $navigationSort = 11;
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with('user');
@@ -178,8 +183,7 @@ class PremiumMembershipResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPremiumMemberships::route('/'),
-            'create' => Pages\CreatePremiumMembership::route('/create'),
+            'index' => Pages\ManagePremiumMemberships::route('/'),
             'edit' => Pages\EditPremiumMembership::route('/{record}/edit'),
         ];
     }

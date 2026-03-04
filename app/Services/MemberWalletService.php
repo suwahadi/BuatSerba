@@ -68,13 +68,11 @@ class MemberWalletService
             throw new \InvalidArgumentException("Amount must be greater than zero.");
         }
 
-        // Check for duplicate transaction before locking to fail fast
         if (MemberBalanceLedger::where('reference_code', $referenceCode)->exists()) {
             throw new DuplicateTransactionException();
         }
 
         return DB::transaction(function () use ($user, $amount, $sourceType, $sourceId, $description, $referenceCode) {
-            // Lock the wallet row for update
             $wallet = MemberWallet::where('user_id', $user->id)->lockForUpdate()->first();
             
             if (!$wallet) {
@@ -82,7 +80,6 @@ class MemberWalletService
                 $wallet = MemberWallet::where('user_id', $user->id)->lockForUpdate()->first();
             }
 
-            // Check duplicate again inside transaction to prevent race conditions
             if (MemberBalanceLedger::where('reference_code', $referenceCode)->exists()) {
                 throw new DuplicateTransactionException();
             }
@@ -123,10 +120,10 @@ class MemberWalletService
     public function debitForOrderById(int $userId, float $amount, int $orderId, string $orderNumber): void
     {
         if ($amount <= 0) {
-            return; // Nothing to debit
+            return;
         }
 
-        $referenceCode = "order-payment-{$orderId}-" . Str::random(6);
+        $referenceCode = "order_{$orderNumber}";
 
         DB::transaction(function () use ($userId, $amount, $orderId, $orderNumber, $referenceCode) {
             $wallet = MemberWallet::where('user_id', $userId)->lockForUpdate()->first();
@@ -144,7 +141,6 @@ class MemberWalletService
 
             $balanceBefore = $wallet->balance;
             
-            // Decrease balance and increase locked_balance
             $wallet->balance -= $amount;
             $wallet->locked_balance += $amount;
             $wallet->save();
@@ -174,7 +170,6 @@ class MemberWalletService
             return;
         }
 
-        // We only release lock for member_balance payment method and unpaid orders
         if ($order->payment_method !== 'member_balance' || $order->payment_status === 'paid') {
             return;
         }
@@ -202,12 +197,11 @@ class MemberWalletService
             $wallet = MemberWallet::where('user_id', $userId)->lockForUpdate()->first();
             
             if (!$wallet || $wallet->locked_balance < $amount) {
-                return; // Nothing to release or already released
+                return;
             }
 
             $balanceBefore = $wallet->balance;
-            
-            // Release the lock: decrease locked_balance and add back to balance
+
             $wallet->locked_balance -= $amount;
             $wallet->balance += $amount;
             $wallet->save();
@@ -220,7 +214,7 @@ class MemberWalletService
                 'amount' => $amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $wallet->balance,
-                'description' => "Pengembalian saldo untuk pembatalan Order #{$orderNumber}",
+                'description' => "Refund / Pengembalian Dana",
                 'reference_code' => $referenceCode,
             ]);
         });
@@ -277,10 +271,8 @@ class MemberWalletService
             $balanceBefore = $wallet->balance;
             
             DB::transaction(function () use ($wallet, $userId, $amount, $orderId, $voucherId, $voucherCode, $referenceCode, $balanceBefore) {
-                // Lock the wallet row for update
                 $wallet = MemberWallet::where('user_id', $userId)->lockForUpdate()->first();
                 
-                // Check duplicate again inside transaction to prevent race conditions
                 if (MemberBalanceLedger::where('reference_code', $referenceCode)->exists()) {
                     throw new DuplicateTransactionException();
                 }
@@ -296,12 +288,12 @@ class MemberWalletService
                     'amount' => $amount,
                     'balance_before' => $balanceBefore,
                     'balance_after' => $wallet->balance,
-                    'description' => "Cashback dari penggunaan voucher {$voucherCode} pada Order #{$orderNumber}",
+                    'description' => "Voucher Cashback",
                     'reference_code' => $referenceCode,
                 ]);
             });
         } catch (DuplicateTransactionException $e) {
-            // Ignore duplicate transaction for cashback (idempotent)
+            // Log::warning('Duplicate cashback transaction prevented');
         }
     }
 
@@ -317,7 +309,6 @@ class MemberWalletService
             return;
         }
 
-        // We only process for member_balance payment method and paid orders
         if ($order->payment_method !== 'member_balance' || $order->payment_status !== 'paid') {
             return;
         }
@@ -343,10 +334,9 @@ class MemberWalletService
             $wallet = MemberWallet::where('user_id', $userId)->lockForUpdate()->first();
             
             if (!$wallet || $wallet->locked_balance < $amount) {
-                return; // Nothing to complete or already completed
+                return;
             }
 
-            // Complete the order: decrease locked_balance only
             $wallet->locked_balance -= $amount;
             $wallet->save();
         });

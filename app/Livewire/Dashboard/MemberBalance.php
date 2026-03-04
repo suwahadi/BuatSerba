@@ -115,6 +115,10 @@ class MemberBalance extends Component
 
     public function getReferenceLabel($transaction)
     {
+        if ($transaction->reference_code) {
+            return $transaction->reference_code;
+        }
+
         if (!$transaction->source_type || !$transaction->source_id) {
             return '-';
         }
@@ -133,6 +137,23 @@ class MemberBalance extends Component
             default:
                 return ucfirst(str_replace('_', ' ', $transaction->source_type)) . ' #' . $transaction->source_id;
         }
+    }
+
+    public function getDescriptionLabel($transaction)
+    {
+        if ($transaction->order && $transaction->order->order_number) {
+            $orderNumber = $transaction->order->order_number;
+
+            return match($transaction->source_type) {
+                'order_payment' => "Order #{$orderNumber}",
+                'order_cancellation_refund' => "Refund #{$orderNumber}",
+                'premium_cashback' => "Cashback Premium #{$orderNumber}",
+                'voucher_cashback' => "Cashback Voucher #{$orderNumber}",
+                default => $transaction->description,
+            };
+        }
+        
+        return $transaction->description;
     }
 
     public function render()

@@ -16,18 +16,177 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @php
+            $activeFilterCount = count($selectedCategories) + count($selectedBrands) + count($selectedRatings);
+            if ($minPrice > 0 || $maxPrice < 50000000) $activeFilterCount++;
+            if ($search) $activeFilterCount++;
+        @endphp
+
+        <!-- Mobile Filters Overlay -->
+        @if($showMobileFilters)
+        <div class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50" 
+             wire:click="closeMobileFilters"></div>
+        @endif
+
+        <!-- Mobile Filters Drawer -->
+        <div class="lg:hidden mobile-filter-drawer fixed inset-x-0 bottom-0 z-50 transform transition-transform duration-300 ease-in-out {{ $showMobileFilters ? 'translate-y-0 show' : 'translate-y-full' }}"
+             style="max-height: 75vh;">
+            <div class="bg-white rounded-t-2xl shadow-2xl overflow-hidden flex flex-col" style="height: 75vh;">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                    <h3 class="text-lg font-bold text-gray-900">Filter & Urutkan</h3>
+                    <button wire:click="closeMobileFilters" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="overflow-y-auto flex-1 p-4" style="max-height: calc(75vh - 120px);">
+                    <!-- Sort Options -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-3">Urutkan</h4>
+                        <select wire:model.live="sortBy" 
+                                class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500">
+                            <option value="popularity">Populer</option>
+                            <option value="newest">Terbaru</option>
+                            <option value="price-low">Harga: Rendah ke Tinggi</option>
+                            <option value="price-high">Harga: Tinggi ke Rendah</option>
+                            <option value="rating">Rating Tertinggi</option>
+                        </select>
+                    </div>
+
+                    <!-- Active Filters -->
+                    @if($activeFilterCount > 0)
+                    <div class="mb-4 pb-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700">Filter Aktif ({{ $activeFilterCount }})</span>
+                            <button wire:click="clearFilters" class="text-sm text-green-600 hover:text-green-700 font-medium">
+                                Hapus Semua
+                            </button>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            @if($search)
+                            <span class="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2 py-1 rounded-full">
+                                "{{ Str::limit($search, 15) }}"
+                                <button wire:click="$set('search', '')" class="hover:text-green-900">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </span>
+                            @endif
+                            @foreach($selectedCategories as $catId)
+                                @php $cat = $categories->firstWhere('id', $catId); @endphp
+                                @if($cat)
+                                <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full">
+                                    {{ $cat->name }}
+                                    <button wire:click="toggleCategory({{ $catId }})" class="hover:text-blue-900">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                </span>
+                                @endif
+                            @endforeach
+                            @if($minPrice > 0 || $maxPrice < 50000000)
+                            <span class="inline-flex items-center gap-1 bg-orange-50 text-orange-700 text-xs px-2 py-1 rounded-full">
+                                Rp {{ number_format($minPrice/1000, 0) }}rb - {{ number_format($maxPrice/1000, 0) }}rb
+                                <button wire:click="$set('minPrice', 0); $set('maxPrice', 50000000)" class="hover:text-orange-900">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </span>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Category Filter -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-3">Kategori</h4>
+                        <div class="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                            @foreach($categories as $category)
+                            <label class="flex items-center py-1">
+                                <input type="checkbox" 
+                                       wire:model.live="selectedCategories" 
+                                       value="{{ $category->id }}" 
+                                       class="rounded text-green-600 focus:ring-green-500">
+                                <span class="ml-2 text-gray-700">{{ $category->name }}</span>
+                                <span class="ml-auto text-sm text-gray-500">({{ $category->products_count ?? 0 }})</span>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Price Range Filter -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-3">Rentang Harga</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Rp {{ number_format($minPrice, 0, ',', '.') }}</span>
+                                <span>Rp {{ number_format($maxPrice, 0, ',', '.') }}</span>
+                            </div>
+                            <input type="range" 
+                                   wire:model.live.debounce.500ms="maxPrice" 
+                                   class="range-slider w-full" 
+                                   min="0" 
+                                   max="50000000" 
+                                   step="100000">
+                            <div class="grid grid-cols-2 gap-2 mt-3">
+                                <input type="number" 
+                                       wire:model.live.debounce.500ms="minPrice" 
+                                       placeholder="Min" 
+                                       class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                <input type="number" 
+                                       wire:model.live.debounce.500ms="maxPrice" 
+                                       placeholder="Max" 
+                                       class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rating Filter -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-3">Rating</h4>
+                        <div class="space-y-2">
+                            @for($i = 5; $i >= 4; $i--)
+                            <label class="flex items-center py-1">
+                                <input type="checkbox" 
+                                       wire:model.live="selectedRatings" 
+                                       value="{{ $i }}" 
+                                       class="rounded text-green-600 focus:ring-green-500">
+                                <span class="ml-2 flex text-yellow-400">
+                                    @for($j = 0; $j < $i; $j++)
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    @endfor
+                                </span>
+                                <span class="ml-2 text-gray-700 text-sm">{{ $i }} Bintang {{ $i < 5 ? '& Up' : '' }}</span>
+                            </label>
+                            @endfor
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="border-t p-4 bg-gray-50 sticky bottom-0">
+                    <button wire:click="applyFilters" 
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors">
+                        Terapkan Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="flex flex-col lg:flex-row gap-8">
-            <!-- Filters Sidebar -->
-            <div class="lg:w-1/4">
+            <!-- Filters Sidebar (Desktop Only) -->
+            <div class="hidden lg:block lg:w-1/4">
                 <div class="bg-white rounded-lg shadow-lg p-6 sticky top-24">
                     <div class="flex justify-between items-center mb-6">
                         <div class="flex items-center gap-2">
                             <h3 class="text-lg font-semibold text-gray-900">Filter</h3>
-                            @php
-                                $activeFilterCount = count($selectedCategories) + count($selectedBrands) + count($selectedRatings);
-                                if ($minPrice > 0 || $maxPrice < 50000000) $activeFilterCount++;
-                                if ($search) $activeFilterCount++;
-                            @endphp
                             @if($activeFilterCount > 0)
                             <span class="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
                                 {{ $activeFilterCount }}
@@ -167,8 +326,32 @@
 
             <!-- Main Content -->
             <div class="lg:w-3/4">
-                <!-- Sort and View Options -->
-                <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+                <!-- Mobile Filter & Sort Toggle (Above Products) -->
+                <div class="lg:hidden bg-white rounded-lg shadow-sm p-3 mb-4 flex items-center justify-between gap-2">
+                    <button wire:click="toggleMobileFilters" 
+                            class="flex-1 flex items-center justify-center gap-2 border-2 border-gray-300 hover:border-green-600 text-gray-700 hover:text-green-600 px-4 py-2.5 rounded-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        <span class="font-medium text-sm">Filter</span>
+                        @if($activeFilterCount > 0)
+                        <span class="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[18px] text-center">
+                            {{ $activeFilterCount }}
+                        </span>
+                        @endif
+                    </button>
+                    
+                    <button wire:click="toggleMobileFilters" 
+                            class="flex-1 flex items-center justify-center gap-2 border-2 border-gray-300 hover:border-green-600 text-gray-700 hover:text-green-600 px-4 py-2.5 rounded-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path>
+                        </svg>
+                        <span class="font-medium text-sm">Sort</span>
+                    </button>
+                </div>
+
+                <!-- Sort and View Options (Desktop Only) -->
+                <div class="hidden lg:block bg-white rounded-lg shadow-sm p-4 mb-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div class="flex items-center space-x-4">
                             <span class="text-gray-700">Urutkan:</span>
@@ -315,5 +498,25 @@
         .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #00AA5B; border-radius: 50%; cursor: pointer; }
         .range-slider::-moz-range-thumb { width: 20px; height: 20px; background: #00AA5B; border-radius: 50%; cursor: pointer; border: none; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Mobile filter drawer initially hidden */
+        @media (max-width: 1023px) {
+            .mobile-filter-drawer {
+                visibility: hidden;
+            }
+            .mobile-filter-drawer.show {
+                visibility: visible;
+            }
+        }
     </style>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('filter-toggled', (show) => {
+                document.body.style.overflow = show ? 'hidden' : '';
+            });
+        });
+    </script>
+    @endpush
 </div>

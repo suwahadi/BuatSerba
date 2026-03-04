@@ -32,6 +32,8 @@ class Catalog extends Component
 
     public $perPage = 12;
 
+    public $showMobileFilters = false;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'selectedCategories' => ['except' => []],
@@ -105,6 +107,25 @@ class Catalog extends Component
     public function setViewMode($mode)
     {
         $this->viewMode = $mode;
+    }
+
+    public function toggleMobileFilters()
+    {
+        $this->showMobileFilters = !$this->showMobileFilters;
+        $this->dispatch('filter-toggled', show: $this->showMobileFilters);
+    }
+
+    public function closeMobileFilters()
+    {
+        $this->showMobileFilters = false;
+        $this->dispatch('filter-toggled', show: false);
+    }
+
+    public function applyFilters()
+    {
+        $this->showMobileFilters = false;
+        $this->dispatch('filter-toggled', show: false);
+        $this->resetPage();
     }
 
     public function getProducts()

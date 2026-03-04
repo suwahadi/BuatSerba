@@ -43,10 +43,10 @@ class SendPaymentSuccessEmail implements ShouldQueue
             Mail::to($this->order->customer_email)
                 ->send(new PaymentSuccessCustomer($this->order));
 
-            Log::info('Payment success email sent to customer', [
-                'order_number' => $this->order->order_number,
-                'customer_email' => $this->order->customer_email,
-            ]);
+            // Log::info('Payment success email sent to customer', [
+            //     'order_number' => $this->order->order_number,
+            //     'customer_email' => $this->order->customer_email,
+            // ]);
 
             // Send email to admin
             $adminEmail = config('mail.admin_email');
@@ -54,10 +54,10 @@ class SendPaymentSuccessEmail implements ShouldQueue
                 Mail::to($adminEmail)
                     ->send(new PaymentSuccessAdmin($this->order));
 
-                Log::info('Payment success email sent to admin', [
-                    'order_number' => $this->order->order_number,
-                    'admin_email' => $adminEmail,
-                ]);
+                // Log::info('Payment success email sent to admin', [
+                //     'order_number' => $this->order->order_number,
+                //     'admin_email' => $adminEmail,
+                // ]);
             }
 
         } catch (\Exception $e) {

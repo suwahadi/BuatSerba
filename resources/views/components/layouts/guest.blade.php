@@ -31,6 +31,7 @@
     </a>
 
     @livewireScripts
+    @stack('scripts')
     {!! global_config('tracking_code_body') !!}
 </body>
 </html>

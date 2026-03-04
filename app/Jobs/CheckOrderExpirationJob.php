@@ -31,6 +31,14 @@ class CheckOrderExpirationJob implements ShouldQueue
         foreach ($expiredPayments as $payment) {
             try {
                 DB::transaction(function () use ($payment) {
+                    if ($payment->order && in_array($payment->order->payment_status, ['paid', 'refunded'])) {
+                        return;
+                    }
+                    
+                    if ($payment->order && in_array($payment->order->status, ['processing', 'completed', 'delivered'])) {
+                        return;
+                    }
+
                     $payment->update([
                         'transaction_status' => 'expired',
                     ]);

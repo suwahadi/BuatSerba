@@ -13,7 +13,9 @@ class OrderObserver
     {
         $statusesToRelease = ['expired', 'cancelled'];
 
-        if ($order->wasChanged('payment_status') && $order->payment_status === 'paid') {
+        if ($order->wasChanged('payment_status') && 
+            $order->payment_status === 'paid' && 
+            $order->getOriginal('payment_status') !== 'paid') {
             try {
                 $inventoryService = new InventoryService();
                 foreach ($order->items as $item) {

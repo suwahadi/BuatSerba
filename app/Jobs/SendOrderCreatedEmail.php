@@ -42,10 +42,10 @@ class SendOrderCreatedEmail implements ShouldQueue
             Mail::to($this->order->customer_email)
                 ->send(new OrderCreated($this->order));
 
-            Log::info('Order confirmation email sent', [
-                'order_number' => $this->order->order_number,
-                'email' => $this->order->customer_email,
-            ]);
+            // Log::info('Order confirmation email sent', [
+            //     'order_number' => $this->order->order_number,
+            //     'email' => $this->order->customer_email,
+            // ]);
 
         } catch (\Exception $e) {
             Log::error('Failed to send order confirmation email', [

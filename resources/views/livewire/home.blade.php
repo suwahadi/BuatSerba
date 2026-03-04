@@ -3,44 +3,49 @@
 
     <div class="pt-16">
         <div class="relative overflow-hidden bg-gray-200">
-            <div class="hero-slider">
+            <div class="hero-slider" id="heroSlider">
                 @forelse($banners as $index => $banner)
-                    <div class="hero-slide {{ $index === 0 ? 'relative active' : 'absolute inset-0 opacity-0' }} transition-opacity duration-700">
+                    <div class="hero-slide {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}">
                         <div class="relative w-full aspect-[16/10.67] md:aspect-[1600/600]">
                             @if($banner->url)
                                 <a href="{{ $banner->url }}" class="block w-full h-full">
                                     <img src="{{ \Illuminate\Support\Facades\Storage::url($banner->image) }}" 
                                          alt="{{ $banner->title }}" 
-                                         class="w-full h-full object-cover">
+                                         class="w-full h-full object-cover select-none"
+                                         draggable="false">
                                 </a>
                             @else
                                 <img src="{{ \Illuminate\Support\Facades\Storage::url($banner->image) }}" 
                                      alt="{{ $banner->title }}" 
-                                     class="w-full h-full object-cover">
+                                     class="w-full h-full object-cover select-none"
+                                     draggable="false">
                             @endif
                         </div>
                     </div>
                 @empty
-                    <!-- Default Slides if no banner -->
-                    <div class="hero-slide relative active transition-opacity duration-700">
+                    <!-- Default Banner if no banner configured -->
+                    <div class="hero-slide active" data-slide="0">
                         <div class="relative w-full aspect-[16/10.67] md:aspect-[1600/600]">
                             <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&h=600&fit=crop" 
                                  alt="Default Banner" 
-                                 class="w-full h-full object-cover">
+                                 class="w-full h-full object-cover select-none"
+                                 draggable="false">
                         </div>
                     </div>
                 @endforelse
-            </div>
 
-            <!-- Slider Navigation -->
-            @if($banners->count() > 1)
-            <div class="absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 sm:space-x-3 z-10">
-                @foreach($banners as $index => $banner)
-                    <button class="slider-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity {{ $index === 0 ? 'active' : '' }}" 
-                            data-slide="{{ $index }}"></button>
-                @endforeach
+                <!-- Slider Navigation Indicators -->
+                @if($banners->count() > 1)
+                <div class="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-10" id="sliderIndicators">
+                    @foreach($banners as $index => $banner)
+                        <button class="slider-indicator h-2 sm:h-2.5 rounded-full transition-all duration-300 {{ $index === 0 ? 'active' : '' }}" 
+                                data-slide="{{ $index }}"
+                                aria-label="Go to slide {{ $index + 1 }}">
+                        </button>
+                    @endforeach
+                </div>
+                @endif
             </div>
-            @endif
         </div>
     </div>
 
@@ -136,42 +141,177 @@
             -webkit-box-orient: vertical; 
             overflow: hidden; 
         }
+        
+        /* Hero Slider Styles */
+        .hero-slider {
+            position: relative;
+        }
         .hero-slide {
+            display: none;
+            opacity: 0;
             transition: opacity 0.7s ease-in-out;
         }
-        .slider-dot.active {
+        .hero-slide.active {
+            display: block;
             opacity: 1;
+        }
+        
+        /* Slider Indicators */
+        .slider-indicator {
+            width: 0.5rem; /* 2 (8px) */
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+        }
+        .slider-indicator:hover {
+            background-color: rgba(255, 255, 255, 0.75);
+        }
+        .slider-indicator.active {
+            width: 1.5rem; /* 6 (24px) */
+            background-color: rgb(255, 255, 255);
+        }
+        
+        @media (min-width: 640px) {
+            .slider-indicator {
+                width: 0.625rem; /* 2.5 (10px) */
+            }
+            .slider-indicator.active {
+                width: 2rem; /* 8 (32px) */
+            }
         }
     </style>
 
+    @push('scripts')
     <script>
-        // Hero Slider
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.hero-slide');
-        const dots = document.querySelectorAll('.slider-dot');
-        
-        function showSlide(index) {
-            slides.forEach((slide, i) => {
-                slide.classList.toggle('opacity-0', i !== index);
-                slide.classList.toggle('active', i === index);
+        (function() {
+            let sliderInitialized = false;
+            
+            function initHeroSlider() {
+                if (sliderInitialized) return;
+                
+                const heroSlider = document.getElementById('heroSlider');
+                if (!heroSlider) return;
+                
+                const slides = heroSlider.querySelectorAll('.hero-slide');
+                const indicators = heroSlider.querySelectorAll('.slider-indicator');
+                
+                if (slides.length === 0) return;
+                
+                sliderInitialized = true;
+                
+                let currentSlide = 0;
+                let autoPlayInterval = null;
+                let touchStartX = 0;
+                let touchEndX = 0;
+                
+                // Show specific slide
+                function showSlide(index) {
+                    // Remove active class from all slides and indicators
+                    slides.forEach(slide => {
+                        slide.classList.remove('active');
+                    });
+                    indicators.forEach(indicator => {
+                        indicator.classList.remove('active');
+                    });
+                    
+                    // Add active class to current slide and indicator
+                    if (slides[index]) {
+                        slides[index].classList.add('active');
+                    }
+                    if (indicators[index]) {
+                        indicators[index].classList.add('active');
+                    }
+                    
+                    currentSlide = index;
+                }
+                
+                // Next slide
+                function nextSlide() {
+                    currentSlide = (currentSlide + 1) % slides.length;
+                    showSlide(currentSlide);
+                }
+                
+                // Previous slide
+                function prevSlide() {
+                    currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                    showSlide(currentSlide);
+                }
+                
+                // Start auto play
+                function startAutoPlay() {
+                    stopAutoPlay();
+                    if (slides.length > 1) {
+                        autoPlayInterval = setInterval(nextSlide, 5000);
+                    }
+                }
+                
+                // Stop auto play
+                function stopAutoPlay() {
+                    if (autoPlayInterval) {
+                        clearInterval(autoPlayInterval);
+                        autoPlayInterval = null;
+                    }
+                }
+                
+                // Touch handlers
+                function handleTouchStart(e) {
+                    touchStartX = e.touches[0].clientX;
+                    stopAutoPlay();
+                }
+                
+                function handleTouchMove(e) {
+                    touchEndX = e.touches[0].clientX;
+                }
+                
+                function handleTouchEnd() {
+                    const swipeThreshold = 50;
+                    const diff = touchStartX - touchEndX;
+                    
+                    if (Math.abs(diff) > swipeThreshold) {
+                        if (diff > 0) {
+                            nextSlide();
+                        } else {
+                            prevSlide();
+                        }
+                    }
+                    
+                    startAutoPlay();
+                }
+                
+                // Add click event to indicators
+                indicators.forEach((indicator, index) => {
+                    indicator.addEventListener('click', () => {
+                        showSlide(index);
+                        stopAutoPlay();
+                        startAutoPlay();
+                    });
+                });
+                
+                // Add touch events to slider
+                heroSlider.addEventListener('touchstart', handleTouchStart, { passive: true });
+                heroSlider.addEventListener('touchmove', handleTouchMove, { passive: true });
+                heroSlider.addEventListener('touchend', handleTouchEnd);
+                
+                // Pause on hover (desktop)
+                heroSlider.addEventListener('mouseenter', stopAutoPlay);
+                heroSlider.addEventListener('mouseleave', startAutoPlay);
+                
+                // Start auto play
+                startAutoPlay();
+            }
+            
+            // Initialize on page load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initHeroSlider);
+            } else {
+                initHeroSlider();
+            }
+            
+            // Re-initialize after Livewire navigates (if using Livewire navigation)
+            document.addEventListener('livewire:navigated', function() {
+                sliderInitialized = false;
+                initHeroSlider();
             });
-            dots.forEach((dot, i) => {
-                dot.classList.toggle('active', i === index);
-            });
-            currentSlide = index;
-        }
-        
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            showSlide(currentSlide);
-        }
-        
-        // Auto advance slides
-        setInterval(nextSlide, 5000);
-        
-        // Dot navigation
-        dots.forEach((dot, index) => {
-            dot.addEventListener('click', () => showSlide(index));
-        });
+        })();
     </script>
+    @endpush
 </div>

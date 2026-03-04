@@ -33,6 +33,14 @@ class GrantPremiumCashback
             return;
         }
 
+        if (!in_array($order->status, ['processing', 'completed'])) {
+            return;
+        }
+
+        if ($order->payment_status !== 'paid') {
+            return;
+        }
+
         $cashbackAmount = (float) ($order->total * 0.01);
 
         if ($cashbackAmount <= 0) {
@@ -49,14 +57,15 @@ class GrantPremiumCashback
         }
 
         try {
-            $referenceCode = 'PREMIUM_CASHBACK_ORDER_' . $order->id;
+            // Use unique reference code
+            $referenceCode = 'cashback_' . $order->order_number;
 
             $this->walletService->credit(
                 $user,
                 $cashbackAmount,
                 'premium_cashback',
                 $order->id,
-                "Premium cashback 1% from order #{$order->order_number}",
+                "Cashback #{$order->order_number}",
                 $referenceCode
             );
 
@@ -64,17 +73,19 @@ class GrantPremiumCashback
             //     'user_id' => $user->id,
             //     'order_id' => $order->id,
             //     'order_number' => $order->order_number,
-            //     'order_total' => $order->total,
+            //     'order_status' => $order->status,
+            //     'payment_status' => $order->payment_status,
             //     'cashback_amount' => $cashbackAmount,
             // ]);
         } catch (DuplicateTransactionException $e) {
-            // 
             return;
         } catch (\Exception $e) {
             Log::error('Failed to grant premium cashback', [
                 'user_id' => $user->id,
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
+                'order_status' => $order->status,
+                'payment_status' => $order->payment_status,
                 'error' => $e->getMessage(),
             ]);
         }
