@@ -62,11 +62,11 @@ class ExpirePremiumMemberships extends Command
                 $this->line("✓ Expired membership #{$membership->id} for user #{$membership->user_id}");
                 $successCount++;
 
-                Log::info('Premium membership expired', [
-                    'membership_id' => $membership->id,
-                    'user_id' => $membership->user_id,
-                    'expires_at' => $membership->expires_at,
-                ]);
+                // Log::info('Premium membership expired', [
+                //     'membership_id' => $membership->id,
+                //     'user_id' => $membership->user_id,
+                //     'expires_at' => $membership->expires_at,
+                // ]);
             } catch (\Exception $e) {
                 $this->error("✗ Failed to expire membership #{$membership->id}: {$e->getMessage()}");
                 $errorCount++;

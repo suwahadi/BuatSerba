@@ -47,9 +47,9 @@ class Index extends Component
     #[Computed]
     public function totalCashback()
     {
-        return auth()->user()->wallet->ledgers()
+        return auth()->user()->wallet?->ledgers()
             ->where('description', 'like', 'Premium cashback%')
-            ->sum('amount');
+            ->sum('amount') ?? 0;
     }
 
     #[Computed]

@@ -6,11 +6,15 @@ use App\Filament\Resources\MasterProducts\Pages\CreateMasterProduct;
 use App\Filament\Resources\MasterProducts\Pages\EditMasterProduct;
 use App\Filament\Resources\MasterProducts\Pages\ListMasterProducts;
 use App\Models\Product;
+use App\Models\Sku;
 use BackedEnum;
 use Filament\Actions;
+use Filament\Actions\Action as FieldAction;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\KeyValue;
@@ -78,16 +82,59 @@ class MasterProductResource extends Resource
                                     ->relationship('category', 'name')
                                     ->searchable()
                                     ->preload()
-                                    ->required()
-                                    ->createOptionForm([
-                                        TextInput::make('name')->required(),
-                                        TextInput::make('slug')->required(),
-                                    ]),
+                                    ->required(),
 
                                 TextInput::make('sku.sku')
                                     ->label('SKU')
                                     ->maxLength(50)
-                                    ->placeholder('Will be auto-generated if left empty'),
+                                    ->placeholder('Will be auto-generated if left empty')
+                                    ->suffixAction(
+                                        FieldAction::make('generate_sku')
+                                            ->label('Generate SKU')
+                                            ->icon('heroicon-o-cpu-chip')
+                                            ->color('gray')
+                                            ->modalHeading('Generate SKU')
+                                            ->form([
+                                                Select::make('category')
+                                                    ->label('Kategori')
+                                                    ->required()
+                                                    ->options([
+                                                        'M' => 'Male',
+                                                        'F' => 'Female',
+                                                        'AD' => 'Adult',
+                                                        'KI' => 'Kids',
+                                                        'BA' => 'Baby',
+                                                    ])
+                                                    ->native(false),
+
+                                                Select::make('types')
+                                                    ->label('Jenis')
+                                                    ->required()
+                                                    ->multiple()
+                                                    ->options([
+                                                        'A' => 'Atasan',
+                                                        'B' => 'Bawahan',
+                                                        'S' => 'Setelan',
+                                                        'D' => 'Dress',
+                                                        'L' => 'Lainnya',
+                                                    ])
+                                                    ->helperText('Boleh pilih lebih dari satu, urutan kode mengikuti pilihan.')
+                                                    ->native(false),
+                                            ])
+                                            ->action(function (array $data, Set $set) {
+                                                $category = $data['category'] ?? null;
+                                                $types = $data['types'] ?? [];
+
+                                                if (!$category || empty($types)) {
+                                                    return;
+                                                }
+
+                                                $prefix = $category.implode('', $types);
+                                                $generatedSku = self::generateSkuFromPrefix($prefix);
+
+                                                $set('sku.sku', $generatedSku);
+                                            })
+                                    ),
 
                                 RichEditor::make('description')
                                     ->columnSpanFull()
@@ -135,6 +182,7 @@ class MasterProductResource extends Resource
                             ->description('Product Variants (Size)')
                             ->schema([
                                 Repeater::make('variants')
+                                    ->label('Variants')
                                     ->relationship('variantsForRepeater')
                                     ->addActionLabel('Tambah Varian Produk')
                                     ->schema([
@@ -146,31 +194,33 @@ class MasterProductResource extends Resource
 
                                         TextInput::make('sku')
                                             ->label('SKU')
-                                            ->maxLength(50),
+                                            ->maxLength(50)
+                                            ->default(fn (callable $get) => $get('../../sku.sku') ? $get('../../sku.sku').'-' : null),
 
                                         TextInput::make('unit_cost')
-                                            ->label('Unit Cost')
+                                            ->label('Harga Modal')
                                             ->numeric()
                                             ->prefix('Rp')
                                             ->default(0),
 
                                         TextInput::make('base_price')
-                                            ->label('Base Price')
+                                            ->label('Harga Coret')
                                             ->numeric()
                                             ->prefix('Rp')
                                             ->default(0),
 
                                         TextInput::make('selling_price')
-                                            ->label('Selling Price')
+                                            ->label('Harga Jual')
                                             ->numeric()
                                             ->prefix('Rp')
+                                            ->columnSpanFull()
                                             ->default(0),
 
-                                        TextInput::make('stock_quantity')
-                                            ->label('Stock Quantity')
-                                            ->numeric()
-                                            ->readonly()
-                                            ->default(0),
+                                        // TextInput::make('stock_quantity')
+                                        //     ->label('Stock Quantity')
+                                        //     ->numeric()
+                                        //     ->readonly()
+                                        //     ->default(0),
 
                                         FileUpload::make('image')
                                             ->statePath('attributes.image')
@@ -180,7 +230,7 @@ class MasterProductResource extends Resource
                                             ->disk('public')
                                             ->visibility('public')
                                             ->directory('products/variants')
-                                            ->helperText('Max 10MB. Auto convert to WebP.')
+                                            ->helperText('800x800px')
                                             ->imageResizeUpscale(false)
                                             ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $component): string {
                                                 $filename = \Illuminate\Support\Str::random(20).'.webp';
@@ -211,31 +261,32 @@ class MasterProductResource extends Resource
                         Section::make('Pricing & Stock')
                             ->schema([
                                 TextInput::make('sku.unit_cost')
-                                    ->label('Unit Cost (Harga Modal)')
+                                    ->label('Harga Modal')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->required()
                                     ->placeholder('0'),
 
                                 TextInput::make('sku.base_price')
-                                    ->label('Base Price (Harga Coret)')
+                                    ->label('Harga Coret')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->placeholder('0'),
 
                                 TextInput::make('sku.selling_price')
-                                    ->label('Selling Price (Harga Jual)')
+                                    ->label('Harga Jual')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->required()
+                                    ->columnSpanFull()
                                     ->placeholder('0'),
 
-                                TextInput::make('sku.stock_quantity')
-                                    ->label('Stock Quantity')
-                                    ->numeric()
-                                    ->readOnly()
-                                    ->default(0)
-                                    ->placeholder('0'),
+                                // TextInput::make('sku.stock_quantity')
+                                //     ->label('Stock Quantity')
+                                //     ->numeric()
+                                //     ->readOnly()
+                                //     ->default(0)
+                                //     ->placeholder('0'),
                             ])
                             ->columns(2),
 
@@ -257,12 +308,12 @@ class MasterProductResource extends Resource
                             ->schema([
                                 FileUpload::make('main_image')
                                     ->label('Main Product Image')
-                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/avif'])
                                     ->maxSize(10240)
                                     ->disk('public')
                                     ->visibility('public')
                                     ->directory('products')
-                                    ->helperText('Ukuran file maksimal 10MB. Akan dikonversi ke WebP.')
+                                    ->helperText('Resolusi 800x800px. Ukuran file maksimal 10MB.')
                                     ->imageResizeUpscale(false)
                                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $component): string {
                                         $filename = \Illuminate\Support\Str::random(20).'.webp';
@@ -276,19 +327,18 @@ class MasterProductResource extends Resource
                             ]),
 
                         Section::make('Product Gallery')
-                            ->description('Upload hingga 5 gambar galeri produk')
+                            ->description('Upload maksimal 5 gambar produk')
                             ->schema([
                                 Repeater::make('gallery_images')
                                     ->label('Gallery Images')
                                     ->schema([
                                         FileUpload::make('image_path')
                                             ->label('Gallery Image')
-                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/avif'])
                                             ->maxSize(10240)
                                             ->disk('public')
                                             ->visibility('public')
                                             ->directory('products/gallery')
-                                            ->helperText('Max 10MB')
                                             ->imageResizeUpscale(false)
                                             ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $component): string {
                                                 $filename = \Illuminate\Support\Str::random(20).'.webp';
@@ -423,13 +473,13 @@ class MasterProductResource extends Resource
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.sku')
                                     ->heading('SKU'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.unit_cost')
-                                    ->heading('Unit Cost (Harga Modal)'),
+                                    ->heading('Harga Modal'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.base_price')
-                                    ->heading('Base Price (Harga Coret)'),
+                                    ->heading('Harga Coret'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.selling_price')
-                                    ->heading('Selling Price'),
-                                \pxlrbt\FilamentExcel\Columns\Column::make('sku.stock_quantity')
-                                    ->heading('Stock Quantity'),
+                                    ->heading('Harga Jual'),
+                                // \pxlrbt\FilamentExcel\Columns\Column::make('sku.stock_quantity')
+                                //     ->heading('Stock Quantity'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.weight')
                                     ->heading('Weight (g)'),
                                 \pxlrbt\FilamentExcel\Columns\Column::make('sku.length')
@@ -459,6 +509,30 @@ class MasterProductResource extends Resource
                     ->successNotification(null),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    protected static function generateSkuFromPrefix(string $prefix): string
+    {
+        return DB::transaction(function () use ($prefix) {
+            $today = now();
+            $dateCode = $today->format('dmy');
+            $basePrefix = $prefix.'-'.$dateCode.'-';
+
+            $lastSku = Sku::where('sku', 'like', '%-'.$dateCode.'-%')
+                ->lockForUpdate()
+                ->orderByDesc(DB::raw('CAST(RIGHT(sku, 4) AS UNSIGNED)'))
+                ->first();
+
+            $nextNumber = 1;
+
+            if (!empty($lastSku?->sku) && preg_match('/-(\d{4})$/', $lastSku->sku, $matches)) {
+                $nextNumber = ((int) $matches[1]) + 1;
+            }
+
+            $sequence = str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
+
+            return $basePrefix.$sequence;
+        });
     }
 
     public static function getRelations(): array

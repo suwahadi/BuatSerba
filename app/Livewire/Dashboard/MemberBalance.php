@@ -30,7 +30,7 @@ class MemberBalance extends Component
         'typeFilter' => ['except' => 'all'],
     ];
 
-    protected $paginationTheme = 'bootstrap';
+    protected $paginationTheme = 'tailwind';
 
     public function mount()
     {

@@ -11,11 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Exclude Midtrans webhook from CSRF protection
         $middleware->validateCsrfTokens(except: [
             'midtrans/notification',
         ]);
     })
+    ->withProviders([
+        App\Providers\AppServiceProvider::class,
+        App\Providers\EventServiceProvider::class,
+        App\Providers\FortifyServiceProvider::class,
+        App\Providers\VoltServiceProvider::class,
+    ])
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

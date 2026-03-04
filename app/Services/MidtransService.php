@@ -33,11 +33,11 @@ class MidtransService
             : 'https://api.sandbox.midtrans.com/v2';
 
         $maskedKey = $this->serverKey ? substr($this->serverKey, 0, 6).'***' : null;
-        \Log::info('Midtrans Core API Config', [
-            'is_production' => $this->isProduction,
-            'core_api_url' => $this->coreApiUrl,
-            'server_key_prefix' => $maskedKey,
-        ]);
+        // \Log::info('Midtrans Core API Config', [
+        //     'is_production' => $this->isProduction,
+        //     'core_api_url' => $this->coreApiUrl,
+        //     'server_key_prefix' => $maskedKey,
+        // ]);
     }
 
     /**
@@ -103,7 +103,7 @@ class MidtransService
         }
 
         try {
-            \Log::info('Midtrans Core API Request: '.$this->coreApiUrl.'/charge', ['payload' => $payload]);
+            // \Log::info('Midtrans Core API Request: '.$this->coreApiUrl.'/charge', ['payload' => $payload]);
 
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
@@ -113,7 +113,7 @@ class MidtransService
 
             $result = $response->json();
 
-            \Log::info('Midtrans Core API Response: '.$response->status(), ['response' => $result]);
+            // \Log::info('Midtrans Core API Response: '.$response->status(), ['response' => $result]);
 
             if ($response->successful() && isset($result['status_code']) && in_array($result['status_code'], ['200', '201'])) {
                 $instructions = $this->extractPaymentInstructions($result);
@@ -177,20 +177,20 @@ class MidtransService
     protected function getPaymentChannel($transactionData, $paymentMethodObj)
     {
         if (isset($transactionData['bill_key']) && isset($transactionData['biller_code'])) {
-            \Log::info('Payment channel detected: mandiri (echannel)', ['bill_key' => $transactionData['bill_key']]);
+            // \Log::info('Payment channel detected: mandiri (echannel)', ['bill_key' => $transactionData['bill_key']]);
 
             return 'mandiri';
         }
 
         if (isset($transactionData['permata_va_number'])) {
-            \Log::info('Payment channel detected: permata', ['permata_va_number' => $transactionData['permata_va_number']]);
+            // \Log::info('Payment channel detected: permata', ['permata_va_number' => $transactionData['permata_va_number']]);
 
             return 'permata';
         }
 
         if (isset($transactionData['va_numbers']) && is_array($transactionData['va_numbers']) && count($transactionData['va_numbers']) > 0) {
             $channel = $transactionData['va_numbers'][0]['bank'];
-            \Log::info('Payment channel detected from va_numbers', ['channel' => $channel]);
+            // \Log::info('Payment channel detected from va_numbers', ['channel' => $channel]);
 
             return $channel;
         }
@@ -200,7 +200,7 @@ class MidtransService
         }
         if (isset($transactionData['payment_type'])) {
             $channel = $transactionData['payment_type'];
-            \Log::info('Payment channel fallback to payment_type', ['channel' => $channel]);
+            // \Log::info('Payment channel fallback to payment_type', ['channel' => $channel]);
 
             return $channel;
         }

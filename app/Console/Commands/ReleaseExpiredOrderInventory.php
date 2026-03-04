@@ -44,11 +44,11 @@ class ReleaseExpiredOrderInventory extends Command
                 $this->line("✓ Released inventory for order: {$order->order_number}");
                 $successCount++;
 
-                Log::info('Inventory released for ' . $order->status . ' order', [
-                    'order_number' => $order->order_number,
-                    'order_id' => $order->id,
-                    'items_count' => $order->items->count(),
-                ]);
+                // Log::info('Inventory released for ' . $order->status . ' order', [
+                //     'order_number' => $order->order_number,
+                //     'order_id' => $order->id,
+                //     'items_count' => $order->items->count(),
+                // ]);
             } catch (\Exception $e) {
                 $this->error("✗ Failed to release inventory for order {$order->order_number}: {$e->getMessage()}");
                 $errorCount++;

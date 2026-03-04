@@ -259,13 +259,12 @@ class StocksFlow extends Page implements HasForms, HasTable
             ->groupBy('sku_code')
             ->orderBy('stock_out', 'desc');
 
-        // Wrap in Eloquent Builder for Filament compatibility
         return StockMovement::fromSub($query, 'combined');
     }
 
     protected function getDateRange(): array
     {
-        $period = $this->data['period'] ?? 'year'; // Changed default to 'year'
+        $period = $this->data['period'] ?? 'year';
 
         return match ($period) {
             'today' => [Carbon::today(), Carbon::today()->endOfDay()],
@@ -279,7 +278,14 @@ class StocksFlow extends Page implements HasForms, HasTable
                 isset($this->data['start_date']) ? Carbon::parse($this->data['start_date']) : Carbon::now()->startOfMonth(),
                 isset($this->data['end_date']) ? Carbon::parse($this->data['end_date'])->endOfDay() : Carbon::now()->endOfMonth(),
             ],
-            default => [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()], // Changed default
+            default => [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()],
         };
+    }
+
+    public function totalCashback()
+    {
+        return auth()->user()->wallet?->ledgers()
+            ->where('description', 'like', 'Premium cashback%')
+            ->sum('amount') ?? 0;
     }
 }

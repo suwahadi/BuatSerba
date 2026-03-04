@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MasterProducts\Pages;
 
 use App\Filament\Resources\MasterProducts\MasterProductResource;
 use App\Models\Sku;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
@@ -18,7 +19,6 @@ class EditMasterProduct extends EditRecord
 
     protected function beforeSave(): void
     {
-        // Validate variant SKUs before saving
         $variantsData = $this->data['variants'] ?? [];
         $currentVariantIds = $this->record->variantsForRepeater->pluck('id')->toArray();
         
@@ -26,7 +26,6 @@ class EditMasterProduct extends EditRecord
             if (!empty($variant['sku'])) {
                 $query = Sku::where('sku', $variant['sku']);
                 
-                // Ignore the current variant being edited if it has an ID
                 if (!empty($variant['id']) && in_array($variant['id'], $currentVariantIds)) {
                     $query->where('id', '!=', $variant['id']);
                 }
@@ -35,7 +34,7 @@ class EditMasterProduct extends EditRecord
                     Notification::make()
                         ->danger()
                         ->title('Error: SKU Duplikat')
-                        ->body("Maaf, Kode SKU '{$variant['sku']}' sudah digunakan. Silakan gunakan kode SKU yang berbeda.")
+                        ->body("Maaf, Kode SKU '{$variant['sku']}' sudah digunakan. Gunakan kode SKU yang berbeda.")
                         ->persistent()
                         ->send();
                     
@@ -53,6 +52,18 @@ class EditMasterProduct extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('save_top')
+                ->label('Simpan')
+                ->color('primary')
+                ->icon('heroicon-o-check-circle')
+                ->action(fn () => $this->save())
+                ->keyBindings(['mod+s']),
+            Action::make('view_product')
+                ->label('Lihat Produk')
+                ->color('info')
+                ->icon('heroicon-o-eye')
+                ->url(fn () => url("/product/{$this->record->slug}"))
+                ->openUrlInNewTab(),
             //DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),
@@ -79,7 +90,6 @@ class EditMasterProduct extends EditRecord
             ];
         }
 
-        // Load gallery images
         $galleryImages = $this->record->images()->orderBy('sort_order')->get();
         if ($galleryImages->isNotEmpty()) {
             $data['gallery_images'] = $galleryImages->map(function ($image) {
@@ -106,13 +116,11 @@ class EditMasterProduct extends EditRecord
         $skuData = $data['sku'] ?? [];
         unset($data['sku']);
 
-        // Extract gallery images data
         $galleryImagesData = $data['gallery_images'] ?? [];
         unset($data['gallery_images']);
 
         $record->update($data);
 
-        // Handle gallery images
         $this->syncGalleryImages($record, $galleryImagesData);
 
         try {
@@ -150,10 +158,8 @@ class EditMasterProduct extends EditRecord
 
     protected function syncGalleryImages($product, array $galleryImagesData): void
     {
-        // Delete all existing gallery images
         $product->images()->delete();
 
-        // Create new gallery images
         foreach ($galleryImagesData as $index => $imageData) {
             if (!empty($imageData['image_path'])) {
                 $product->images()->create([

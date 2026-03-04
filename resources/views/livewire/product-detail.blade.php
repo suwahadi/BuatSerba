@@ -254,12 +254,15 @@
                     </div>
                     
                     <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">{{ $product->name }}</h1>
+                    @if($selectedSku)
+                        <p class="text-sm text-gray-500 mb-3">SKU: {{ $selectedSku->sku }}</p>
+                    @endif
                     
                     <div class="flex items-center space-x-2 sm:space-x-4 mb-3 sm:mb-4">
                         <div class="flex items-center space-x-1">
                             @for($i = 1; $i <= 5; $i++)
                                 @if($i <= round($this->averageRating))
-                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.95１-.69l１.０７-３．２９２z"/></svg>
                                 @else
                                     <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                 @endif
@@ -687,15 +690,15 @@
         
         .cart-notification-content {
             background: white;
-            border-radius: 20px;
-            padding: 36px;
-            max-width: 480px;
-            width: 90%;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 360px;
+            width: 92%;
             text-align: center;
-            transform: translateY(30px) scale(0.9);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 25px 50px -12px rgba(22, 163, 74, 0.25);
-            border: 2px solid #16a34a;
+            transform: translateY(20px) scale(0.96);
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 18px 40px -14px rgba(22, 163, 74, 0.25);
+            border: 1px solid #16a34a;
         }
         
         .cart-notification-modal.active .cart-notification-content {
@@ -703,9 +706,9 @@
         }
         
         .cart-notification-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 24px;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 18px;
             border-radius: 50%;
             background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
             display: flex;
@@ -722,16 +725,16 @@
         }
         
         .cart-notification-title {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 700;
             color: #111827;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         
         .cart-notification-subtitle {
-            font-size: 15px;
+            font-size: 13px;
             color: #6b7280;
-            margin-bottom: 24px;
+            margin-bottom: 18px;
         }
         
         .cart-notification-product-info {
@@ -744,18 +747,18 @@
         
         .cart-notification-buttons {
             display: flex;
-            gap: 12px;
-            margin-top: 24px;
+            gap: 10px;
+            margin-top: 18px;
         }
-        
+
         .cart-notification-btn {
             flex: 1;
-            padding: 16px 24px;
-            border-radius: 12px;
+            padding: 12px 18px;
+            border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 15px;
+            font-size: 14px;
             border: none;
         }
         
@@ -835,7 +838,7 @@
         <div class="cart-notification-content">
             <!-- Success Icon -->
             <div class="cart-notification-icon">
-                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                 </svg>
             </div>

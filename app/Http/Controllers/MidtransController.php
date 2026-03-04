@@ -35,7 +35,7 @@ class MidtransController extends Controller
 
             // Handle Midtrans test notification
             if (strpos($orderId, 'payment_notif_test_') === 0) {
-                \Log::info('Test notification received', ['order_id' => $orderId]);
+                // \Log::info('Test notification received', ['order_id' => $orderId]);
 
                 return response()->json([
                     'status' => 'ok',
@@ -66,20 +66,20 @@ class MidtransController extends Controller
                 'processed' => false,
             ]);
 
-            \Log::info('Payment notification created', [
-                'order_id' => $orderId,
-                'transaction_status' => $transactionStatus,
-                'payment_id' => $payment->id ?? null,
-            ]);
+            // \Log::info('Payment notification created', [
+            //     'order_id' => $orderId,
+            //     'transaction_status' => $transactionStatus,
+            //     'payment_id' => $payment->id ?? null,
+            // ]);
 
             // Update payment and order status through standardized payment update
             if ($payment) {
                 $payment->updateFromMidtransNotification($notif);
-                \Log::info('Payment updated from notification', ['payment_id' => $payment->id]);
+                // \Log::info('Payment updated from notification', ['payment_id' => $payment->id]);
             } else {
                 // If no payment exists, update order directly
                 $order->updatePaymentStatus($transactionStatus, $notif['fraud_status'] ?? null, $notif);
-                \Log::info('Order updated from notification', ['order_id' => $order->id]);
+                // \Log::info('Order updated from notification', ['order_id' => $order->id]);
             }
 
             // Refresh order to get latest status
@@ -88,7 +88,7 @@ class MidtransController extends Controller
             // Send payment success email if payment is confirmed
             if ($order->payment_status === 'paid') {
                 \App\Jobs\SendPaymentSuccessEmail::dispatch($order);
-                \Log::info('Payment success email job dispatched', ['order_number' => $order->order_number]);
+                // \Log::info('Payment success email job dispatched', ['order_number' => $order->order_number]);
             }
 
             // Mark notification as processed
