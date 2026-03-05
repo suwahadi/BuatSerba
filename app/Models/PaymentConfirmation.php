@@ -17,17 +17,27 @@ class PaymentConfirmation extends Model
         'confirmed_at',
         'is_read',
         'read_at',
+        'is_validated',
+        'validated_at',
+        'validated_by',
     ];
 
     protected $casts = [
         'confirmed_at' => 'datetime',
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'is_validated' => 'boolean',
+        'validated_at' => 'datetime',
     ];
 
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function validatedBy(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'validated_by');
     }
 
     protected static function booted(): void

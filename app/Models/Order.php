@@ -19,18 +19,18 @@ class Order extends Model
             if ($order->wasChanged('status') && $order->status === 'completed') {
                 if ($order->payment_method === 'member_balance' && $order->user_id) {
                     try {
-                        $memberWalletService = new \App\Services\MemberWalletService();
+                        $memberWalletService = new \App\Services\MemberWalletService;
                         $memberWalletService->completeOrder($order);
-                        
+
                         Log::info('Locked balance released for completed order', [
                             'order_number' => $order->order_number,
                             'user_id' => $order->user_id,
-                            'total' => $order->total
+                            'total' => $order->total,
                         ]);
                     } catch (\Exception $e) {
                         Log::error('Failed to release locked balance for completed order', [
                             'order_number' => $order->order_number,
-                            'error' => $e->getMessage()
+                            'error' => $e->getMessage(),
                         ]);
                     }
                 }
@@ -109,6 +109,11 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function returnRequests()
+    {
+        return $this->hasMany(ReturnRequest::class);
+    }
+
     // Scopes
     public function scopePending($query)
     {
@@ -154,7 +159,7 @@ class Order extends Model
      */
     public function getPaymentMethodLabel()
     {
-        return \App\Enums\PaymentMethod::fromValue($this->payment_method)?->label() 
+        return \App\Enums\PaymentMethod::fromValue($this->payment_method)?->label()
             ?? ucfirst(str_replace('_', ' ', $this->payment_method));
     }
 
@@ -231,7 +236,7 @@ class Order extends Model
             if ($this->voucher_code) {
                 $voucher = \App\Models\Voucher::where('voucher_code', $this->voucher_code)->first();
                 if ($voucher && $voucher->hasCashback() && $this->user_id) {
-                    $voucherService = new \App\Services\VoucherService();
+                    $voucherService = new \App\Services\VoucherService;
                     $voucherService->processCashback(
                         $this->user_id,
                         $voucher,
@@ -251,13 +256,13 @@ class Order extends Model
                 $payment = \App\Models\Payment::where('order_id', $this->id)
                     ->where('payment_gateway', 'member_balance')
                     ->first();
-                
+
                 if ($payment) {
-                    $memberWalletService = new \App\Services\MemberWalletService();
+                    $memberWalletService = new \App\Services\MemberWalletService;
                     $memberWalletService->releaseOrderLock(
                         $this->user_id,
                         $this->id,
-                        'Pembayaran dibatalkan/expire untuk pesanan #' . $this->order_number
+                        'Pembayaran dibatalkan/expire untuk pesanan #'.$this->order_number
                     );
                 }
             }

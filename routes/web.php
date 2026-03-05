@@ -50,10 +50,15 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/profile', App\Livewire\Dashboard\Profile::class)->name('user.profile');
     Route::get('/address', App\Livewire\Dashboard\Address::class)->name('user.address');
     Route::get('/balance', App\Livewire\Dashboard\MemberBalance::class)->name('user.balance');
-    
+
     // Premium Membership Routes (Livewire)
     Route::get('/premium', App\Livewire\Dashboard\PremiumMembershipPurchase::class)->name('premium.purchase');
     Route::get('/premium/memberships', App\Livewire\Dashboard\PremiumMemberships::class)->name('premium.memberships');
+
+    // Return Routes
+    Route::get('/returns', App\Livewire\Return\ReturnIndex::class)->name('returns.index');
+    Route::get('/returns/create', App\Livewire\Return\ReturnCreate::class)->name('returns.create');
+    Route::get('/returns/create/{orderNumber}', App\Livewire\Return\ReturnCreate::class)->name('returns.create.order');
 });
 
 Route::post('/logout', function () {

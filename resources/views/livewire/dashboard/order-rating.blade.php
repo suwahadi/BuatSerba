@@ -2,17 +2,25 @@
     <div class="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">
         <!-- Header -->
         <div class="border-b border-gray-200 pb-3 sm:pb-4 mb-4 sm:mb-6">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
                 <div>
                     <h2 class="text-base sm:text-lg font-bold text-gray-900">Beri Penilaian</h2>
                     <p class="text-xs sm:text-sm text-gray-600 mt-1">Berikan penilaian untuk pesanan Anda</p>
                 </div>
-                <a href="{{ route('dashboard') }}" class="text-xs sm:text-sm text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                    </svg>
-                    Kembali
-                </a>
+                <div class="flex flex-col gap-2">
+                    <a href="{{ route('returns.create.order', $order->order_number) }}" class="text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg transition flex items-center justify-center gap-1 whitespace-nowrap">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Buat Retur
+                    </a>
+                    <a href="{{ route('dashboard') }}" class="text-xs sm:text-sm text-gray-600 hover:text-gray-900 font-medium flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Kembali
+                    </a>
+                </div>
             </div>
         </div>
 

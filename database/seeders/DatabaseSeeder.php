@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             FilamentPermissionSeeder::class,
             RoleSeeder::class,
             FilamentPermissionSeeder::class,
+            PermissionSeeder::class,
             UserSeeder::class,
 
             // ========== PRODUCT MANAGEMENT ==========
@@ -32,11 +33,11 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,                       // Requires: CategorySeeder
             SkuSeeder::class,                           // Requires: ProductSeeder
             BranchInventorySeeder::class,               // Requires: BranchSeeder, SkuSeeder
-                                                        // ⚠️ CLEARS existing branch_inventory data
+            // ⚠️ CLEARS existing branch_inventory data
 
             // ========== ORDERS (TEST DATA) ==========
             TestOrdersSeeder::class,                    // Requires: BranchSeeder, SkuSeeder, UserSeeder
-                                                        // ⚠️ CLEARS orders & order_items tables
+            // ⚠️ CLEARS orders & order_items tables
 
             // ========== OPTIONAL: DEMO DATA ONLY ==========
             // These seeders create demo/test data and can be skipped if not needed
@@ -44,22 +45,22 @@ class DatabaseSeeder extends Seeder
             // Note: Some demo seeders require prior seeders to have run
 
             MemberWalletDemoSeeder::class,              // OPTIONAL: Requires: UserSeeder
-                                                        // Creates demo wallet entries for users
+            // Creates demo wallet entries for users
 
             OrderSeeder::class,                         // OPTIONAL: Requires: ProductSeeder, UserSeeder
-                                                        // Creates 100 sample orders
+            // Creates 100 sample orders
 
             ProductReviewSeeder::class,                 // OPTIONAL: Requires: Products must exist
-                                                        // Creates sample product reviews
+            // Creates sample product reviews
 
             TestimonialSeeder::class,                   // OPTIONAL: No dependencies
-                                                        // Landing page testimonials
+            // Landing page testimonials
 
             UserRBACSeeder::class,                      // OPTIONAL: Creates its own demo RBAC users
-                                                        // (admin@buatserba.com, finance@..., warehouse@...)
+            // (admin@buatserba.com, finance@..., warehouse@...)
 
             InternalSaleSeeder::class,                  // OPTIONAL: Requires: UserSeeder
-                                                        // Creates internal sales records with demo data
+            // Creates internal sales records with demo data
         ]);
     }
 }

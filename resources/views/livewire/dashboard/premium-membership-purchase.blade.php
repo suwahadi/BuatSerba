@@ -1,7 +1,8 @@
 <div class="font-['Poppins']">
     <h1 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L5 10.274zm10 0l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L15 10.274z" clip-rule="evenodd"/>
+        <svg class="w-10 h-10 text-purple-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2.5 16.5 8l5 1-9.5 12-9.5-12 5-1L12 2.5Z"/>
+        <path d="M7.5 9.5h9l-4.5 12-4.5-12Z" opacity=".3"/>
         </svg>
         Premium Membership
     </h1>
@@ -128,12 +129,6 @@
                     </div>
                 </div>
 
-                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                    <p class="text-xs text-green-800">
-                        <span class="font-medium">Pembayaran aman</span> dan terpercaya. Bukti transfer akan diverifikasi oleh admin.
-                    </p>
-                </div>
-
                 @if(!$activeMembership && !$pendingMembership)
                     <button wire:click="$set('showPurchaseModal', true)"
                             class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-all duration-200">
@@ -184,9 +179,10 @@
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" wire:click="$set('showPurchaseModal', false)">
             <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6" wire:click.stop>
                 <div class="flex items-center gap-3 mb-4">
-                    <svg class="w-10 h-10 text-purple-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L5 10.274zm10 0l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L15 10.274z" clip-rule="evenodd"/>
-                    </svg>
+                <svg class="w-10 h-10 text-purple-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.5 16.5 8l5 1-9.5 12-9.5-12 5-1L12 2.5Z"/>
+                <path d="M7.5 9.5h9l-4.5 12-4.5-12Z" opacity=".3"/>
+                </svg>
                     <h2 class="text-xl font-bold text-gray-900">Bergabung Premium Membership</h2>
                 </div>
                 

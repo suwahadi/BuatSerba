@@ -6,7 +6,6 @@ use App\Events\OrderPaid;
 use App\Exceptions\Wallet\DuplicateTransactionException;
 use App\Models\MemberBalanceLedger;
 use App\Services\MemberWalletService;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class GrantPremiumCashback
@@ -29,11 +28,11 @@ class GrantPremiumCashback
         $order = $event->order;
         $user = $order->user;
 
-        if (!$user || !$user->isPremium()) {
+        if (! $user || ! $user->isPremium()) {
             return;
         }
 
-        if (!in_array($order->status, ['processing', 'completed'])) {
+        if (! in_array($order->status, ['processing', 'completed'])) {
             return;
         }
 
@@ -58,7 +57,7 @@ class GrantPremiumCashback
 
         try {
             // Use unique reference code
-            $referenceCode = 'cashback_' . $order->order_number;
+            $referenceCode = 'cashback_'.$order->order_number;
 
             $this->walletService->credit(
                 $user,

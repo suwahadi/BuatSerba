@@ -68,6 +68,13 @@
                                     </svg>
                                     Premium Membership
                                 </a>
+                                <a href="{{ route('returns.index') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium transition-colors {{ request()->routeIs('returns.*') ? 'text-green-600 bg-green-50 border-l-4 border-green-600' : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent' }}">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Retur Barang
+                                </a>
                                 <div class="border-t border-gray-200 my-2"></div>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
