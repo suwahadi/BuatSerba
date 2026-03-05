@@ -97,7 +97,7 @@
                                     Bayar Sekarang
                                 </a>
                             @endif
-                            @if($order->getOrderStatusEnum() === \App\Enums\OrderStatus::COMPLETED)
+                            @if($order->getOrderStatusEnum() === \App\Enums\OrderStatus::COMPLETED && $order->getPaymentStatusEnum() === \App\Enums\PaymentStatus::PAID)
                                 <span class="text-gray-300">|</span>
                                 @if($order->reviews->isNotEmpty())
                                     <span class="text-sm text-gray-500 font-medium">
@@ -107,6 +107,17 @@
                                     <a href="{{ route('order.rating', $order->order_number) }}" 
                                        class="text-sm text-green-600 hover:text-green-700 font-medium">
                                         Beri Penilaian
+                                    </a>
+                                @endif
+                                <span class="text-gray-300">|</span>
+                                @if($order->returnRequests()->exists())
+                                    <span class="text-sm text-gray-500 font-medium">
+                                        Sudah Diretur
+                                    </span>
+                                @else
+                                    <a href="{{ route('returns.create.order', $order->order_number) }}" 
+                                       class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                                        Buat Retur
                                     </a>
                                 @endif
                             @endif
