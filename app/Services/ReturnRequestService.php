@@ -31,6 +31,7 @@ class ReturnRequestService
                 'order_number' => $order->order_number,
                 'status' => 'pending',
                 'note' => $data['note'] ?? null,
+                'image_proof' => $data['image_proof'] ?? null,
             ]);
 
             ReturnRequestItem::create([

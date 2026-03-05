@@ -6,10 +6,16 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\ReturnRequestService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class ReturnCreate extends Component
 {
+    use WithFileUploads;
+
     public string $selectedOrderId = '';
 
     public array $orders = [];
@@ -19,6 +25,10 @@ class ReturnCreate extends Component
     public string $selectedOrderItemId = '';
 
     public string $note = '';
+
+    public array $photos = [];
+
+    public array $uploadedPhotos = [];
 
     public bool $isLoading = false;
 
@@ -106,16 +116,66 @@ class ReturnCreate extends Component
         }
     }
 
+    public function updatedPhotos(): void
+    {
+        $this->validate([
+            'photos.*' => 'image|max:5120',
+        ], [
+            'photos.*.image' => 'File harus berupa gambar.',
+            'photos.*.max' => 'Ukuran gambar maksimal 5MB.',
+        ]);
+
+        if (count($this->uploadedPhotos) + count($this->photos) > 3) {
+            $this->errorMessage = 'Maksimal 3 foto bukti yang dapat diunggah.';
+            $this->photos = [];
+
+            return;
+        }
+
+        foreach ($this->photos as $photo) {
+            $this->uploadedPhotos[] = $photo;
+        }
+
+        $this->photos = [];
+    }
+
+    public function removePhoto(int $index): void
+    {
+        if (isset($this->uploadedPhotos[$index])) {
+            unset($this->uploadedPhotos[$index]);
+            $this->uploadedPhotos = array_values($this->uploadedPhotos);
+        }
+    }
+
+    private function processAndSaveImages(): array
+    {
+        $savedPaths = [];
+
+        foreach ($this->uploadedPhotos as $photo) {
+            $filename = Str::random(20).'.webp';
+            $image = Image::read($photo->getRealPath())
+                ->scaleDown(1200, 1200)
+                ->toWebp(85);
+            $path = 'returns/'.date('Y/m').'/'.$filename;
+            Storage::disk('public')->put($path, (string) $image);
+            $savedPaths[] = $path;
+        }
+
+        return $savedPaths;
+    }
+
     public function confirmSubmit(): void
     {
         $this->validate([
             'selectedOrderId' => 'required|string',
             'selectedOrderItemId' => 'required|string',
             'note' => 'nullable|string|max:1000',
+            'uploadedPhotos' => 'nullable|array|max:3',
         ], [
             'selectedOrderId.required' => 'Pilih pesanan yang ingin diretur.',
             'selectedOrderItemId.required' => 'Pilih barang yang ingin diretur.',
             'note.max' => 'Catatan tidak boleh melebihi 1000 karakter.',
+            'uploadedPhotos.max' => 'Maksimal 3 foto bukti.',
         ]);
 
         $this->showConfirmDialog = true;
@@ -138,11 +198,14 @@ class ReturnCreate extends Component
                 throw new \InvalidArgumentException('Pesanan tidak ditemukan.');
             }
 
+            $imagePaths = $this->processAndSaveImages();
+
             $service = new ReturnRequestService;
             $returnRequest = $service->createReturnRequest([
                 'order_number' => $order->order_number,
                 'order_item_id' => (int) $this->selectedOrderItemId,
                 'note' => $this->note,
+                'image_proof' => $imagePaths,
             ]);
 
             session()->flash('success', 'Permohonan retur berhasil dibuat. Menunggu persetujuan admin.');

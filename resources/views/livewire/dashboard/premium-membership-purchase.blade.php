@@ -1,49 +1,45 @@
 <div class="font-['Poppins']">
     <h1 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <svg class="w-10 h-10 text-purple-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M12 2.5 16.5 8l5 1-9.5 12-9.5-12 5-1L12 2.5Z"/>
-        <path d="M7.5 9.5h9l-4.5 12-4.5-12Z" opacity=".3"/>
-        </svg>
+    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l5-5 5 5M7 11l5-5 5 5M12 2l10 6v8l-10 6-10-6V8l10-6z"/>
+    </svg>
         Premium Membership
     </h1>
 
     <!-- Active Membership Banner -->
     @if($activeMembership)
-        <div class="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-300 rounded-lg p-6 mb-6">
+        <div class="bg-gradient-to-r from-green-50 to-green-100 border border-green-300 rounded-lg p-6 mb-6">
             <div class="flex items-start justify-between gap-4">
                 <div class="flex-grow">
                     <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L5 10.274zm10 0l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L15 10.274z" clip-rule="evenodd"/>
-                        </svg>
-                        <span class="text-lg font-bold text-purple-900">MEMBERSHIP AKTIF</span>
+                        <span class="text-lg font-bold text-green-900">MEMBERSHIP AKTIF</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-3">
                         <div>
-                            <p class="text-xs text-purple-700 font-medium">Status</p>
-                            <p class="text-sm font-bold text-purple-900 mt-1">Aktif</p>
+                            <p class="text-xs text-green-700 font-medium">Status</p>
+                            <p class="text-sm font-bold text-green-900 mt-1">Aktif</p>
                         </div>
                         <div>
-                            <p class="text-xs text-purple-700 font-medium">Dimulai</p>
-                            <p class="text-sm font-bold text-purple-900 mt-1">
+                            <p class="text-xs text-green-700 font-medium">Dimulai</p>
+                            <p class="text-sm font-bold text-green-900 mt-1">
                                 {{ $activeMembership->started_at?->format('d M Y') }}
                             </p>
                         </div>
                         <div>
-                            <p class="text-xs text-purple-700 font-medium">Berakhir</p>
-                            <p class="text-sm font-bold text-purple-900 mt-1">
+                            <p class="text-xs text-green-700 font-medium">Berakhir</p>
+                            <p class="text-sm font-bold text-green-900 mt-1">
                                 {{ $activeMembership->expires_at?->format('d M Y') }}
                             </p>
                         </div>
                         <div class="text-right md:text-left">
-                            <p class="text-xs text-purple-700 font-medium">Sisa Waktu</p>
-                            <p class="text-sm font-bold text-purple-900 mt-1">{{ $daysRemaining }} hari</p>
+                            <p class="text-xs text-green-700 font-medium">Sisa Waktu</p>
+                            <p class="text-sm font-bold text-green-900 mt-1">{{ $daysRemaining }} hari</p>
                         </div>
                     </div>
                 </div>
                 <button wire:click="$set('showRenewalConfirmModal', true)"
                         type="button"
-                        class="flex-shrink-0 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition-all duration-200 whitespace-nowrap cursor-pointer">
+                        class="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition-all duration-200 whitespace-nowrap cursor-pointer">
                     Perpanjang
                 </button>
             </div>
@@ -96,7 +92,7 @@
         <!-- Benefit 3 -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div class="flex items-start gap-3">
-                <svg class="w-8 h-8 text-purple-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-8 h-8 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
                 </svg>
                 <div>
@@ -117,7 +113,7 @@
                 <div class="space-y-4 mb-6">
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span class="text-gray-600 font-medium">Harga</span>
-                        <span class="text-2xl font-bold text-purple-600">Rp 100.000</span>
+                        <span class="text-2xl font-bold text-green-600">Rp 100.000</span>
                     </div>
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span class="text-gray-600 font-medium">Durasi</span>
@@ -131,7 +127,7 @@
 
                 @if(!$activeMembership && !$pendingMembership)
                     <button wire:click="$set('showPurchaseModal', true)"
-                            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-all duration-200">
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-all duration-200">
                         Beli Premium Sekarang
                     </button>
                 @endif
@@ -176,10 +172,10 @@
 
     <!-- Purchase Confirmation Modal -->
     @if($showPurchaseModal)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" wire:click="$set('showPurchaseModal', false)">
-            <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6" wire:click.stop>
+        <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="$set('showPurchaseModal', false)">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" wire:click.stop>
                 <div class="flex items-center gap-3 mb-4">
-                <svg class="w-10 h-10 text-purple-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg class="w-10 h-10 text-green-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 2.5 16.5 8l5 1-9.5 12-9.5-12 5-1L12 2.5Z"/>
                 <path d="M7.5 9.5h9l-4.5 12-4.5-12Z" opacity=".3"/>
                 </svg>
@@ -189,18 +185,18 @@
                 <div class="mb-6">
                     <p class="text-gray-700 mb-4">Apakah Anda yakin ingin bergabung dengan Premium Membership?</p>
                     
-                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-2">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-purple-700 font-medium">Total Pembayaran</span>
-                            <span class="text-lg font-bold text-purple-900">Rp 100.000</span>
+                            <span class="text-sm text-green-700 font-medium">Total Pembayaran</span>
+                            <span class="text-lg font-bold text-green-900">Rp 100.000</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-purple-700 font-medium">Durasi</span>
-                            <span class="text-sm font-bold text-purple-900">1 Tahun (365 hari)</span>
+                            <span class="text-sm text-green-700 font-medium">Durasi</span>
+                            <span class="text-sm font-bold text-green-900">1 Tahun (365 hari)</span>
                         </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-purple-200">
-                            <span class="text-sm text-purple-700 font-medium">Metode Pembayaran</span>
-                            <span class="text-sm font-bold text-purple-900">Transfer Bank</span>
+                        <div class="flex justify-between items-center pt-2 border-t border-green-200">
+                            <span class="text-sm text-green-700 font-medium">Metode Pembayaran</span>
+                            <span class="text-sm font-bold text-green-900">Transfer Bank</span>
                         </div>
                     </div>
 
@@ -219,7 +215,7 @@
                     </button>
                     <button type="button"
                             wire:click="purchasePremium"
-                            class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-colors">
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-colors">
                         Ya, Bergabung
                     </button>
                 </div>
@@ -229,35 +225,35 @@
 
     <!-- Renewal Confirmation Modal -->
     @if($showRenewalConfirmModal)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" wire:click="$set('showRenewalConfirmModal', false)">
-            <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6" wire:click.stop>
+        <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="$set('showRenewalConfirmModal', false)">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" wire:click.stop>
                 <div class="flex items-center gap-3 mb-4">
-                    <svg class="w-10 h-10 text-purple-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L5 10.274zm10 0l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L15 10.274z" clip-rule="evenodd"/>
-                    </svg>
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l5-5 5 5M7 11l5-5 5 5M12 2l10 6v8l-10 6-10-6V8l10-6z"/>
+                </svg>
                     <h2 class="text-xl font-bold text-gray-900">Perpanjang Premium Membership</h2>
                 </div>
                 
                 <div class="mb-6">
                     <p class="text-gray-700 mb-4">Apakah Anda yakin ingin memperpanjang membership premium Anda?</p>
                     
-                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-2">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-purple-700 font-medium">Biaya Perpanjangan</span>
-                            <span class="text-lg font-bold text-purple-900">Rp 100.000</span>
+                            <span class="text-sm text-green-700 font-medium">Biaya Perpanjangan</span>
+                            <span class="text-lg font-bold text-green-900">Rp 100.000</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-purple-700 font-medium">Durasi Tambahan</span>
-                            <span class="text-sm font-bold text-purple-900">1 Tahun (365 hari)</span>
+                            <span class="text-sm text-green-700 font-medium">Durasi Tambahan</span>
+                            <span class="text-sm font-bold text-green-900">1 Tahun (365 hari)</span>
                         </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-purple-200">
-                            <span class="text-sm text-purple-700 font-medium">Status Saat Ini</span>
+                        <div class="flex justify-between items-center pt-2 border-t border-green-200">
+                            <span class="text-sm text-green-700 font-medium">Status Saat Ini</span>
                             <span class="text-sm font-bold text-green-600">Aktif</span>
                         </div>
                         @if($activeMembership)
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-purple-700 font-medium">Berakhir Saat Ini</span>
-                            <span class="text-sm font-bold text-purple-900">{{ $activeMembership->expires_at?->format('d M Y') }}</span>
+                            <span class="text-sm text-green-700 font-medium">Berakhir Saat Ini</span>
+                            <span class="text-sm font-bold text-green-900">{{ $activeMembership->expires_at?->format('d M Y') }}</span>
                         </div>
                         @endif
                     </div>
@@ -277,7 +273,7 @@
                     </button>
                     <button type="button"
                             wire:click="renewMembership"
-                            class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-colors">
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-colors">
                         Ya, Perpanjang
                     </button>
                 </div>
@@ -287,8 +283,8 @@
 
     <!-- Upload Proof Modal -->
     @if($showUploadModal)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" wire:click="cancelUpload">
-            <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6" wire:click.stop>
+        <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="cancelUpload">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" wire:click.stop>
                 <h2 class="text-lg font-bold text-gray-900 mb-4">Upload Bukti Transfer</h2>
                 
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -351,7 +347,7 @@
                             Batal
                         </button>
                         <button type="submit"
-                                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 {{ $isUploading ? 'disabled' : '' }}>
                             @if($isUploading)
                                 <span class="inline-block animate-spin mr-2">⏳</span> Uploading...

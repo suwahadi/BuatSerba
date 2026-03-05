@@ -16,6 +16,7 @@ class ReturnRequest extends Model
         'order_number',
         'status',
         'note',
+        'image_proof',
         'admin_note',
         'handled_by',
         'handled_at',
@@ -26,6 +27,7 @@ class ReturnRequest extends Model
         return [
             'status' => ReturnStatus::class,
             'handled_at' => 'datetime',
+            'image_proof' => 'array',
         ];
     }
 
