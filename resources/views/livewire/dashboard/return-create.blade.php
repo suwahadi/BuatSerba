@@ -190,7 +190,7 @@
                 @error('note')
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                 @enderror
-                <p class="mt-1 text-xs text-gray-500">{{ strlen($note) }}/1000 karakter</p>
+                <p class="mt-1 text-xs text-gray-500">Maksimal 1000 karakter</p>
             </div>
 
             <!-- Action Buttons -->

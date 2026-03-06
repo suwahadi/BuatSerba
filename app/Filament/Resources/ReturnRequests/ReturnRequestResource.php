@@ -14,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -23,7 +22,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
-use UnitEnum;
 
 class ReturnRequestResource extends Resource
 {
@@ -35,8 +33,6 @@ class ReturnRequestResource extends Resource
 
     protected static ?string $navigationLabel = 'Retur Barang';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Manajemen Pesanan';
-
     protected static ?string $recordTitleAttribute = 'order_number';
 
     protected static ?string $modelLabel = 'Permohonan Retur';
@@ -46,6 +42,20 @@ class ReturnRequestResource extends Resource
     public static function canAccess(): bool
     {
         return Auth::check() && (Auth::user()->hasPermissionTo('resource.return_requests.view_any') || Auth::user()->hasRole('admin'));
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $pendingCount = ReturnRequest::where('status', ReturnStatus::PENDING)->count();
+
+        return $pendingCount > 0 ? (string) $pendingCount : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $pendingCount = ReturnRequest::where('status', ReturnStatus::PENDING)->count();
+
+        return $pendingCount > 0 ? 'danger' : null;
     }
 
     public static function form(Schema $schema): Schema
@@ -164,14 +174,7 @@ class ReturnRequestResource extends Resource
                     ->label('Nama User')
                     ->searchable()
                     ->sortable(),
-                ImageColumn::make('image_proof')
-                    ->label('Bukti')
-                    ->disk('public')
-                    ->circular()
-                    ->stacked()
-                    ->limit(3)
-                    ->limitedRemainingText()
-                    ->getStateUsing(fn (ReturnRequest $record) => $record->image_proof ?? []),
+
                 BadgeColumn::make('status')
                     ->label('Status')
                     ->formatStateUsing(fn (ReturnStatus $state) => $state->label())
@@ -188,7 +191,7 @@ class ReturnRequestResource extends Resource
                     ->label('Tanggal Diproses')
                     ->dateTime('d M Y H:i')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->filters([
                 SelectFilter::make('status')

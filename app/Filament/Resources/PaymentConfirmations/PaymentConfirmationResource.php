@@ -171,7 +171,7 @@ class PaymentConfirmationResource extends Resource
                     ->sortable(),
 
                 IconColumn::make('is_validated')
-                    ->label('Status Validasi')
+                    ->label('Status')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-badge')
                     ->falseIcon('heroicon-o-clock')
@@ -249,11 +249,10 @@ class PaymentConfirmationResource extends Resource
 
                         try {
                             DB::transaction(function () use ($record) {
-                                // Re-fetch with lock to prevent race condition
                                 $confirmation = PaymentConfirmation::lockForUpdate()->findOrFail($record->id);
 
                                 if ($confirmation->is_validated) {
-                                    return; // Already validated by another process
+                                    return;
                                 }
 
                                 $order = $confirmation->order;
@@ -262,7 +261,6 @@ class PaymentConfirmationResource extends Resource
                                     throw new \Exception('Order tidak ditemukan.');
                                 }
 
-                                // Guard: skip if already paid
                                 if (in_array($order->payment_status, ['paid', 'refunded'])) {
                                     $confirmation->update([
                                         'is_validated' => true,
@@ -273,11 +271,9 @@ class PaymentConfirmationResource extends Resource
                                     return;
                                 }
 
-                                // Update or create payment record with settlement status
                                 $payment = Payment::where('order_id', $order->id)->first();
 
                                 if ($payment) {
-                                    // Guard: skip if already settled
                                     if (in_array($payment->transaction_status, ['settlement', 'capture'])) {
                                         $confirmation->update([
                                             'is_validated' => true,
@@ -293,7 +289,6 @@ class PaymentConfirmationResource extends Resource
                                         'paid_at' => now(),
                                     ]);
                                 } else {
-                                    // Create a manual settlement payment record
                                     Payment::create([
                                         'order_id' => $order->id,
                                         'payment_gateway' => 'manual_transfer',
@@ -310,14 +305,12 @@ class PaymentConfirmationResource extends Resource
                                     ]);
                                 }
 
-                                // Update order to paid/processing
                                 $order->update([
                                     'payment_status' => 'paid',
                                     'status' => 'processing',
                                     'paid_at' => now(),
                                 ]);
 
-                                // Mark confirmation as validated
                                 $confirmation->update([
                                     'is_validated' => true,
                                     'validated_at' => now(),
@@ -357,7 +350,7 @@ class PaymentConfirmationResource extends Resource
                     ->modalHeading('Detail Konfirmasi Pembayaran')
                     ->modalWidth('lg')
                     ->action(function () {
-                        // no-op, this action only shows modal content
+                        //
                     })
                     ->mountUsing(function ($record) {
                         if ($record && ! $record->is_read) {

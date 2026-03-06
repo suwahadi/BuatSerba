@@ -14,7 +14,7 @@ enum ReturnStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::PENDING => 'Menunggu Persetujuan',
+            self::PENDING => 'Menunggu',
             self::APPROVED => 'Disetujui',
             self::REJECTED => 'Ditolak',
         };

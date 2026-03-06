@@ -1,4 +1,31 @@
-<div class="bg-gray-50">
+<div class="bg-gray-50" x-data="{ showPageLoading: sessionStorage.getItem('checkoutLoading') === 'true' }" 
+     x-init="
+        // Hide loading when page is ready
+        window.addEventListener('checkout-page-ready', () => {
+            showPageLoading = false;
+        });
+     ">
+    <!-- Page Loading Overlay -->
+    <div x-show="showPageLoading" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+         style="display: none;">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-sm mx-4 text-center">
+            <svg class="animate-spin h-12 w-12 text-green-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Memuat Halaman</h3>
+            <p class="text-sm text-gray-600">Sedang memproses data...</p>
+        </div>
+    </div>
+    
     <!-- Branch Selection Modal -->
     @if($showBranchModal && count($branches) > 0)
     <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" style="display: flex;">
@@ -636,3 +663,47 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Dispatch event when checkout page is ready
+    document.addEventListener('livewire:init', () => {
+        Livewire.hook('morph.updated', ({ el, component }) => {
+            // Wait a bit for all API calls and data to be loaded
+            setTimeout(() => {
+                if (window.location.pathname.includes('/checkout')) {
+                    window.dispatchEvent(new CustomEvent('checkout-page-ready'));
+                    sessionStorage.removeItem('checkoutLoading');
+                }
+            }, 1500);
+        });
+    });
+    
+    // Fallback: Dispatch event when page is fully loaded
+    window.addEventListener('load', () => {
+        if (window.location.pathname.includes('/checkout')) {
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('checkout-page-ready'));
+                sessionStorage.removeItem('checkoutLoading');
+            }, 1000);
+        }
+    });
+    
+    // Also dispatch when DOM is ready (for faster detection)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.location.pathname.includes('/checkout')) {
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('checkout-page-ready'));
+                    sessionStorage.removeItem('checkoutLoading');
+                }, 2000);
+            }
+        });
+    } else {
+        if (window.location.pathname.includes('/checkout')) {
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('checkout-page-ready'));
+                sessionStorage.removeItem('checkoutLoading');
+            }, 2000);
+        }
+    }
+</script>

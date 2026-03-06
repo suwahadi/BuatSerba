@@ -152,9 +152,9 @@ class ReturnCreate extends Component
         $savedPaths = [];
 
         foreach ($this->uploadedPhotos as $photo) {
-            $filename = Str::random(20).'.webp';
+            $filename = Str::random(12).'.webp';
             $image = Image::read($photo->getRealPath())
-                ->scaleDown(1200, 1200)
+                ->scaleDown(800, 800)
                 ->toWebp(85);
             $path = 'returns/'.date('Y/m').'/'.$filename;
             Storage::disk('public')->put($path, (string) $image);

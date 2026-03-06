@@ -4,6 +4,9 @@ namespace App\Livewire\Dashboard;
 
 use App\Models\Order;
 use App\Models\ProductReview;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -17,7 +20,7 @@ class OrderRating extends Component
 
     public $orderNumber;
 
-    public $items = []; // Flattened array of input data keyed by product_id
+    public $items = [];
 
     public function mount($orderNumber)
     {
@@ -25,30 +28,20 @@ class OrderRating extends Component
 
         $order = $this->order;
 
-        // Security checks
         if ($order->user_id !== auth()->id()) {
             abort(403);
         }
 
-        if ($order->status !== 'completed' && $order->status !== 'delivered') { // 'delivered' might be the DB status for 'Berhasil/Completed' in logic? Previous step used 'completed'. I'll check both or strict matches.
-            // Previous step: case 'completed': $query->where('status', 'completed');
-            // So status MUST be 'completed'.
+        if ($order->status !== 'completed' && $order->status !== 'delivered') {
             if ($order->status !== 'completed') {
                 abort(403, 'Order belum selesai.');
             }
         }
 
-        // Check if already reviewed
         if ($order->reviews()->exists()) {
-            // Already reviewed, redirect or show error?
-            // "Link user dashboard: /user/order/{order_number}/rating"
-            // If already reviewed, maybe show the reviews?
-            // For now, redirect to dashboard with message.
             return redirect()->route('dashboard')->with('error', 'Pesanan ini sudah dinilai.');
         }
 
-        // Initialize state for each product
-        // Initialize state for each product
         foreach ($order->items as $item) {
             $this->items[] = [
                 'product_id' => $item->product_id,
@@ -103,7 +96,7 @@ class OrderRating extends Component
             'items.*.rating' => 'required|integer|min:1|max:5',
             'items.*.review' => 'required|string|min:5',
             'items.*.images' => 'array|max:5',
-            'items.*.images.*' => 'image|max:2048', // 2MB max
+            'items.*.images.*' => 'image|max:5120',
         ], [
             'items.*.rating.required' => 'Rating wajib diisi.',
             'items.*.review.required' => 'Ulasan wajib diisi.',
@@ -116,10 +109,7 @@ class OrderRating extends Component
             $imagePaths = [];
 
             if (! empty($itemData['images'])) {
-                foreach ($itemData['images'] as $image) {
-                    $path = $image->store('reviews', 'public');
-                    $imagePaths[] = $path;
-                }
+                $imagePaths = $this->processAndSaveImages($itemData['images']);
             }
 
             ProductReview::create([
@@ -137,6 +127,23 @@ class OrderRating extends Component
         session()->flash('success', 'Terima kasih atas penilaian Anda!');
 
         return redirect()->route('dashboard');
+    }
+
+    private function processAndSaveImages(array $photos): array
+    {
+        $savedPaths = [];
+
+        foreach ($photos as $photo) {
+            $filename = Str::random(12).'.webp';
+            $image = Image::read($photo->getRealPath())
+                ->scaleDown(800, 800)
+                ->toWebp(85);
+            $path = 'reviews/'.date('Y/m').'/'.$filename;
+            Storage::disk('public')->put($path, (string) $image);
+            $savedPaths[] = $path;
+        }
+
+        return $savedPaths;
     }
 
     public function render()
