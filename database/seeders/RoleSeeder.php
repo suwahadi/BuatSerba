@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\Models\User;
 
 class RoleSeeder extends Seeder
 {
@@ -67,6 +67,10 @@ class RoleSeeder extends Seeder
             'resource.stock_opnames.view',
             'resource.stock_opnames.create',
             'resource.stock_opnames.update',
+            'resource.reviews.view_any',
+            'resource.reviews.view',
+            'resource.reviews.update',
+            'resource.reviews.delete',
             'page.stocks_flows.access',
         ];
         $warehouse->syncPermissions($warehousePermissions);

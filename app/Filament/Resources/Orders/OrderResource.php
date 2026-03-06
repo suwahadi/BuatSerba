@@ -306,7 +306,18 @@ class OrderResource extends Resource
                                         'transfer' => 'Bank Transfer',
                                         'cash' => 'Cash',
                                         'member_balance' => 'Member Balance',
-                                    ]),
+                                    ])
+                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                        'bca' => 'BCA VA',
+                                        'mandiri' => 'Mandiri VA',
+                                        'bni' => 'BNI VA',
+                                        'bri' => 'BRI VA',
+                                        'qris' => 'QRIS',
+                                        'transfer' => 'Transfer',
+                                        'cash' => 'Cash',
+                                        'member_balance' => 'Member Balance',
+                                        default => $state ?? '-',
+                                    }),
                                 \Filament\Forms\Components\Select::make('payment_status')
                                     ->label('Status')
                                     ->options(fn () => collect(\App\Enums\PaymentStatus::cases())
@@ -352,9 +363,32 @@ class OrderResource extends Resource
                     ->label('Customer')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('user.name')
-                    ->label('User Account')
-                    ->toggleable(isToggledHiddenByDefault: true)
+                \Filament\Tables\Columns\TextColumn::make('payment_method')
+                    ->label('Method')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'bca' => 'BCA VA',
+                        'mandiri' => 'Mandiri VA',
+                        'bni' => 'BNI VA',
+                        'bri' => 'BRI VA',
+                        'qris' => 'QRIS',
+                        'transfer' => 'Transfer',
+                        'cash' => 'Cash',
+                        'member_balance' => 'Member Balance',
+                        default => $state ?? '-',
+                    })
+                    ->color(fn (?string $state): string => match ($state) {
+                        'bca' => 'info',
+                        'mandiri' => 'success',
+                        'bni' => 'warning',
+                        'bri' => 'success',
+                        'qris' => 'primary',
+                        'transfer' => 'gray',
+                        'cash' => 'success',
+                        'member_balance' => 'info',
+                        default => 'gray',
+                    })
+                    ->toggleable(isToggledHiddenByDefault: false)
                     ->searchable(),
                 \Filament\Tables\Columns\TextColumn::make('total')
                     ->money('IDR')
@@ -406,7 +440,7 @@ class OrderResource extends Resource
                 \Filament\Actions\DeleteAction::make(),
             ])
             ->toolbarActions([
-                // No bulk
+                //
             ])->defaultSort('created_at', 'desc');
     }
 

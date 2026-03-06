@@ -5,12 +5,18 @@ namespace App\Filament\Resources\StockOpnames\Pages;
 use App\Filament\Resources\StockOpnames\StockOpnameResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListStockOpnames extends ListRecords
 {
     protected static string $resource = StockOpnameResource::class;
 
     protected static ?string $title = 'Stok Opname';
+
+    protected function getTableQuery(): ?Builder
+    {
+        return parent::getTableQuery()?->with('branch');
+    }
 
     public function getSubheading(): ?\Illuminate\Contracts\Support\Htmlable
     {

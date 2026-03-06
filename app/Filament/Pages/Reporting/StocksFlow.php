@@ -3,7 +3,6 @@
 namespace App\Filament\Pages\Reporting;
 
 use App\Models\StockMovement;
-use App\Models\Sku;
 use BackedEnum;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
@@ -15,14 +14,12 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
@@ -95,7 +92,7 @@ class StocksFlow extends Page implements HasForms, HasTable
                             ->options(function () {
                                 return \App\Models\Branch::query()
                                     ->pluck('name', 'id')
-                                    //->prepend('Semua Cabang', '')
+                                    // ->prepend('Semua Cabang', '')
                                     ->toArray();
                             })
                             ->live()
@@ -159,7 +156,7 @@ class StocksFlow extends Page implements HasForms, HasTable
                         $currentStock = $record->current_stock ?? 0;
                         $total = $unitCost * $currentStock;
 
-                        return 'Rp ' . number_format($total, 0, ',', '.');
+                        return 'Rp '.number_format($total, 0, ',', '.');
                     })
                     ->sortable(false),
 
@@ -218,6 +215,9 @@ class StocksFlow extends Page implements HasForms, HasTable
             ->join('skus', 'stock_opname_items.sku_id', '=', 'skus.id')
             ->leftJoin('products', 'skus.product_id', '=', 'products.id')
             ->where('stock_opnames.is_adjusted', true)
+            ->when($branchId, function ($q) use ($branchId) {
+                $q->where('stock_opnames.branch_id', $branchId);
+            })
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($query) use ($search) {
                     $query->where('skus.sku', 'like', '%'.$search.'%')
@@ -233,7 +233,7 @@ class StocksFlow extends Page implements HasForms, HasTable
         // Create a simple query without using StockMovement model
         // prepare SQL expressions for current_stock, unit_cost and nominal so they are available in the result set
         $currentStockExpr = $branchId
-            ? '(SELECT COALESCE(SUM(quantity_available), 0) FROM branch_inventory WHERE branch_inventory.sku_id = MIN(combined.sku_id) AND branch_inventory.branch_id = ' . (int)$branchId . ')'
+            ? '(SELECT COALESCE(SUM(quantity_available), 0) FROM branch_inventory WHERE branch_inventory.sku_id = MIN(combined.sku_id) AND branch_inventory.branch_id = '.(int) $branchId.')'
             : '(SELECT stock_quantity FROM skus WHERE skus.id = MIN(combined.sku_id))';
 
         $unitCostExpr = '(SELECT unit_cost FROM skus WHERE skus.id = MIN(combined.sku_id))';
@@ -252,9 +252,9 @@ class StocksFlow extends Page implements HasForms, HasTable
                 DB::raw('SUM(stock_in) as stock_in'),
                 DB::raw('SUM(stock_out) as stock_out'),
                 DB::raw('MAX(transaction_date) as last_update'),
-                DB::raw($currentStockExpr . ' as current_stock'),
-                DB::raw($unitCostExpr . ' as unit_cost'),
-                DB::raw($nominalExpr . ' as nominal'),
+                DB::raw($currentStockExpr.' as current_stock'),
+                DB::raw($unitCostExpr.' as unit_cost'),
+                DB::raw($nominalExpr.' as nominal'),
             ])
             ->groupBy('sku_code')
             ->orderBy('stock_out', 'desc');

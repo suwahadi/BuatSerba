@@ -253,11 +253,15 @@
         <div class="opname-card-body">
             <div class="opname-info-row">
                 <div class="opname-info-item">
+                    <span class="opname-info-label">Cabang</span>
+                    <span class="opname-info-value">{{ $record->branch?->name ?? '-' }}</span>
+                </div>
+                <div class="opname-info-item">
                     <span class="opname-info-label">Tanggal</span>
                     <span class="opname-info-value">{{ $record->opname_date->format('d/m/Y') }}</span>
                 </div>
                 <div class="opname-info-item">
-                    <span class="opname-info-label">Staff</span>
+                    <span class="opname-info-label">Operator</span>
                     <span class="opname-info-value">{{ $record->user->name }}</span>
                 </div>
             </div>

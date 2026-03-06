@@ -12,6 +12,7 @@ class InventoryService
     {
         if (DB::transactionLevel() > 0) {
             $callback();
+
             return;
         }
 
@@ -139,5 +140,38 @@ class InventoryService
         Sku::query()->whereKey($skuId)->update([
             'stock_quantity' => $totalAvailable,
         ]);
+    }
+
+    public function setBranchStock(int $branchId, int $skuId, int $quantity): void
+    {
+        if ($quantity < 0) {
+            throw new \InvalidArgumentException('Quantity cannot be negative.');
+        }
+
+        $this->runAtomic(function () use ($branchId, $skuId, $quantity) {
+            $inv = BranchInventory::query()
+                ->where('branch_id', $branchId)
+                ->where('sku_id', $skuId)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $inv) {
+                BranchInventory::create([
+                    'branch_id' => $branchId,
+                    'sku_id' => $skuId,
+                    'quantity_available' => $quantity,
+                    'quantity_reserved' => 0,
+                    'minimum_stock_level' => 0,
+                    'reorder_point' => 0,
+                ]);
+            } else {
+                $inv->update([
+                    'quantity_available' => $quantity,
+                    'quantity_reserved' => min($inv->quantity_reserved, $quantity),
+                ]);
+            }
+
+            $this->syncSkuAggregateStock($skuId);
+        });
     }
 }

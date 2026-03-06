@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\StockOpnames\Pages;
 
 use App\Filament\Resources\StockOpnames\StockOpnameResource;
+use App\Models\Branch;
 use App\Models\Sku;
 use App\Models\StockOpname;
 use App\Models\StockOpnameItem;
+use App\Services\InventoryService;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -35,7 +37,10 @@ class CreateStockOpname extends Page implements HasForms
 
     public function mount(): void
     {
+        $defaultBranch = Branch::where('is_active', true)->orderBy('priority')->first();
+
         $this->form->fill([
+            'branch_id' => $defaultBranch?->id,
             'opname_date' => now()->format('Y-m-d'),
             'notes' => '',
             'items' => [],
@@ -44,8 +49,24 @@ class CreateStockOpname extends Page implements HasForms
 
     public function form(Schema $schema): Schema
     {
+        $inventoryService = app(InventoryService::class);
+
         return $schema
             ->components([
+                Select::make('branch_id')
+                    ->label('Cabang')
+                    ->options(
+                        Branch::where('is_active', true)
+                            ->orderBy('priority')
+                            ->get()
+                            ->mapWithKeys(fn ($b) => [$b->id => $b->name])
+                    )
+                    ->required()
+                    ->live()
+                    ->disabled(fn (Get $get) => count($get('items') ?? []) > 0)
+                    ->dehydrated()
+                    ->helperText('Cabang tidak dapat diubah setelah menambah daftar barang.')
+                    ->columnSpanFull(),
                 DatePicker::make('opname_date')
                     ->label('Tanggal Opname')
                     ->required()
@@ -67,11 +88,13 @@ class CreateStockOpname extends Page implements HasForms
                             ->searchable()
                             ->required()
                             ->live()
-                            ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                            ->disabled(fn (Get $get) => ! $get('../../branch_id'))
+                            ->afterStateUpdated(function (Get $get, Set $set, $state) use ($inventoryService) {
                                 if ($state) {
-                                    $sku = Sku::find($state);
-                                    if ($sku) {
-                                        $set('system_stock', $sku->stock_quantity);
+                                    $branchId = (int) $get('../../branch_id');
+                                    if ($branchId) {
+                                        $systemStock = $inventoryService->getAvailableQuantity($branchId, (int) $state);
+                                        $set('system_stock', $systemStock);
                                     }
                                 }
                             })
@@ -116,6 +139,7 @@ class CreateStockOpname extends Page implements HasForms
         DB::transaction(function () use ($data) {
             $stockOpname = StockOpname::create([
                 'user_id' => Auth::id(),
+                'branch_id' => $data['branch_id'],
                 'opname_date' => $data['opname_date'],
                 'notes' => $data['notes'] ?? null,
             ]);

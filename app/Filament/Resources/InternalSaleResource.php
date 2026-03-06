@@ -158,7 +158,7 @@ class InternalSaleResource extends Resource
                     ->sortable()
                     ->summarize(Sum::make()->label('Grand Total')->money('IDR', locale: 'id')),
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('Input By')
+                    ->label('Operator')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('created_at')

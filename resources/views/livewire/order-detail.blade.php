@@ -304,7 +304,13 @@
                 </a>
                 
                 @if($order->getPaymentStatusEnum() !== \App\Enums\PaymentStatus::PAID)
-                    @if($order->getPaymentStatusEnum() === \App\Enums\PaymentStatus::FAILED)
+                    @php
+                        $isExpired = $order->status === 'expired' 
+                            || ($order->payment_deadline && $order->payment_deadline->isPast())
+                            || (!empty($paymentData['expired_at']) && \Carbon\Carbon::parse($paymentData['expired_at'])->isPast());
+                    @endphp
+                    
+                    @if($order->getPaymentStatusEnum() === \App\Enums\PaymentStatus::FAILED || $isExpired)
                     <a href="{{ route('catalog') }}" 
                        class="flex-1 px-4 py-2 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 text-center transition font-medium">
                         Order Lagi

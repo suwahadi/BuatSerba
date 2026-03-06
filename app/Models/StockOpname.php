@@ -13,6 +13,7 @@ class StockOpname extends Model
 
     protected $fillable = [
         'user_id',
+        'branch_id',
         'opname_date',
         'notes',
         'is_adjusted',
@@ -31,6 +32,11 @@ class StockOpname extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     public function items(): HasMany

@@ -16,9 +16,11 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 use UnitEnum;
 
 class StockOpnameResource extends Resource
@@ -48,6 +50,20 @@ class StockOpnameResource extends Resource
         return Auth::user()->hasPermissionTo('resource.stock_opnames.view_any') || Auth::user()->hasRole('admin');
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        $unadjustedCount = StockOpname::where('is_adjusted', false)->count();
+
+        return $unadjustedCount > 0 ? (string) $unadjustedCount : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $unadjustedCount = StockOpname::where('is_adjusted', false)->count();
+
+        return $unadjustedCount > 0 ? 'warning' : null;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);
@@ -62,13 +78,21 @@ class StockOpnameResource extends Resource
                     ->date('d-m-Y ')
                     ->sortable(),
                 TextColumn::make('user.name')
-                    ->label('Staff')
+                    ->label('Operator')
                     ->searchable()
+                    ->sortable()
+                    ->formatStateUsing(function ($state, $record) {
+                        $userName = $record->user?->name ?? '-';
+                        $roleName = $record->user?->roles?->first()?->name ?? '-';
+
+                        return new HtmlString(
+                            view('filament.components.operator-badge', compact('userName', 'roleName'))->render()
+                        );
+                    })
+                    ->html(),
+                TextColumn::make('branch.name')
+                    ->label('Cabang')
                     ->sortable(),
-                TextColumn::make('user.roles.name')
-                    ->label('Sebagai')
-                    ->formatStateUsing(fn ($state) => ucfirst($state))
-                    ->badge(),
                 TextColumn::make('notes')
                     ->label('Keterangan')
                     ->limit(50)
@@ -83,6 +107,11 @@ class StockOpnameResource extends Resource
                     ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('branch_id')
+                    ->label('Cabang')
+                    ->relationship('branch', 'name')
+                    ->searchable()
+                    ->preload(),
                 Filter::make('opname_date')
                     ->schema([
                         DatePicker::make('from')
@@ -123,9 +152,9 @@ class StockOpnameResource extends Resource
                     ->label('Staff')
                     ->schema([
                         Select::make('role')
-                            ->label('Staff')
+                            ->label('Operator')
                             ->options(\Spatie\Permission\Models\Role::all()->mapWithKeys(fn ($role) => [$role->name => ucfirst($role->name)]))
-                            ->placeholder('Semua Staff'),
+                            ->placeholder('Semua'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query

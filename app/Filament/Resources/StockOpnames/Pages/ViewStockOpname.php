@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\StockOpnames\Pages;
 
 use App\Filament\Resources\StockOpnames\StockOpnameResource;
-use App\Models\Sku;
+use App\Services\InventoryService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -30,17 +30,20 @@ class ViewStockOpname extends ViewRecord
             return;
         }
 
-        DB::transaction(function () use ($record) {
-            foreach ($record->items as $item) {
-                $sku = Sku::find($item->sku_id);
-                if ($sku) {
-                    $sku->stock_quantity = $item->physical_stock;
-                    $sku->save();
+        $branchId = (int) $record->branch_id;
+        $inventoryService = app(InventoryService::class);
 
-                    $item->new_system_stock = $item->physical_stock;
-                    $item->is_adjusted = true;
-                    $item->save();
-                }
+        DB::transaction(function () use ($record, $branchId, $inventoryService) {
+            foreach ($record->items as $item) {
+                $inventoryService->setBranchStock(
+                    $branchId,
+                    (int) $item->sku_id,
+                    (int) $item->physical_stock
+                );
+
+                $item->new_system_stock = $item->physical_stock;
+                $item->is_adjusted = true;
+                $item->save();
             }
 
             $record->is_adjusted = true;
