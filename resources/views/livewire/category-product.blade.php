@@ -13,7 +13,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 category-product-container">
         @if($products->count() > 0)
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
                 @foreach($products as $product)
@@ -101,4 +101,50 @@
     </div>
 
     <x-footer />
+
+    <style>
+        /* Category product page mobile grid spacing and optimizations */
+        @media (max-width: 640px) {
+            .category-product-container {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
+            
+            .category-product-container .grid.grid-cols-2.md\:grid-cols-3.lg\:grid-cols-5 {
+                gap: 0.5rem !important;
+            }
+            
+            /* Reduce card padding */
+            .category-product-container .bg-white.rounded-lg .p-3,
+            .category-product-container .bg-white.rounded-lg .p-3.sm\:p-4 {
+                padding: 0.5rem !important;
+            }
+            
+            /* Smaller font sizes */
+            .category-product-container h1 {
+                font-size: 1rem !important;
+            }
+            
+            .category-product-container .bg-white.rounded-lg h3 {
+                font-size: 0.75rem !important;
+                line-height: 1.25 !important;
+                height: 2rem !important;
+            }
+            
+            .category-product-container .bg-white.rounded-lg .text-xs {
+                font-size: 0.625rem !important;
+            }
+            
+            .category-product-container .bg-white.rounded-lg .text-sm {
+                font-size: 0.6875rem !important;
+            }
+            
+            .category-product-container .bg-white.rounded-lg svg {
+                width: 0.625rem !important;
+                height: 0.625rem !important;
+            }
+        }
+    </style>
 </div>

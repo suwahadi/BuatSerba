@@ -1,5 +1,6 @@
-<section class="mb-12 sm:mb-16">
-    <div class="flex justify-between items-center mb-6">
+<div>
+<section class="mb-8 sm:mb-12 md:mb-16 product-list-section">
+    <div class="flex justify-between items-center mb-3 sm:mb-4 md:mb-6">
         <h2 class="text-xl sm:text-2xl font-bold text-gray-900">
             @if($type === 'latest')
                 Produk Terbaru
@@ -91,3 +92,51 @@
         </div>
     @endif
 </section>
+
+<style>
+    /* Product list mobile optimizations */
+    @media (max-width: 640px) {
+        .product-list-section {
+            margin-bottom: 1.5rem !important;
+        }
+        
+        .product-list-section .grid.grid-cols-2.md\:grid-cols-3.lg\:grid-cols-6 {
+            gap: 0.5rem !important;
+        }
+        
+        /* Reduce card padding */
+        .product-list-section .bg-white.rounded-lg .p-3 {
+            padding: 0.5rem !important;
+        }
+        
+        /* Smaller font sizes */
+        .product-list-section h2 {
+            font-size: 0.875rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        
+        .product-list-section .bg-white.rounded-lg h3 {
+            font-size: 0.75rem !important;
+            line-height: 1.25 !important;
+            height: 2rem !important;
+        }
+        
+        .product-list-section .bg-white.rounded-lg .text-xs {
+            font-size: 0.625rem !important;
+        }
+        
+        .product-list-section .bg-white.rounded-lg .text-sm {
+            font-size: 0.6875rem !important;
+        }
+        
+        .product-list-section .bg-white.rounded-lg svg {
+            width: 0.625rem !important;
+            height: 0.625rem !important;
+        }
+        
+        .product-list-section a.text-sm {
+            font-size: 0.6875rem !important;
+        }
+    }
+</style>
+</div>

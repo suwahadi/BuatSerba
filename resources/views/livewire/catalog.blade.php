@@ -15,7 +15,7 @@
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 catalog-page-container">
         @php
             $activeFilterCount = count($selectedCategories) + count($selectedBrands) + count($selectedRatings);
             if ($minPrice > 0 || $maxPrice < 50000000) $activeFilterCount++;
@@ -499,7 +499,44 @@
         .range-slider::-moz-range-thumb { width: 20px; height: 20px; background: #00AA5B; border-radius: 50%; cursor: pointer; border: none; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         
-        /* Mobile filter drawer initially hidden */
+        /* Catalog page mobile grid spacing and optimizations */
+        @media (max-width: 640px) {
+            .catalog-page-container {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
+            
+            .catalog-page-container .grid.grid-cols-2.lg\:grid-cols-3 {
+                gap: 0.5rem !important;
+            }
+            
+            .catalog-page-container .bg-white.rounded-lg .p-2\.5 {
+                padding: 0.5rem !important;
+            }
+
+            .catalog-page-container .bg-white.rounded-lg h3 {
+                font-size: 0.75rem !important;
+                line-height: 1.25 !important;
+                margin-bottom: 0.25rem !important;
+            }
+            
+            .catalog-page-container .bg-white.rounded-lg .text-xs {
+                font-size: 0.625rem !important;
+            }
+            
+            .catalog-page-container .bg-white.rounded-lg .text-sm {
+                font-size: 0.6875rem !important;
+            }
+            
+            .catalog-page-container .bg-white.rounded-lg svg {
+                width: 0.625rem !important;
+                height: 0.625rem !important;
+            }
+        }
+        
+        /* Mobile filter drawer hidden */
         @media (max-width: 1023px) {
             .mobile-filter-drawer {
                 visibility: hidden;

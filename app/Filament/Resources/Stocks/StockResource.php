@@ -9,6 +9,8 @@ use App\Models\BranchInventory;
 use BackedEnum;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -17,6 +19,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class StockResource extends Resource
 {
@@ -53,7 +56,11 @@ class StockResource extends Resource
                                     ->searchable()
                                     ->preload()
                                     ->required()
-                                    ->columnSpan(1),
+                                    ->columnSpan(1)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (callable $set, $state) {
+                                        $set('sku_id', null);
+                                    }),
 
                                 Select::make('sku_id')
                                     ->label('Product SKU')
@@ -62,7 +69,31 @@ class StockResource extends Resource
                                     ->preload()
                                     ->required()
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->product->name} - {$record->sku}")
-                                    ->columnSpan(1),
+                                    ->columnSpan(1)
+                                    ->searchPrompt('Search by SKU code or product name')
+                                    ->getSearchResultsUsing(function (string $search): array {
+                                        return \App\Models\Sku::where('sku', 'like', "%{$search}%")
+                                            ->orWhereHas('product', function ($query) use ($search) {
+                                                $query->where('name', 'like', "%{$search}%");
+                                            })
+                                            ->limit(50)
+                                            ->get()
+                                            ->mapWithKeys(fn ($record) => [
+                                                $record->id => "{$record->product->name} - {$record->sku}",
+                                            ])
+                                            ->toArray();
+                                    })
+                                    ->unique(
+                                        table: 'branch_inventory',
+                                        column: 'sku_id',
+                                        ignoreRecord: true,
+                                        modifyRuleUsing: function ($get, $rule) {
+                                            return $rule->where('branch_id', $get('branch_id'));
+                                        }
+                                    )
+                                    ->validationMessages([
+                                        'unique' => 'SKU sudah ada untuk cabang ini. Silakan edit catatan stok yang sudah ada.',
+                                    ]),
 
                                 TextInput::make('quantity_available')
                                     ->label('Available Quantity')
@@ -148,7 +179,6 @@ class StockResource extends Resource
                     ->label('Total Stock')
                     ->getStateUsing(fn ($record) => $record->quantity_available + $record->quantity_reserved)
                     ->numeric()
-                    ->sortable()
                     ->toggleable(),
 
                 TextColumn::make('minimum_stock_level')
@@ -179,7 +209,22 @@ class StockResource extends Resource
                     ->label('Product')
                     ->relationship('sku.product', 'name')
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->getOptionLabelFromRecordUsing(function ($record) {
+                        $firstSku = $record->skus->first();
+                        $skuCode = $firstSku ? $firstSku->sku : 'N/A';
+                        return "{$record->name} ({$skuCode})";
+                    })
+                    ->modifyQueryUsing(function ($query, $search) {
+                        if ($search) {
+                            $query->where(function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%")
+                                    ->orWhereHas('skus', function ($skuQuery) use ($search) {
+                                        $skuQuery->where('sku', 'like', "%{$search}%");
+                                    });
+                            });
+                        }
+                    }),
 
                 SelectFilter::make('stock_status')
                     ->label('Stock Status')
@@ -223,6 +268,25 @@ class StockResource extends Resource
     public static function canCreate(): bool
     {
         return true;
+    }
+
+    public static function mutateFormDataBeforeCreate(array $data): array
+    {
+        $exists = BranchInventory::where('branch_id', $data['branch_id'])
+            ->where('sku_id', $data['sku_id'])
+            ->exists();
+
+        if ($exists) {
+            Notification::make()
+                ->title('Duplicate Entry')
+                ->body('This SKU already exists for the selected branch. Please edit the existing stock record instead.')
+                ->danger()
+                ->send();
+
+            return [];
+        }
+
+        return $data;
     }
 
     public static function getNavigationBadge(): ?string

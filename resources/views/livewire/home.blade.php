@@ -50,7 +50,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-6 sm:pt-8 md:pt-12 pb-3 sm:pb-4 md:pb-6 home-page-container">
 
         <!-- Category Carousel Section -->
         <livewire:category-carousel />
@@ -141,8 +141,51 @@
             -webkit-box-orient: vertical; 
             overflow: hidden; 
         }
-        
-        /* Hero Slider Styles */
+
+        @media (max-width: 640px) {
+            .home-page-container {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                padding-top: 1rem !important;
+                padding-bottom: 0.75rem !important;
+            }
+            
+            .home-page-container .grid.grid-cols-2.md\:grid-cols-3.lg\:grid-cols-6 {
+                gap: 0.5rem !important;
+            }
+            
+            .home-page-container .bg-white.rounded-lg .p-3 {
+                padding: 0.5rem !important;
+            }
+
+            .home-page-container section h2 {
+                font-size: 0.875rem !important;
+            }
+            
+            .home-page-container .bg-white.rounded-lg h3 {
+                font-size: 0.75rem !important;
+                line-height: 1.25 !important;
+                height: 2rem !important;
+            }
+            
+            .home-page-container .bg-white.rounded-lg .text-xs {
+                font-size: 0.625rem !important;
+            }
+            
+            .home-page-container .bg-white.rounded-lg .text-sm {
+                font-size: 0.6875rem !important;
+            }
+            
+            .home-page-container .bg-white.rounded-lg svg {
+                width: 0.625rem !important;
+                height: 0.625rem !important;
+            }
+            
+            .home-page-container a.text-sm {
+                font-size: 0.6875rem !important;
+            }
+        }
+
         .hero-slider {
             position: relative;
         }
@@ -155,8 +198,7 @@
             display: block;
             opacity: 1;
         }
-        
-        /* Slider Indicators */
+
         .slider-indicator {
             width: 0.5rem; /* 2 (8px) */
             background-color: rgba(255, 255, 255, 0.5);
@@ -203,9 +245,7 @@
                 let touchStartX = 0;
                 let touchEndX = 0;
                 
-                // Show specific slide
                 function showSlide(index) {
-                    // Remove active class from all slides and indicators
                     slides.forEach(slide => {
                         slide.classList.remove('active');
                     });
@@ -213,7 +253,6 @@
                         indicator.classList.remove('active');
                     });
                     
-                    // Add active class to current slide and indicator
                     if (slides[index]) {
                         slides[index].classList.add('active');
                     }
@@ -224,19 +263,16 @@
                     currentSlide = index;
                 }
                 
-                // Next slide
                 function nextSlide() {
                     currentSlide = (currentSlide + 1) % slides.length;
                     showSlide(currentSlide);
                 }
                 
-                // Previous slide
                 function prevSlide() {
                     currentSlide = (currentSlide - 1 + slides.length) % slides.length;
                     showSlide(currentSlide);
                 }
                 
-                // Start auto play
                 function startAutoPlay() {
                     stopAutoPlay();
                     if (slides.length > 1) {
@@ -244,7 +280,6 @@
                     }
                 }
                 
-                // Stop auto play
                 function stopAutoPlay() {
                     if (autoPlayInterval) {
                         clearInterval(autoPlayInterval);
@@ -252,7 +287,6 @@
                     }
                 }
                 
-                // Touch handlers
                 function handleTouchStart(e) {
                     touchStartX = e.touches[0].clientX;
                     stopAutoPlay();
@@ -277,7 +311,6 @@
                     startAutoPlay();
                 }
                 
-                // Add click event to indicators
                 indicators.forEach((indicator, index) => {
                     indicator.addEventListener('click', () => {
                         showSlide(index);
@@ -286,16 +319,13 @@
                     });
                 });
                 
-                // Add touch events to slider
                 heroSlider.addEventListener('touchstart', handleTouchStart, { passive: true });
                 heroSlider.addEventListener('touchmove', handleTouchMove, { passive: true });
                 heroSlider.addEventListener('touchend', handleTouchEnd);
                 
-                // Pause on hover (desktop)
                 heroSlider.addEventListener('mouseenter', stopAutoPlay);
                 heroSlider.addEventListener('mouseleave', startAutoPlay);
                 
-                // Start auto play
                 startAutoPlay();
             }
             

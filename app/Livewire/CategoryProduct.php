@@ -32,7 +32,7 @@ class CategoryProduct extends Component
             }, 'category'])
             ->withAvg('reviews', 'rating')
             ->withCount('reviews')
-            ->paginate(20);
+            ->paginate(40);
 
         return view('livewire.category-product', [
             'products' => $products,
