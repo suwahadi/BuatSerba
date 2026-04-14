@@ -34,6 +34,9 @@ Route::get('/payment/{orderNumber}/failed', function ($orderNumber) {
     return redirect()->route('payment', $orderNumber);
 })->name('payment.failed');
 
+Route::get('/blog', App\Livewire\BlogArchives::class)->name('blog.archives');
+Route::get('/blog/{slug}', App\Livewire\BlogDetail::class)->name('blog.detail');
+
 Route::post('/midtrans/notification', [App\Http\Controllers\MidtransController::class, 'notification'])->name('midtrans.notification');
 Route::get('/midtrans/finish', [App\Http\Controllers\MidtransController::class, 'finish'])->name('midtrans.finish');
 Route::get('/midtrans/unfinish', [App\Http\Controllers\MidtransController::class, 'unfinish'])->name('midtrans.unfinish');
@@ -51,11 +54,9 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/address', App\Livewire\Dashboard\Address::class)->name('user.address');
     Route::get('/balance', App\Livewire\Dashboard\MemberBalance::class)->name('user.balance');
 
-    // Premium Membership Routes (Livewire)
     Route::get('/premium', App\Livewire\Dashboard\PremiumMembershipPurchase::class)->name('premium.purchase');
     Route::get('/premium/memberships', App\Livewire\Dashboard\PremiumMemberships::class)->name('premium.memberships');
 
-    // Return Routes
     Route::get('/returns', App\Livewire\Return\ReturnIndex::class)->name('returns.index');
     Route::get('/returns/create', App\Livewire\Return\ReturnCreate::class)->name('returns.create');
     Route::get('/returns/create/{orderNumber}', App\Livewire\Return\ReturnCreate::class)->name('returns.create.order');
@@ -88,5 +89,4 @@ Route::middleware(['auth'])->group(function () {
         ->name('two-factor.show');
 });
 
-// Dynamic Page Route
 Route::get('/{slug}', App\Livewire\SlugRouter::class)->name('page.show');

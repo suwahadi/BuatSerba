@@ -20,7 +20,7 @@
         <div class="bg-white rounded-lg shadow-lg p-3 sm:p-6 md:p-8">
             <h1 class="text-2xl font-bold text-gray-900 mb-6">{{ $page->title }}</h1>
             
-            <div class="prose max-w-none text-gray-700 text-sm space-y-4">
+            <div class="prose max-w-none text-gray-700 text-sm space-y-4 @if($page->slug === 'about') text-justify @endif">
                 {!! nl2br($page->content) !!}
             </div>
         </div>

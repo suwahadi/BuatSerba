@@ -2,8 +2,8 @@
 @if($vouchers->count() > 0)
 <div class="py-12 bg-white" wire:ignore>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-gray-900">Promo Spesial</h2>
+        <div class="flex items-center justify-center mb-6">
+            <h2 class="text-sm sm:text-xl font-bold text-gray-900">Promo Spesial</h2>
         </div>
 
         <div x-data="{

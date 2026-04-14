@@ -1,10 +1,10 @@
-<div class="-mt-[30px]">
+<div class="-mt-[5px]">
 @if($testimonials->count() > 0)
 <div class="pb-12 pt-0 bg-gray-50" wire:ignore>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Apa Kata Mereka?</h2>
-            <p class="text-gray-600">Testimoni pelanggan setia {{ global_config('site_name') }}</p>
+            <h2 class="text-sm sm:text-xl font-bold text-gray-900">Apa Kata Mereka?</h2>
+            <p class="text-gray-600 text-[13px]">Testimoni pelanggan setia {{ global_config('site_name') }}</p>
         </div>
         
         <div x-data="{

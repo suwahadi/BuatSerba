@@ -3,7 +3,38 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ global_config('site_name') }} - {{ global_config('slogan') }}</title>
+    <title>{{ $title ?? (global_config('site_name') . ' - ' . global_config('slogan')) }}</title>
+
+    <!-- Meta Tags -->
+    @if(isset($meta))
+        @if(!empty($meta['description']))
+            <meta name="description" content="{{ $meta['description'] }}">
+        @endif
+
+        @if(!empty($meta['og:type']))
+            <meta property="og:type" content="{{ $meta['og:type'] }}">
+        @endif
+        @if(!empty($meta['og:title']))
+            <meta property="og:title" content="{{ $meta['og:title'] }}">
+        @endif
+        @if(!empty($meta['og:description']))
+            <meta property="og:description" content="{{ $meta['og:description'] }}">
+        @endif
+        @if(!empty($meta['og:image']))
+            <meta property="og:image" content="{{ $meta['og:image'] }}">
+        @endif
+        @if(!empty($meta['og:url']))
+            <meta property="og:url" content="{{ $meta['og:url'] }}">
+        @endif
+        
+        @if(!empty($meta['twitter:card']))
+            <meta name="twitter:card" content="{{ $meta['twitter:card'] }}">
+        @endif
+        @if(!empty($meta['twitter:image']))
+            <meta name="twitter:image" content="{{ $meta['twitter:image'] }}">
+        @endif
+    @endif
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -12,7 +43,7 @@
 <body style="font-family: 'Inter', sans-serif;">
     {{ $slot }}
     
-    <!-- Floating WhatsApp Button -->
+    <!-- Floating WhatsApp -->
     @php
         $whatsapp = global_config('whatsapp');
         if(Str::startsWith($whatsapp, '08')) {

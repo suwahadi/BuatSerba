@@ -56,6 +56,12 @@ class DatabaseSeeder extends Seeder
             TestimonialSeeder::class,                   // OPTIONAL: No dependencies
             // Landing page testimonials
 
+            BlogCategorySeeder::class,                  // OPTIONAL: No dependencies
+            // Blog categories (Tips, Motivasi, Trend)
+
+            BlogPostSeeder::class,                      // OPTIONAL: Requires: BlogCategorySeeder
+            // Creates 6 sample blog posts with placeholder images
+
             UserRBACSeeder::class,                      // OPTIONAL: Creates its own demo RBAC users
             // (admin@buatserba.com, finance@..., warehouse@...)
 
