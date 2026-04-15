@@ -91,6 +91,24 @@ class GlobalConfigSeeder extends Seeder
                 'description' => 'Nama pemilik rekening untuk transfer manual.',
                 'sort' => 130,
             ],
+            [
+                'key' => 'cashback',
+                'value' => '1',
+                'description' => 'Persentase cashback untuk member premium (dalam persen, contoh: 1 untuk 1%).',
+                'sort' => 131,
+            ],
+            [
+                'key' => 'premium_membership_price',
+                'value' => '100000',
+                'description' => 'Harga premium membership dalam Rupiah.',
+                'sort' => 132,
+            ],
+            [
+                'key' => 'maintenance_mode',
+                'value' => '0',
+                'description' => 'Mode maintenance / offline website (1=aktif; 0=tidak aktif).',
+                'sort' => 133,
+            ],
         ];
 
         foreach ($configs as $config) {

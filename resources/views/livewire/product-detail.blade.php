@@ -595,8 +595,8 @@
         @if($relatedProducts->count() > 0)
         <div class="mt-6 sm:mt-12">
             <div class="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Produk Terkait</h3>
-                <a href="/catalog?category={{ $product->category_id }}" class="text-sm sm:text-base text-green-600 font-semibold hover:text-green-700">Lihat Semua →</a>
+                <h3 class="text-sm sm:text-xl font-bold text-gray-900">Produk Terkait</h3>
+                <a href="/catalog?category={{ $product->category_id }}" class="text-sm sm:text-base text-green-600 hover:text-green-700 font-medium flex items-center">Lihat Semua →</a>
             </div>
             
             <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">

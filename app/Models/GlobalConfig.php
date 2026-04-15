@@ -17,6 +17,23 @@ class GlobalConfig extends Model
     {
         return [
             'sort' => 'integer',
+            'value' => 'string',
         ];
+    }
+
+    public static function getCashbackPercentage(): float
+    {
+        $percentage = (float) global_config('cashback', 1);
+        return $percentage / 100;
+    }
+
+    public static function getPremiumMembershipPrice(): int
+    {
+        return (int) global_config('premium_membership_price', 100000);
+    }
+
+    public static function MaintenanceMode(): int
+    {
+        return (int) global_config('maintenance_mode', 1);
     }
 }

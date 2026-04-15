@@ -70,7 +70,7 @@
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
                 </svg>
                 <div>
-                    <p class="font-bold text-gray-900 text-sm">1% Cashback Instant</p>
+                    <p class="font-bold text-gray-900 text-sm">{{ global_config('cashback', 1) }}% Cashback Instant</p>
                     <p class="text-xs text-gray-600 mt-1">Dapatkan 1% cashback untuk setiap pembelian langsung</p>
                 </div>
             </div>
@@ -113,7 +113,7 @@
                 <div class="space-y-4 mb-6">
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span class="text-gray-600 font-medium">Harga</span>
-                        <span class="text-2xl font-bold text-green-600">Rp 100.000</span>
+                        <span class="text-2xl font-bold text-green-600">Rp {{ number_format(global_config('premium_membership_price', 100000), 0, ',', '.') }}</span>
                     </div>
                     <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span class="text-gray-600 font-medium">Durasi</span>
@@ -127,8 +127,8 @@
 
                 @if(!$activeMembership && !$pendingMembership)
                     <button wire:click="$set('showPurchaseModal', true)"
-                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-all duration-200">
-                        Beli Premium Sekarang
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-all duration-200 cursor-pointer">
+                        Upgrade Premium Sekarang
                     </button>
                 @endif
             </div>
@@ -139,7 +139,7 @@
                 <div class="space-y-2">
                     <div class="flex items-start gap-3">
                         <span class="text-green-600 font-bold mt-0.5">✓</span>
-                        <span class="text-gray-700 text-sm">1% Cashback instant untuk setiap pembelian</span>
+                        <span class="text-gray-700 text-sm">{{ global_config('cashback', 1) }}% Cashback instant untuk setiap pembelian</span>
                     </div>
                     <div class="flex items-start gap-3">
                         <span class="text-green-600 font-bold mt-0.5">✓</span>
@@ -179,16 +179,16 @@
                 <path d="M12 2.5 16.5 8l5 1-9.5 12-9.5-12 5-1L12 2.5Z"/>
                 <path d="M7.5 9.5h9l-4.5 12-4.5-12Z" opacity=".3"/>
                 </svg>
-                    <h2 class="text-xl font-bold text-gray-900">Bergabung Premium Membership</h2>
+                    <h2 class="text-lg font-bold text-gray-900">Bergabung Premium Membership</h2>
                 </div>
                 
                 <div class="mb-6">
-                    <p class="text-gray-700 mb-4">Apakah Anda yakin ingin bergabung dengan Premium Membership?</p>
+                    <p class="text-gray-700 mb-4 text-sm">Apakah Anda yakin ingin bergabung dengan Premium Membership?</p>
                     
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-green-700 font-medium">Total Pembayaran</span>
-                            <span class="text-lg font-bold text-green-900">Rp 100.000</span>
+                            <span class="text-lg font-bold text-green-900">Rp {{ number_format(global_config('premium_membership_price', 100000), 0, ',', '.') }}</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-green-700 font-medium">Durasi</span>
@@ -231,16 +231,16 @@
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l5-5 5 5M7 11l5-5 5 5M12 2l10 6v8l-10 6-10-6V8l10-6z"/>
                 </svg>
-                    <h2 class="text-xl font-bold text-gray-900">Perpanjang Premium Membership</h2>
+                    <h2 class="text-lg font-bold text-gray-900">Perpanjang Premium Membership</h2>
                 </div>
                 
                 <div class="mb-6">
-                    <p class="text-gray-700 mb-4">Apakah Anda yakin ingin memperpanjang membership premium Anda?</p>
+                    <p class="text-gray-700 mb-4 text-sm">Apakah Anda yakin ingin memperpanjang membership premium Anda?</p>
                     
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-green-700 font-medium">Biaya Perpanjangan</span>
-                            <span class="text-lg font-bold text-green-900">Rp 100.000</span>
+                            <span class="text-lg font-bold text-green-900">Rp {{ number_format(global_config('premium_membership_price', 100000), 0, ',', '.') }}</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-green-700 font-medium">Durasi Tambahan</span>
@@ -335,7 +335,7 @@
                     <!-- Info -->
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                         <p class="text-xs text-yellow-800">
-                            <strong>⚠️ Pastikan:</strong> Bukti transfer jelas menampilkan nomor referensi dan nominal Rp 100.000
+                            <strong>Pastikan:</strong> Bukti transfer jelas menampilkan nomor referensi dan nominal Rp {{ number_format(global_config('premium_membership_price', 100000), 0, ',', '.') }}
                         </p>
                     </div>
 

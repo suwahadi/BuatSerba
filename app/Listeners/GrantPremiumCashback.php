@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\OrderPaid;
 use App\Exceptions\Wallet\DuplicateTransactionException;
+use App\Models\GlobalConfig;
 use App\Models\MemberBalanceLedger;
 use App\Services\MemberWalletService;
 use Illuminate\Support\Facades\Log;
@@ -40,7 +41,8 @@ class GrantPremiumCashback
             return;
         }
 
-        $cashbackAmount = (float) ($order->total * 0.01);
+        $cashbackPercentage = GlobalConfig::getCashbackPercentage();
+        $cashbackAmount = (float) ($order->total * $cashbackPercentage);
 
         if ($cashbackAmount <= 0) {
             return;

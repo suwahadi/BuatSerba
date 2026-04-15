@@ -20,8 +20,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Admin users have all permissions through Gate::before
-        // This ensures admin role still works while allowing granular permissions
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
             if ($user->hasRole('admin')) {
                 return true;
@@ -29,13 +27,11 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
-        // Manually register policies to ensure Filament detects them
         \Illuminate\Support\Facades\Gate::policy(\App\Models\Order::class, \App\Policies\OrderPolicy::class);
         \Illuminate\Support\Facades\Gate::policy(\App\Models\Payment::class, \App\Policies\PaymentPolicy::class);
         \Illuminate\Support\Facades\Gate::policy(\App\Models\Product::class, \App\Policies\ProductPolicy::class);
         \Illuminate\Support\Facades\Gate::policy(\App\Models\BranchInventory::class, \App\Policies\BranchInventoryPolicy::class);
 
-        // Register Restrictive Policy for Admin-only resources
         $adminOnlyModels = [
             \App\Models\Banner::class,
             \App\Models\Branch::class,
@@ -52,14 +48,13 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\Gate::policy($model, \App\Policies\GeneralAdminPolicy::class);
         }
 
-        // Register observers
         \App\Models\Branch::observe(\App\Observers\BranchObserver::class);
         \App\Models\Sku::observe(\App\Observers\SkuObserver::class);
         \App\Models\BranchInventory::observe(\App\Observers\BranchInventoryObserver::class);
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \App\Models\Product::observe(\App\Observers\ProductImageObserver::class);
+        \App\Models\GlobalConfig::observe(\App\Observers\GlobalConfigObserver::class);
 
-        // Share categories with footer component
         \Illuminate\Support\Facades\View::composer('components.footer', function ($view) {
             $view->with('categories', \App\Models\Category::where('is_active', true)
                 ->whereNotNull('image')
@@ -68,11 +63,10 @@ class AppServiceProvider extends ServiceProvider
                 ->get());
         });
 
-        // Force HTTPS in production and when using ngrok (ngrok always uses HTTPS)
         if ($this->app->environment('production') || $this->isNgrokUrl()) {
             URL::forceScheme('https');
         }
-        // Register event listeners
+
         \Illuminate\Support\Facades\Event::listen(
             \App\Events\OrderPaid::class,
             \App\Listeners\UpgradeUserGrade::class

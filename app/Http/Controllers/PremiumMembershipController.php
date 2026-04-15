@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GlobalConfig;
 use App\Models\PremiumMembership;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class PremiumMembershipController extends Controller
         $activeMembership = $user->activePremiumMembership()->first();
         
         return view('premium.purchase', [
-            'price' => 100000,
+            'price' => GlobalConfig::getPremiumMembershipPrice(),
             'activeMembership' => $activeMembership,
             'daysRemaining' => $activeMembership?->daysRemaining(),
         ]);
@@ -48,7 +49,7 @@ class PremiumMembershipController extends Controller
 
         // Create new pending membership
         $membership = $user->premiumMemberships()->create([
-            'price' => 100000,
+            'price' => GlobalConfig::getPremiumMembershipPrice(),
             'status' => 'pending',
             'payment_method' => 'bank_transfer',
         ]);
@@ -162,7 +163,7 @@ class PremiumMembershipController extends Controller
 
         // Create new membership for renewal
         $newMembership = $user->premiumMemberships()->create([
-            'price' => 100000,
+            'price' => GlobalConfig::getPremiumMembershipPrice(),
             'status' => 'pending',
             'payment_method' => 'bank_transfer',
         ]);

@@ -1,8 +1,8 @@
 <div>
 @if($categories->count() > 0)
-<div class="mb-12 sm:mb-16" wire:ignore>
+<div class="mb-8 sm:mb-16" wire:ignore>
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Kategori Pilihan</h2>
+        <h2 class="text-sm sm:text-xl font-bold text-gray-900">Kategori Pilihan</h2>
     </div>
     
     <div x-data="{
@@ -19,7 +19,6 @@
         },
         
         updateVisible() {
-            // Force 4 columns on all screen sizes as requested
             this.visible = 4;
         },
         
@@ -74,9 +73,6 @@
                  :style="`transform: translateX(-${activeSlide * (100 / visible)}%)`">
                 
                 @php
-                    // Duplikasi items untuk efek infinite loop
-                    // Kita ambil 6 item pertama (max visible) dan taruh di belakang
-                    // Updated to 4 since max visible is now 4
                     $allCategories = $categories->concat($categories->take(4));
                 @endphp
 

@@ -130,7 +130,7 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-purple-900">Cashback</span>
-                        <span class="font-bold text-purple-900">1% / Pembelian</span>
+                        <span class="font-bold text-purple-900">{{ global_config('cashback', 1) }}% / Pembelian</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-purple-900">Mulai Berlaku</span>

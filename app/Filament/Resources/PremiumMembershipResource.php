@@ -115,7 +115,7 @@ class PremiumMembershipResource extends Resource
                             ->dehydrated(false)
                             ->downloadable(),
                     ])
-                    ->columns(2)
+                    ->columns(3)
                     ->columnSpan('full'),
             ])
             ->columns(2);

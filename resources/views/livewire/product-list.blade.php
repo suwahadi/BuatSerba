@@ -33,7 +33,7 @@
                     </span>
                     @endif
                     @if($type === 'latest' && $product->created_at->diffInDays(now()) <= 7)
-                    <span class="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                    <span class="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">
                         New
                     </span>
                     @endif
@@ -47,7 +47,7 @@
                     @if($sku)
                     <div class="mt-2">
                         <div class="flex flex-col sm:flex-row sm:items-baseline sm:space-x-1">
-                            <span class="text-sm sm:text-base font-bold text-green-600">
+                            <span class="text-m sm:text-base font-bold text-green-600">
                                 {{ format_rupiah($sku->selling_price) }}
                             </span>
                         </div>

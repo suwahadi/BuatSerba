@@ -167,8 +167,8 @@
                     Belum ada riwayat pembelian premium membership.
                 </p>
                 <a href="{{ route('premium.purchase') }}" 
-                   class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-10 rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600">
-                    Beli Premium Sekarang
+                   class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-10 rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600 cursor-pointer">
+                    Upgrade Premium Sekarang
                 </a>
             </div>
         @endif

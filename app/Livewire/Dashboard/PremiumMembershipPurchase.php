@@ -2,7 +2,11 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Models\GlobalConfig;
 use App\Models\PremiumMembership;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -20,13 +24,10 @@ class PremiumMembershipPurchase extends Component
     public $showRenewalConfirmModal = false;
     public $showUploadModal = false;
     public $currentMembershipId;
-    
-    // Upload file
+
     public $uploadedFile;
     public $isUploading = false;
     
-    // Pricing info
-    public const MEMBERSHIP_PRICE = 100000;
     public const MEMBERSHIP_DURATION_DAYS = 365;
 
     public function mount()
@@ -42,16 +43,13 @@ class PremiumMembershipPurchase extends Component
     {
         $user = auth()->user();
         
-        // Get active membership
         $this->activeMembership = $user->activePremiumMembership()->first();
-        
-        // Get pending membership (most recent)
+
         $this->pendingMembership = $user->premiumMemberships()
             ->where('status', 'pending')
             ->latest()
             ->first();
-        
-        // Calculate days remaining
+
         if ($this->activeMembership) {
             $this->daysRemaining = $this->activeMembership->daysRemaining() ?? 0;
         }
@@ -61,7 +59,6 @@ class PremiumMembershipPurchase extends Component
     {
         $user = auth()->user();
 
-        // Check if already has pending
         $existingPending = $user->premiumMemberships()
             ->where('status', 'pending')
             ->first();
@@ -71,9 +68,8 @@ class PremiumMembershipPurchase extends Component
             return;
         }
 
-        // Create pending membership
         $membership = $user->premiumMemberships()->create([
-            'price' => self::MEMBERSHIP_PRICE,
+            'price' => GlobalConfig::getPremiumMembershipPrice(),
             'status' => 'pending',
             'payment_method' => 'bank_transfer',
         ]);
@@ -89,11 +85,10 @@ class PremiumMembershipPurchase extends Component
     public function saveUploadedFile()
     {
         $this->validate([
-            'uploadedFile' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+            'uploadedFile' => 'required|file|mimes:jpg,jpeg,png,pdf,webp|max:5048',
         ], [
             'uploadedFile.required' => 'Silakan pilih file bukti transfer.',
-            'uploadedFile.image' => 'File harus berupa gambar.',
-            'uploadedFile.mimes' => 'Format file harus JPG atau PNG.',
+            'uploadedFile.mimes' => 'Format file harus JPG, JPEG, PNG, PDF, atau WebP.',
             'uploadedFile.max' => 'Ukuran file maksimal 5 MB.',
         ]);
 
@@ -107,17 +102,61 @@ class PremiumMembershipPurchase extends Component
         try {
             $membership = PremiumMembership::findOrFail($this->currentMembershipId);
 
-            // Ensure user owns this membership
             if ($membership->user_id !== auth()->id()) {
                 $this->dispatch('error', message: 'Unauthorized');
                 $this->isUploading = false;
                 return;
             }
 
-            // Store file
-            $path = $this->uploadedFile->store('premium-proof', 'public');
+            if ($membership->payment_proof_path) {
+                Storage::disk('public')->delete($membership->payment_proof_path);
+            }
 
-            // Update membership
+            $file = $this->uploadedFile;
+            $extension = strtolower($file->getClientOriginalExtension());
+            
+            $timestamp = time();
+            $uniqueName = $timestamp . '.' . $extension;
+            
+            $tempPath = $file->storeAs('temp-premium-proof', $uniqueName, 'public');
+            $fullTempPath = storage_path('app/public/' . $tempPath);
+            
+            if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp'])) {
+                try {
+                    $image = Image::read($fullTempPath);
+                    $image->orient();
+                    
+                    $width = $image->width();
+                    $height = $image->height();
+                    $maxSide = max($width, $height);
+                    
+                    if ($maxSide > 1200) {
+                        $ratio = 1200 / $maxSide;
+                        $newWidth = (int) round($width * $ratio);
+                        $newHeight = (int) round($height * $ratio);
+                        $image->resize($newWidth, $newHeight);
+                    }
+                    
+                    $encoded = $image->encode(new WebpEncoder(quality: 80));
+                    $webpData = $encoded->toString();
+                    
+                    $webpFilename = $timestamp . '.webp';
+                    $finalPath = 'premium-proof/' . $webpFilename;
+                    
+                    Storage::disk('public')->put($finalPath, $webpData);
+                    
+                    Storage::disk('public')->delete($tempPath);
+                    
+                    $path = $finalPath;
+                } catch (\Exception $e) {
+                    $path = $tempPath;
+                }
+            } else {
+                $finalPath = 'premium-proof/' . $uniqueName;
+                Storage::disk('public')->move($tempPath, $finalPath);
+                $path = $finalPath;
+            }
+
             $membership->update(['payment_proof_path' => $path]);
 
             $this->showUploadModal = false;
@@ -141,8 +180,7 @@ class PremiumMembershipPurchase extends Component
         }
 
         $user = auth()->user();
-        
-        // Check if already has pending renewal
+
         $pendingRenewal = $user->premiumMemberships()
             ->where('status', 'pending')
             ->where('created_at', '>', now()->subDay())
@@ -153,9 +191,8 @@ class PremiumMembershipPurchase extends Component
             return;
         }
 
-        // Create new membership for renewal
         $membership = $user->premiumMemberships()->create([
-            'price' => self::MEMBERSHIP_PRICE,
+            'price' => GlobalConfig::getPremiumMembershipPrice(),
             'status' => 'pending',
             'payment_method' => 'bank_transfer',
         ]);
