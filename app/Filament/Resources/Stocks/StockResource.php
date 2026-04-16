@@ -115,28 +115,28 @@ class StockResource extends Resource
                     ])
                     ->columnSpan(['lg' => 2]),
 
-                Group::make()
-                    ->schema([
-                        Section::make('Stock Levels')
-                            ->schema([
-                                TextInput::make('minimum_stock_level')
-                                    ->label('Minimum Stock Level')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->minValue(0)
-                                    ->helperText('Alert when stock falls below this level'),
+                // Group::make()
+                //     ->schema([
+                //         Section::make('Stock Levels')
+                //             ->schema([
+                //                 TextInput::make('minimum_stock_level')
+                //                     ->label('Minimum Stock Level')
+                //                     ->numeric()
+                //                     ->default(0)
+                //                     ->minValue(0)
+                //                     ->helperText('Alert when stock falls below this level'),
 
-                                TextInput::make('reorder_point')
-                                    ->label('Reorder Point')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->minValue(0)
-                                    ->helperText('Trigger reorder when stock reaches this level'),
-                            ]),
-                    ])
-                    ->columnSpan(['lg' => 1]),
+                //                 TextInput::make('reorder_point')
+                //                     ->label('Reorder Point')
+                //                     ->numeric()
+                //                     ->default(0)
+                //                     ->minValue(0)
+                //                     ->helperText('Trigger reorder when stock reaches this level'),
+                //             ]),
+                //     ])
+                //     ->columnSpan(['lg' => 1]),
             ])
-            ->columns(3);
+            ->columns(2);
     }
 
     public static function table(Table $table): Table
@@ -205,53 +205,82 @@ class StockResource extends Resource
                     ->searchable()
                     ->preload(),
 
-                SelectFilter::make('product')
-                    ->label('Product')
-                    ->relationship('sku.product', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->getOptionLabelFromRecordUsing(function ($record) {
-                        $firstSku = $record->skus->first();
-                        $skuCode = $firstSku ? $firstSku->sku : 'N/A';
-                        return "{$record->name} ({$skuCode})";
-                    })
-                    ->modifyQueryUsing(function ($query, $search) {
-                        if ($search) {
-                            $query->where(function ($q) use ($search) {
-                                $q->where('name', 'like', "%{$search}%")
-                                    ->orWhereHas('skus', function ($skuQuery) use ($search) {
-                                        $skuQuery->where('sku', 'like', "%{$search}%");
-                                    });
-                            });
-                        }
-                    }),
+                // SelectFilter::make('product')
+                //     ->label('Product')
+                //     ->relationship('sku.product', 'name')
+                //     ->searchable()
+                //     ->preload()
+                //     ->getOptionLabelFromRecordUsing(function ($record) {
+                //         $firstSku = $record->skus->first();
+                //         $skuCode = $firstSku ? $firstSku->sku : 'N/A';
+                //         return "{$record->name} ({$skuCode})";
+                //     })
+                //     ->modifyQueryUsing(function ($query, $search) {
+                //         if ($search) {
+                //             $query->where(function ($q) use ($search) {
+                //                 $q->where('name', 'like', "%{$search}%")
+                //                     ->orWhereHas('skus', function ($skuQuery) use ($search) {
+                //                         $skuQuery->where('sku', 'like', "%{$search}%");
+                //                     });
+                //             });
+                //         }
+                //     }),
 
-                SelectFilter::make('stock_status')
-                    ->label('Stock Status')
-                    ->options([
-                        'low' => 'Low Stock',
-                        'reorder' => 'Needs Reorder',
-                        'ok' => 'Stock OK',
-                    ])
-                    ->query(function ($query, $state) {
-                        if ($state['value'] === 'low') {
-                            return $query->whereColumn('quantity_available', '<=', 'minimum_stock_level');
-                        }
-                        if ($state['value'] === 'reorder') {
-                            return $query->whereColumn('quantity_available', '<=', 'reorder_point')
-                                ->whereColumn('quantity_available', '>', 'minimum_stock_level');
-                        }
-                        if ($state['value'] === 'ok') {
-                            return $query->whereColumn('quantity_available', '>', 'reorder_point');
-                        }
-                    }),
+                // SelectFilter::make('stock_status')
+                //     ->label('Stock Status')
+                //     ->options([
+                //         'low' => 'Low Stock',
+                //         'reorder' => 'Needs Reorder',
+                //         'ok' => 'Stock OK',
+                //     ])
+                //     ->query(function ($query, $state) {
+                //         if ($state['value'] === 'low') {
+                //             return $query->whereColumn('quantity_available', '<=', 'minimum_stock_level');
+                //         }
+                //         if ($state['value'] === 'reorder') {
+                //             return $query->whereColumn('quantity_available', '<=', 'reorder_point')
+                //                 ->whereColumn('quantity_available', '>', 'minimum_stock_level');
+                //         }
+                //         if ($state['value'] === 'ok') {
+                //             return $query->whereColumn('quantity_available', '>', 'reorder_point');
+                //         }
+                //     }),
             ])
             ->actions([
                 \Filament\Actions\EditAction::make(),
                 \Filament\Actions\ViewAction::make(),
             ])
             ->toolbarActions([
-                //
+                \pxlrbt\FilamentExcel\Actions\Tables\ExportAction::make()
+                    ->label('Export Data')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->exports([
+                        \pxlrbt\FilamentExcel\Exports\ExcelExport::make()
+                            ->fromTable()
+                            ->withFilename('stock-management-'.date('Y-m-d_His'))
+                            ->withWriterType(\Maatwebsite\Excel\Excel::CSV)
+                            ->withColumns([
+                                \pxlrbt\FilamentExcel\Columns\Column::make('branch.name')
+                                    ->heading('Branch'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('sku.product.name')
+                                    ->heading('Product'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('sku.sku')
+                                    ->heading('SKU'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('quantity_available')
+                                    ->heading('Available'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('quantity_reserved')
+                                    ->heading('Reserved'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('total_stock')
+                                    ->heading('Total Stock')
+                                    ->getStateUsing(function ($record) {
+                                        return $record->quantity_available + $record->quantity_reserved;
+                                    }),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('updated_at')
+                                    ->heading('Last Updated')
+                                    ->formatStateUsing(fn ($state) => $state?->format('Y-m-d H:i:s')),
+                            ]),
+                    ]),
             ])
             ->defaultSort('updated_at', 'desc');
     }

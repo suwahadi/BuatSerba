@@ -92,7 +92,6 @@ class StocksFlow extends Page implements HasForms, HasTable
                             ->options(function () {
                                 return \App\Models\Branch::query()
                                     ->pluck('name', 'id')
-                                    // ->prepend('Semua Cabang', '')
                                     ->toArray();
                             })
                             ->live()
@@ -127,10 +126,21 @@ class StocksFlow extends Page implements HasForms, HasTable
                     ->defaultImageUrl('https://placehold.co/100x100?text=No+Image'),
 
                 TextColumn::make('sku_code')
+                    ->label('SKU')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('product_name')
+                    ->label('Product')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                TextColumn::make('sku_code')
                     ->label('Produk')
                     ->formatStateUsing(fn ($record) => new HtmlString(
                         '<strong>'.e($record->sku_code ?? '-').'</strong><br><small style="color: #666">'.e($record->product_name ?? '-').'</small>'
-                    )),
+                    ))
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('stock_in')
                     ->label('Masuk')
@@ -164,7 +174,43 @@ class StocksFlow extends Page implements HasForms, HasTable
                     ->label('Update Terakhir')
                     ->dateTime('d M Y H:i:s'),
             ])
-            ->paginated([10, 25, 50]);
+            ->paginated([10, 25, 50])
+            ->headerActions([
+                \pxlrbt\FilamentExcel\Actions\Tables\ExportAction::make()
+                    ->label('Export Data')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->exports([
+                        \pxlrbt\FilamentExcel\Exports\ExcelExport::make()
+                            ->fromTable()
+                            ->except(['product_image'])
+                            ->withFilename('laporan-arus-stok-'.date('Y-m-d_His'))
+                            ->withWriterType(\Maatwebsite\Excel\Excel::CSV)
+                            ->withColumns([
+                                \pxlrbt\FilamentExcel\Columns\Column::make('sku_code')
+                                    ->heading('SKU'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('product_name')
+                                    ->heading('Product'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('stock_in')
+                                    ->heading('Masuk'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('stock_out')
+                                    ->heading('Keluar'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('current_stock')
+                                    ->heading('Stok Saat Ini'),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('nominal')
+                                    ->heading('Nominal (Rp)')
+                                    ->formatStateUsing(function ($state, $record) {
+                                        $unitCost = $record->unit_cost ?? 0;
+                                        $currentStock = $record->current_stock ?? 0;
+                                        $total = $unitCost * $currentStock;
+                                        return 'Rp '.number_format($total, 0, ',', '.');
+                                    }),
+                                \pxlrbt\FilamentExcel\Columns\Column::make('last_update')
+                                    ->heading('Update Terakhir')
+                                    ->formatStateUsing(fn ($state) => $state ? \Carbon\Carbon::parse($state)->format('d M Y H:i:s') : '-'),
+                            ]),
+                    ]),
+            ]);
     }
 
     protected function getStockMovementsQuery(): Builder
@@ -230,15 +276,12 @@ class StocksFlow extends Page implements HasForms, HasTable
 
         $unionQuery = $orderItemsQuery->unionAll($stockOpnameQuery);
 
-        // Create a simple query without using StockMovement model
-        // prepare SQL expressions for current_stock, unit_cost and nominal so they are available in the result set
         $currentStockExpr = $branchId
             ? '(SELECT COALESCE(SUM(quantity_available), 0) FROM branch_inventory WHERE branch_inventory.sku_id = MIN(combined.sku_id) AND branch_inventory.branch_id = '.(int) $branchId.')'
             : '(SELECT stock_quantity FROM skus WHERE skus.id = MIN(combined.sku_id))';
 
         $unitCostExpr = '(SELECT unit_cost FROM skus WHERE skus.id = MIN(combined.sku_id))';
 
-        // nominal = unit_cost * current_stock (both from subqueries)
         $nominalExpr = "({$unitCostExpr}) * ({$currentStockExpr})";
 
         $query = DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))

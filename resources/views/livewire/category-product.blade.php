@@ -41,7 +41,7 @@
                             @if($sku)
                             <div class="mt-2">
                                 <div class="flex flex-col sm:flex-row sm:items-baseline sm:space-x-1">
-                                    <span class="text-sm sm:text-base font-bold text-green-600">
+                                    <span class="text-m sm:text-base font-bold text-green-600">
                                         {{ format_rupiah($sku->selling_price) }}
                                     </span>
                                 </div>

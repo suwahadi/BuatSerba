@@ -374,12 +374,12 @@ class PaymentConfirmationResource extends Resource
                     ->label('Hapus')
                     ->visible(fn ($record) => static::canDelete($record)),
             ])
-            ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => static::canDeleteAny()),
-                ]),
-            ])
+            // ->bulkActions([
+            //     \Filament\Actions\BulkActionGroup::make([
+            //         \Filament\Actions\DeleteBulkAction::make()
+            //             ->visible(fn () => static::canDeleteAny()),
+            //     ]),
+            // ])
             ->defaultSort('confirmed_at', 'desc');
     }
 

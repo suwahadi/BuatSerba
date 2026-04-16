@@ -1,40 +1,39 @@
 <div class="bg-gray-50">
     <x-navbar />
 
-    <div class="pt-16">
+    <div class="pt-12 md:pt-16">
         <div class="relative overflow-hidden bg-gray-200">
             <div class="hero-slider" id="heroSlider">
                 @forelse($banners as $index => $banner)
                     <div class="hero-slide {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}">
-                        <div class="relative w-full aspect-[16/10.67] md:aspect-[1600/600]">
+                        <div class="relative w-full aspect-auto md:aspect-[1600/600]">
                             @if($banner->url)
                                 <a href="{{ $banner->url }}" class="block w-full h-full">
                                     <img src="{{ \Illuminate\Support\Facades\Storage::url($banner->image) }}" 
                                          alt="{{ $banner->title }}" 
-                                         class="w-full h-full object-cover select-none"
+                                         class="w-full h-full object-contain md:object-cover select-none"
                                          draggable="false">
                                 </a>
                             @else
                                 <img src="{{ \Illuminate\Support\Facades\Storage::url($banner->image) }}" 
                                      alt="{{ $banner->title }}" 
-                                     class="w-full h-full object-cover select-none"
+                                     class="w-full h-full object-contain md:object-cover select-none"
                                      draggable="false">
                             @endif
                         </div>
                     </div>
                 @empty
-                    <!-- Default Banner if no banner configured -->
                     <div class="hero-slide active" data-slide="0">
-                        <div class="relative w-full aspect-[16/10.67] md:aspect-[1600/600]">
+                        <div class="relative w-full aspect-auto md:aspect-[1600/600]">
                             <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&h=600&fit=crop" 
                                  alt="Default Banner" 
-                                 class="w-full h-full object-cover select-none"
+                                 class="w-full h-full object-contain md:object-cover select-none"
                                  draggable="false">
                         </div>
                     </div>
                 @endforelse
 
-                <!-- Slider Navigation Indicators -->
+                <!-- Slider Navigation -->
                 @if($banners->count() > 1)
                 <div class="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-10" id="sliderIndicators">
                     @foreach($banners as $index => $banner)

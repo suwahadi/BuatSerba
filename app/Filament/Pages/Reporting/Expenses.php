@@ -129,7 +129,7 @@ class Expenses extends Page implements HasForms, HasTable
             ->defaultSort('transaction_date', 'desc')
             ->headerActions([
                 \pxlrbt\FilamentExcel\Actions\Tables\ExportAction::make()
-                    ->label('Export to Excel')
+                    ->label('Export Data')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
                     ->exports([

@@ -387,8 +387,8 @@
                 <div class="mb-4">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h2 class="text-xl font-semibold text-gray-900">Hasil Pencarian</h2>
-                            <p class="text-gray-600 text-sm mt-1">Menampilkan <span>{{ $products->total() }}</span> produk</p>
+                            <h2 class="text-sm sm:text-xl font-bold text-gray-900">Hasil Pencarian</h2>
+                            <p class="text-gray-600 text-[11px] sm:text-[13px] mt-1">Menampilkan <span>{{ $products->total() }}</span> produk</p>
                         </div>
                     </div>
                 </div>
@@ -418,7 +418,7 @@
                                 @if($sku)
                                 <div class="mt-2 sm:mt-3">
                                     <div class="flex flex-col sm:flex-row sm:items-baseline sm:space-x-2">
-                                        <span class="text-sm sm:text-base font-bold text-green-600">
+                                        <span class="text-m sm:text-base font-bold text-green-600 mb-1">
                                             {{ format_rupiah($sku->selling_price) }}
                                         </span>
                                         @if($sku->base_price > $sku->selling_price)

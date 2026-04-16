@@ -146,7 +146,7 @@ class Order extends Page implements HasForms, HasTable
             ->defaultSort('total_profit', 'desc')
             ->headerActions([
                 \pxlrbt\FilamentExcel\Actions\Tables\ExportAction::make()
-                    ->label('Export to Excel')
+                    ->label('Export Data')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
                     ->exports([
