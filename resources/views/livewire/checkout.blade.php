@@ -364,33 +364,113 @@
                         Metode Pembayaran
                     </h2>
                     
-                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
-                        @foreach($this->paymentMethods as $method)
+                    <div class="space-y-4">
+                        <!-- Virtual Account Section -->
                         @php
-                            $isMemberBalance = $method['id'] === 'member_balance';
-                            $isDisabled = $isMemberBalance && !$isPremiumMember;
+                            $vaMethods = collect($this->paymentMethods)->filter(fn($m) => in_array($m['id'], ['bank-transfer-bca', 'bank-transfer-bni', 'bank-transfer-bri', 'bank-transfer-mandiri']));
                         @endphp
-                        <label class="flex flex-col p-2.5 sm:p-3 border-2 rounded-lg transition-all 
-                                    {{ $isDisabled 
-                                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' 
-                                        : ($paymentMethod === $method['id'] 
-                                            ? 'border-green-600 bg-green-50 cursor-pointer' 
-                                            : 'border-gray-200 hover:border-green-300 cursor-pointer') }}" 
-                               wire:key="payment-{{ $method['id'] }}">
-                            <div class="flex items-start gap-2">
-                                <input type="radio" wire:model.live="paymentMethod" value="{{ $method['id'] }}" 
-                                       class="mt-0.5 text-green-600 focus:ring-green-500 flex-shrink-0"
-                                       @if($isDisabled) disabled @endif>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-xs sm:text-sm font-semibold leading-tight {{ $isDisabled ? 'text-gray-400' : 'text-gray-900' }}">{{ $method['name'] }}</p>
-                                    <p class="text-xs mt-0.5 leading-tight {{ $isDisabled ? 'text-gray-400' : 'text-gray-600' }}">{{ $method['description'] }}</p>
-                                    @if($method['id'] === 'cod' && !$isDisabled)
-                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-1.5 py-0.5 rounded mt-1">POPULER</span>
-                                    @endif
-                                </div>
+                        @if($vaMethods->count() > 0)
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">Virtual Account</h3>
+                            <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                                @foreach($vaMethods as $method)
+                                    @php
+                                        $logoMap = [
+                                            'bank-transfer-bca' => '/storage/static/bca.png',
+                                            'bank-transfer-bni' => '/storage/static/bni.png',
+                                            'bank-transfer-bri' => '/storage/static/bri.png',
+                                            'bank-transfer-mandiri' => '/storage/static/mandiri.jpg',
+                                        ];
+                                        $logoUrl = $logoMap[$method['id']] ?? null;
+                                    @endphp
+                                    <label class="flex items-center gap-3 p-3 border-2 rounded-lg transition-all cursor-pointer hover:border-green-500 hover:bg-green-50 {{ $paymentMethod === $method['id'] ? 'border-green-600 bg-green-50' : 'border-gray-200' }}"
+                                           wire:key="payment-{{ $method['id'] }}">
+                                        <input type="radio" wire:model.live="paymentMethod" value="{{ $method['id'] }}" class="sr-only">
+                                        <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1 flex-shrink-0">
+                                            @if($logoUrl)
+                                                <img src="{{ $logoUrl }}" alt="{{ $method['name'] }}" class="w-full h-full object-contain">
+                                            @else
+                                                <span class="text-xs font-bold text-gray-600">{{ strtoupper(substr($method['name'], 0, 3)) }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs sm:text-sm font-semibold text-gray-900 leading-tight">{{ $method['name'] }}</p>
+                                            <p class="text-xs text-gray-600 mt-0.5 leading-tight">{{ $method['description'] }}</p>
+                                        </div>
+                                    </label>
+                                @endforeach
                             </div>
-                        </label>
-                        @endforeach
+                        </div>
+                        @endif
+
+                        <!-- E-Wallet & QRIS Section -->
+                        @php
+                            $ewalletMethods = collect($this->paymentMethods)->filter(fn($m) => in_array($m['id'], ['qris', 'e-wallet-gopay']));
+                        @endphp
+                        @if($ewalletMethods->count() > 0)
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">E-Wallet & QRIS</h3>
+                            <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                                @foreach($ewalletMethods as $method)
+                                    @php
+                                        $logoMap = [
+                                            'qris' => '/storage/static/qris.png',
+                                            'e-wallet-gopay' => '/storage/static/gopay.png',
+                                        ];
+                                        $logoUrl = $logoMap[$method['id']] ?? null;
+                                    @endphp
+                                    <label class="flex items-center gap-3 p-3 border-2 rounded-lg transition-all cursor-pointer hover:border-green-500 hover:bg-green-50 {{ $paymentMethod === $method['id'] ? 'border-green-600 bg-green-50' : 'border-gray-200' }}"
+                                           wire:key="payment-{{ $method['id'] }}">
+                                        <input type="radio" wire:model.live="paymentMethod" value="{{ $method['id'] }}" class="sr-only">
+                                        <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1 flex-shrink-0">
+                                            @if($logoUrl)
+                                                <img src="{{ $logoUrl }}" alt="{{ $method['name'] }}" class="w-full h-full object-contain">
+                                            @else
+                                                <span class="text-xs font-bold text-gray-600">{{ strtoupper(substr($method['name'], 0, 3)) }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs sm:text-sm font-semibold text-gray-900 leading-tight">{{ $method['name'] }}</p>
+                                            <p class="text-xs text-gray-600 mt-0.5 leading-tight">{{ $method['description'] }}</p>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Other Payment Methods (COD, etc.) -->
+                        @php
+                            $otherMethods = collect($this->paymentMethods)->filter(fn($m) => !in_array($m['id'], ['bank-transfer-bca', 'bank-transfer-bni', 'bank-transfer-bri', 'bank-transfer-mandiri', 'qris', 'e-wallet-gopay']));
+                        @endphp
+                        @if($otherMethods->count() > 0)
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">Metode Lainnya</h3>
+                            <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                                @foreach($otherMethods as $method)
+                                    @php
+                                        $isMemberBalance = $method['id'] === 'member_balance';
+                                        $isDisabled = $isMemberBalance && !$isPremiumMember;
+                                    @endphp
+                                    <label class="flex flex-col p-2.5 sm:p-3 border-2 rounded-lg transition-all {{ $isDisabled ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : ($paymentMethod === $method['id'] ? 'border-green-600 bg-green-50 cursor-pointer' : 'border-gray-200 hover:border-green-300 cursor-pointer') }}"
+                                           wire:key="payment-{{ $method['id'] }}">
+                                        <div class="flex items-start gap-2">
+                                            <input type="radio" wire:model.live="paymentMethod" value="{{ $method['id'] }}" 
+                                                   class="mt-0.5 text-green-600 focus:ring-green-500 flex-shrink-0"
+                                                   @if($isDisabled) disabled @endif>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-xs sm:text-sm font-semibold leading-tight {{ $isDisabled ? 'text-gray-400' : 'text-gray-900' }}">{{ $method['name'] }}</p>
+                                                <p class="text-xs mt-0.5 leading-tight {{ $isDisabled ? 'text-gray-400' : 'text-gray-600' }}">{{ $method['description'] }}</p>
+                                                @if($method['id'] === 'cod' && !$isDisabled)
+                                                <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-1.5 py-0.5 rounded mt-1">POPULER</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                     </div>
                     @error('paymentMethod') <span class="text-red-500 text-xs mt-2 block">{{ $message }}</span> @enderror
                 </div>

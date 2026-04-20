@@ -376,17 +376,30 @@
                 @endif
 
                 @if($paymentInstructions['type'] === 'qris')
-                <div class="bg-white rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 text-center border-2 border-green-200">
-                    <p class="text-sm sm:text-base font-medium mb-2">Scan Kode QR</p>
-                    <div class="border-2 border-green-300 rounded-lg p-2 inline-block">
-                        <!-- In a real implementation, you would display the QR code here -->
-                        <div class="bg-gradient-to-br from-green-50 to-green-100 border-2 border-dashed border-green-400 rounded-xl w-36 h-36 sm:w-48 sm:h-48 flex items-center justify-center">
-                            <span class="text-green-600 font-medium text-xs sm:text-sm">QR Code</span>
+                <div class="bg-white border-2 border-gray-200 rounded-lg p-4 sm:p-6 mb-3 sm:mb-4 text-center">
+                    @if(isset($paymentInstructions['qr_string']) && $qrCodeImage)
+                        <p class="text-sm sm:text-base font-semibold text-gray-800 mb-3">Scan Kode QR</p>
+                        <div class="mb-3">
+                            <img src="{{ $qrCodeImage }}" alt="QR Code" class="mx-auto" style="max-width: 250px; height: auto;">
                         </div>
-                    </div>
-                    <p class="text-xs sm:text-sm text-gray-600 mt-2">
-                        Scan kode QR di atas menggunakan aplikasi pembayaran QRIS
-                    </p>
+                        <p class="text-xs text-gray-600">Scan QR code ini dengan aplikasi e-wallet atau mobile banking Anda</p>
+                        @if(isset($paymentInstructions['expiry_time']))
+                            <p class="text-xs text-red-600 mt-2 font-medium">Berlaku hingga: {{ $paymentInstructions['expiry_time'] }}</p>
+                        @endif
+                    @elseif(isset($paymentInstructions['qr_string']))
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                            <p class="text-sm text-yellow-800 font-medium mb-2">QR Code sedang dimuat...</p>
+                            <p class="text-xs text-yellow-700">Jika QR code tidak muncul dalam beberapa detik, silakan refresh halaman atau gunakan metode pembayaran lain.</p>
+                        </div>
+                    @else
+                        <div class="bg-gray-100 p-6 sm:p-8 rounded-lg">
+                            <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h3v2h-3v-2zm-3 0h2v2h-2v-2zm3 3h3v3h-3v-3zm-3 3h2v2h-2v-2zm-3-3h2v2h-2v-2z"/>
+                            </svg>
+                            <p class="text-sm text-gray-600 font-medium">QR Code tidak tersedia</p>
+                            <p class="text-xs text-gray-500 mt-1">Silakan gunakan Virtual Account atau E-Wallet</p>
+                        </div>
+                    @endif
                 </div>
                 @endif
 

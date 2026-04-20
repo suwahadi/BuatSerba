@@ -1,4 +1,18 @@
-<div class="font-['Poppins']">
+<div class="font-['Poppins'] relative">
+    <!-- Global Loading Overlay -->
+    @if($isProcessingPayment)
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]">
+            <div class="bg-white rounded-lg shadow-xl p-8 max-w-sm w-full mx-4 text-center">
+                <svg class="animate-spin h-12 w-12 text-green-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-gray-900 font-bold text-lg mb-2">Memproses Pembayaran...</p>
+                <p class="text-gray-600 text-sm">Mohon tunggu, sedang menghubungkan ke gateway pembayaran</p>
+            </div>
+        </div>
+    @endif
+
     <h1 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l5-5 5 5M7 11l5-5 5 5M12 2l10 6v8l-10 6-10-6V8l10-6z"/>
@@ -119,10 +133,6 @@
                         <span class="text-gray-600 font-medium">Durasi</span>
                         <span class="text-gray-900 font-bold">1 Tahun (365 hari)</span>
                     </div>
-                    <div class="flex justify-between items-center pb-3">
-                        <span class="text-gray-600 font-medium">Tipe Pembayaran</span>
-                        <span class="text-gray-900 font-bold">Transfer Bank</span>
-                    </div>
                 </div>
 
                 @if(!$activeMembership && !$pendingMembership)
@@ -135,8 +145,8 @@
 
             <!-- Right: Feature List -->
             <div>
-                <h3 class="text-lg font-bold text-gray-900 mb-6">Fitur & Keuntungan</h3>
-                <div class="space-y-2">
+                <h3 class="text-lg font-bold text-gray-900 mb-3">Fitur & Keuntungan</h3>
+                <div class="">
                     <div class="flex items-start gap-3">
                         <span class="text-green-600 font-bold mt-0.5">✓</span>
                         <span class="text-gray-700 text-sm">{{ global_config('cashback', 1) }}% Cashback instant untuk setiap pembelian</span>
@@ -163,7 +173,7 @@
                     </div>
                     <div class="flex items-start gap-3">
                         <span class="text-green-600 font-bold mt-0.5">✓</span>
-                        <span class="text-gray-700 text-sm">Masa berlaku 1 tahun penuh</span>
+                        <span class="text-gray-700 text-sm">Masa berlaku 1 tahun</span>
                     </div>
                 </div>
             </div>
@@ -175,10 +185,6 @@
         <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="$set('showPurchaseModal', false)">
             <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" wire:click.stop>
                 <div class="flex items-center gap-3 mb-4">
-                <svg class="w-10 h-10 text-green-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2.5 16.5 8l5 1-9.5 12-9.5-12 5-1L12 2.5Z"/>
-                <path d="M7.5 9.5h9l-4.5 12-4.5-12Z" opacity=".3"/>
-                </svg>
                     <h2 class="text-lg font-bold text-gray-900">Bergabung Premium Membership</h2>
                 </div>
                 
@@ -194,15 +200,11 @@
                             <span class="text-sm text-green-700 font-medium">Durasi</span>
                             <span class="text-sm font-bold text-green-900">1 Tahun (365 hari)</span>
                         </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-green-200">
-                            <span class="text-sm text-green-700 font-medium">Metode Pembayaran</span>
-                            <span class="text-sm font-bold text-green-900">Transfer Bank</span>
-                        </div>
                     </div>
 
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-                        <p class="text-xs text-blue-800">
-                            <strong>Informasi:</strong> Setelah konfirmasi, Anda akan diarahkan untuk upload bukti transfer. Benefit premium akan aktif setelah pembayaran diverifikasi oleh admin.
+                        <p class="text-xs text-gray-800">
+                            <strong>Informasi:</strong> Benefit premium akan aktif setelah pembayaran berhasil dikonfirmasi.
                         </p>
                     </div>
                 </div>
@@ -210,13 +212,13 @@
                 <div class="flex gap-3">
                     <button type="button"
                             wire:click="$set('showPurchaseModal', false)"
-                            class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors">
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer">
                         Batal
                     </button>
                     <button type="button"
                             wire:click="purchasePremium"
-                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-colors">
-                        Ya, Bergabung
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-colors cursor-pointer">
+                        Bergabung
                     </button>
                 </div>
             </div>
@@ -260,7 +262,7 @@
 
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
                         <p class="text-xs text-blue-800">
-                            <strong>Informasi:</strong> Setelah konfirmasi, Anda akan diarahkan untuk upload bukti transfer. Masa aktif akan diperpanjang setelah pembayaran diverifikasi oleh admin.
+                            <strong>Informasi:</strong> Setelah konfirmasi, Anda akan memilih metode pembayaran. Masa aktif akan diperpanjang setelah pembayaran berhasil.
                         </p>
                     </div>
                 </div>
@@ -268,13 +270,232 @@
                 <div class="flex gap-3">
                     <button type="button"
                             wire:click="$set('showRenewalConfirmModal', false)"
-                            class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors">
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer">
                         Batal
                     </button>
                     <button type="button"
                             wire:click="renewMembership"
-                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-colors">
-                        Ya, Perpanjang
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-colors cursor-pointer">
+                        Perpanjang
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Payment Method Selection Modal -->
+    @if($showPaymentMethodModal)
+        <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="$set('showPaymentMethodModal', false)">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" wire:click.stop>
+                <div class="flex items-center gap-3 mb-6">
+                    <div>
+                        <h2 class="text-md font-bold text-gray-900">Pilih Metode Pembayaran</h2>
+                        <p class="text-sm text-gray-600">Total: Rp {{ number_format(global_config('premium_membership_price', 100000), 0, ',', '.') }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Virtual Account Section -->
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">Virtual Account</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {{-- <button wire:click="selectPaymentMethod('bank-transfer-bca')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="selectPaymentMethod"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white relative">
+                                @if($selectedMethodLoading === 'bank-transfer-bca')
+                                    <div class="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                                        <svg class="animate-spin h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
+                                    <img src="/storage/static/bca.png" alt="BCA" class="w-full h-full object-contain">
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-bold text-gray-900 text-sm">BCA Virtual Account</p>
+                                    <p class="text-xs text-gray-600">Bayar via ATM/Mobile Banking</p>
+                                </div>
+                            </button> --}}
+
+                            <button wire:click="selectPaymentMethod('bank-transfer-bni')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="selectPaymentMethod"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white relative">
+                                @if($selectedMethodLoading === 'bank-transfer-bni')
+                                    <div class="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                                        <svg class="animate-spin h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
+                                    <img src="/storage/static/bni.png" alt="BNI" class="w-full h-full object-contain">
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-bold text-gray-900 text-sm">BNI Virtual Account</p>
+                                    <p class="text-xs text-gray-600">Bayar via ATM/Mobile Banking</p>
+                                </div>
+                            </button>
+
+                            <button wire:click="selectPaymentMethod('bank-transfer-bri')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="selectPaymentMethod"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white relative">
+                                @if($selectedMethodLoading === 'bank-transfer-bri')
+                                    <div class="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                                        <svg class="animate-spin h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
+                                    <img src="/storage/static/bri.png" alt="BRI" class="w-full h-full object-contain">
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-bold text-gray-900 text-sm">BRI Virtual Account</p>
+                                    <p class="text-xs text-gray-600">Bayar via ATM/Mobile Banking</p>
+                                </div>
+                            </button>
+
+                            <button wire:click="selectPaymentMethod('bank-transfer-mandiri')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="selectPaymentMethod"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white relative">
+                                @if($selectedMethodLoading === 'bank-transfer-mandiri')
+                                    <div class="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                                        <svg class="animate-spin h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
+                                    <img src="/storage/static/mandiri.jpg" alt="Mandiri" class="w-full h-full object-contain">
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-bold text-gray-900 text-sm">Mandiri Bill Payment</p>
+                                    <p class="text-xs text-gray-600">Bayar via ATM/Mobile Banking</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- E-Wallet Section -->
+                    <!-- <div>
+                        <h3 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">E-Wallet</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <button wire:click="selectPaymentMethod('e-wallet-gopay')"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-blue-600 font-bold text-xs">GOPAY</span>
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-bold text-gray-900 text-sm">GoPay</p>
+                                    <p class="text-xs text-gray-600">Bayar via aplikasi Gojek</p>
+                                </div>
+                            </button>
+
+                            <button wire:click="selectPaymentMethod('e-wallet-shopeepay')"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer">
+                                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-orange-600 font-bold text-xs">SHOPEE</span>
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-bold text-gray-900 text-sm">ShopeePay</p>
+                                    <p class="text-xs text-gray-600">Bayar via aplikasi Shopee</p>
+                                </div>
+                            </button>
+
+                            <button wire:click="selectPaymentMethod('e-wallet-ovo')"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-purple-600 font-bold text-xs">OVO</span>
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-bold text-gray-900 text-sm">OVO</p>
+                                    <p class="text-xs text-gray-600">Bayar via aplikasi OVO</p>
+                                </div>
+                            </button>
+
+                            <button wire:click="selectPaymentMethod('e-wallet-dana')"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-blue-600 font-bold text-xs">DANA</span>
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-bold text-gray-900 text-sm">DANA</p>
+                                    <p class="text-xs text-gray-600">Bayar via aplikasi DANA</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div> -->
+
+                    <!-- QRIS -->
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">QR Code</h3>
+                        <div class="grid grid-cols-1 gap-3">
+                            <button wire:click="selectPaymentMethod('qris')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="selectPaymentMethod"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white relative">
+                                @if($selectedMethodLoading === 'qris')
+                                    <div class="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                                        <svg class="animate-spin h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
+                                    <img src="/storage/static/qris.png" alt="QRIS" class="w-full h-full object-contain">
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-bold text-gray-900 text-sm">QRIS</p>
+                                    <p class="text-xs text-gray-600">Scan QR dari semua e-wallet & mobile banking</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Manual Transfer Section -->
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">Transfer Manual</h3>
+                        <div class="grid grid-cols-1 gap-3">
+                            <button wire:click="selectPaymentMethod('manual-transfer')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="selectPaymentMethod"
+                                    class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white relative">
+                                @if($selectedMethodLoading === 'manual-transfer')
+                                    <div class="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                                        <svg class="animate-spin h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
+                                    <img src="/storage/static/manual_bank_transfer.png" alt="Manual Transfer" class="w-full h-full object-contain">
+                                </div>
+                                <div class="text-left flex-1">
+                                    <p class="font-bold text-gray-900 text-sm">Transfer Bank Manual</p>
+                                    <p class="text-xs text-gray-600">Transfer ke rekening & upload bukti</p>
+                                </div>
+                                <span class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded font-medium">Manual</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <button type="button"
+                            wire:click="$set('showPaymentMethodModal', false)"
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer">
+                        Batal
                     </button>
                 </div>
             </div>
@@ -284,79 +505,392 @@
     <!-- Upload Proof Modal -->
     @if($showUploadModal)
         <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="cancelUpload">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" wire:click.stop>
-                <h2 class="text-lg font-bold text-gray-900 mb-4">Upload Bukti Transfer</h2>
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" wire:click.stop>
+                <h2 class="text-lg font-bold text-gray-900 mb-4">Selesaikan Pembayaran</h2>
                 
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <p class="text-xs text-blue-800 font-medium mb-2">Informasi Pembayaran:</p>
-                    <div class="space-y-1 text-xs text-blue-800">
-                        <div><strong>Bank:</strong> {{ global_config('manual_bank_name') ?? 'BCA' }}</div>
-                        <div><strong>No. Rek:</strong> {{ global_config('manual_bank_account_number') ?? '-' }}</div>
-                        <div><strong>A/N:</strong> {{ global_config('manual_bank_account_name') ?? '-' }}</div>
-                    </div>
-                </div>
+                @if($paymentInstructions && $paymentOrderId)
+                    <!-- Payment Instructions Display -->
+                    <div class="mb-6">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                            <p class="text-xs text-green-800 font-medium">Order ID:</p>
+                            <p class="text-sm font-bold text-green-900">{{ $paymentOrderId }}</p>
+                        </div>
 
-                <form wire:submit="saveUploadedFile" class="space-y-4">
-                    <!-- File Upload -->
-                    <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">
-                            Bukti Transfer
-                        </label>
-                        <div class="relative">
-                            <input type="file" wire:model="uploadedFile" 
-                                   accept="image/jpeg,image/png,image/jpg"
-                                   class="sr-only"
-                                   id="fileInput">
-                            <label for="fileInput"
-                                   class="block w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors text-center">
-                                @if($uploadedFile)
-                                    <div class="text-sm">
-                                        <span class="font-medium text-green-600">✓ File dipilih:</span>
-                                        <p class="text-gray-600 mt-1">{{ $uploadedFile->getClientOriginalName() }}</p>
+                        @if($paymentInstructions['type'] === 'virtual_account')
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                <p class="text-xs text-blue-800 font-medium mb-2">Nomor Virtual Account ({{ strtoupper($paymentInstructions['bank']) }}):</p>
+                                <div class="flex items-center gap-2" x-data="{ copied: false }">
+                                    <p class="text-2xl font-bold text-blue-900">{{ $paymentInstructions['va_number'] }}</p>
+                                    <button @click="navigator.clipboard.writeText('{{ $paymentInstructions['va_number'] }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                            :class="copied ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'"
+                                            class="px-3 py-1.5 text-white text-xs rounded transition-all duration-200 flex items-center gap-1.5 min-w-[70px] justify-center">
+                                        <template x-if="!copied">
+                                            <span>Copy</span>
+                                        </template>
+                                        <template x-if="copied">
+                                            <div class="flex items-center gap-1">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                <span>Copied!</span>
+                                            </div>
+                                        </template>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <p class="text-xs text-yellow-800 font-medium mb-2">Cara Pembayaran:</p>
+                                <ol class="list-decimal list-inside space-y-1 text-xs text-yellow-800">
+                                    @foreach($paymentInstructions['instructions'] as $instruction)
+                                        <li>{{ $instruction }}</li>
+                                    @endforeach
+                                </ol>
+                            </div>
+
+                        @elseif($paymentInstructions['type'] === 'mandiri_echannel')
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3" x-data="{ copied: false }">
+                                    <p class="text-xs text-blue-800 font-medium mb-1">Bill Key:</p>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-lg font-bold text-blue-900">{{ $paymentInstructions['bill_key'] }}</p>
+                                        <button @click="navigator.clipboard.writeText('{{ $paymentInstructions['bill_key'] }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                                :class="copied ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'"
+                                                class="px-2 py-1 text-white text-xs rounded transition-all duration-200 flex items-center gap-1 min-w-[60px] justify-center">
+                                            <template x-if="!copied">
+                                                <span>Copy</span>
+                                            </template>
+                                            <template x-if="copied">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </template>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3" x-data="{ copied: false }">
+                                    <p class="text-xs text-blue-800 font-medium mb-1">Biller Code:</p>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-lg font-bold text-blue-900">{{ $paymentInstructions['biller_code'] }}</p>
+                                        <button @click="navigator.clipboard.writeText('{{ $paymentInstructions['biller_code'] }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                                :class="copied ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'"
+                                                class="px-2 py-1 text-white text-xs rounded transition-all duration-200 flex items-center gap-1 min-w-[60px] justify-center">
+                                            <template x-if="!copied">
+                                                <span>Copy</span>
+                                            </template>
+                                            <template x-if="copied">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </template>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <p class="text-xs text-yellow-800 font-medium mb-2">Cara Pembayaran:</p>
+                                <ol class="list-decimal list-inside space-y-1 text-xs text-yellow-800">
+                                    @foreach($paymentInstructions['instructions'] as $instruction)
+                                        <li>{{ $instruction }}</li>
+                                    @endforeach
+                                </ol>
+                            </div>
+
+                        @elseif($paymentInstructions['type'] === 'qris')
+                            <div class="bg-white border-2 border-gray-200 rounded-lg p-6 mb-4 text-center">
+                                @if(isset($paymentInstructions['qr_string']) && $qrCodeImage)
+                                    <div class="mb-3">
+                                        <img src="{{ $qrCodeImage }}" alt="QR Code" class="mx-auto" style="max-width: 250px; height: auto;">
+                                    </div>
+                                    <p class="text-xs text-gray-600">Scan QR code ini dengan aplikasi e-wallet atau mobile banking Anda</p>
+                                    @if(isset($paymentInstructions['expiry_time']))
+                                        <p class="text-xs text-red-600 mt-2 font-medium">Berlaku hingga: {{ $paymentInstructions['expiry_time'] }}</p>
+                                    @endif
+                                @elseif(isset($paymentInstructions['qr_string']))
+                                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                                        <p class="text-sm text-yellow-800 font-medium mb-2">QR Code sedang dimuat...</p>
+                                        <p class="text-xs text-yellow-700">Jika QR code tidak muncul dalam beberapa detik, silakan refresh halaman atau gunakan metode pembayaran lain.</p>
                                     </div>
                                 @else
-                                    <div>
-                                        <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    <div class="bg-gray-100 p-8 rounded-lg">
+                                        <svg class="w-16 h-16 mx-auto text-gray-400 mb-2" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h3v2h-3v-2zm-3 0h2v2h-2v-2zm3 3h3v3h-3v-3zm-3 3h2v2h-2v-2zm-3-3h2v2h-2v-2z"/>
                                         </svg>
-                                        <p class="mt-2 text-sm text-gray-600">
-                                            <span class="font-medium">Klik untuk upload</span> atau drag file
-                                        </p>
-                                        <p class="mt-1 text-xs text-gray-500">JPG, PNG (Max 5 MB)</p>
+                                        <p class="text-sm text-gray-600 font-medium">QR Code tidak tersedia</p>
+                                        <p class="text-xs text-gray-500 mt-1">Silakan gunakan Virtual Account atau E-Wallet</p>
                                     </div>
                                 @endif
-                            </label>
-                        </div>
-                        @error('uploadedFile')
-                            <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
-                        @enderror
+                            </div>
+
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <p class="text-xs text-yellow-800 font-medium mb-2">Cara Pembayaran:</p>
+                                <ol class="list-decimal list-inside space-y-1 text-xs text-yellow-800">
+                                    @foreach($paymentInstructions['instructions'] as $instruction)
+                                        <li>{{ $instruction }}</li>
+                                    @endforeach
+                                </ol>
+                            </div>
+
+                        @elseif($paymentInstructions['type'] === 'ewallet')
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                <p class="text-sm text-blue-900 font-medium">
+                                    Pembayaran akan diproses melalui {{ strtoupper($paymentInstructions['provider']) }}
+                                </p>
+                                <p class="text-xs text-blue-700 mt-1">Silakan cek notifikasi di aplikasi Anda untuk menyelesaikan pembayaran</p>
+                            </div>
+
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <p class="text-xs text-yellow-800 font-medium mb-2">Cara Pembayaran:</p>
+                                <ol class="list-decimal list-inside space-y-1 text-xs text-yellow-800">
+                                    @foreach($paymentInstructions['instructions'] as $instruction)
+                                        <li>{{ $instruction }}</li>
+                                    @endforeach
+                                </ol>
+                            </div>
+                        @endif
                     </div>
 
-                    <!-- Info -->
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <p class="text-xs text-yellow-800">
-                            <strong>Pastikan:</strong> Bukti transfer jelas menampilkan nomor referensi dan nominal Rp {{ number_format(global_config('premium_membership_price', 100000), 0, ',', '.') }}
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                        <p class="text-xs text-gray-700">
+                            <strong>Catatan:</strong> Status membership akan otomatis aktif setelah pembayaran berhasil diverifikasi oleh sistem. Anda tidak perlu upload bukti transfer.
                         </p>
                     </div>
+                @else
+                    <!-- Manual Bank Transfer (Fallback) -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <p class="text-xs text-blue-800 font-medium mb-2">Informasi Pembayaran:</p>
+                        <div class="space-y-1 text-xs text-blue-800">
+                            <div><strong>Bank:</strong> {{ global_config('manual_bank_name') ?? 'BCA' }}</div>
+                            <div><strong>No. Rek:</strong> {{ global_config('manual_bank_account_number') ?? '-' }}</div>
+                            <div><strong>A/N:</strong> {{ global_config('manual_bank_account_name') ?? '-' }}</div>
+                        </div>
+                    </div>
 
-                    <div class="flex gap-3 pt-4">
+                    <form wire:submit="saveUploadedFile" class="space-y-4">
+                        <!-- File Upload -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-900 mb-2">
+                                Bukti Transfer
+                            </label>
+                            <div class="relative">
+                                <input type="file" wire:model="uploadedFile" 
+                                       accept="image/jpeg,image/png,image/jpg"
+                                       class="sr-only"
+                                       id="fileInput">
+                                <label for="fileInput"
+                                       class="block w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors text-center">
+                                    @if($uploadedFile)
+                                        <div class="text-sm">
+                                            <span class="font-medium text-green-600">✓ File dipilih:</span>
+                                            <p class="text-gray-600 mt-1">{{ $uploadedFile->getClientOriginalName() }}</p>
+                                        </div>
+                                    @else
+                                        <div>
+                                            <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                            </svg>
+                                            <p class="mt-2 text-sm text-gray-600">
+                                                <span class="font-medium">Klik untuk upload</span> atau drag file
+                                            </p>
+                                            <p class="mt-1 text-xs text-gray-500">JPG, PNG (Max 5 MB)</p>
+                                        </div>
+                                    @endif
+                                </label>
+                            </div>
+                            @error('uploadedFile')
+                                <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Info -->
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <p class="text-xs text-gray-800">
+                                <strong>Pastikan:</strong> Bukti transfer jelas menampilkan nomor referensi dan nominal Rp {{ number_format(global_config('premium_membership_price', 100000), 0, ',', '.') }}
+                            </p>
+                        </div>
+
+                        <div class="flex gap-3 pt-4">
+                            <button type="button"
+                                    wire:click="cancelUpload"
+                                    class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer"
+                                    {{ $isUploading ? 'disabled' : '' }}>
+                                Batal
+                            </button>
+                            <button type="submit"
+                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    {{ $isUploading ? 'disabled' : '' }}>
+                                @if($isUploading)
+                                    Uploading...
+                                @else
+                                    Upload
+                                @endif
+                            </button>
+                        </div>
+                    </form>
+                @endif
+
+                @if($paymentInstructions)
+                    <div class="mt-4 pt-4 border-t border-gray-200">
                         <button type="button"
-                                wire:click="cancelUpload"
-                                class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-2.5 rounded-lg transition-colors"
-                                {{ $isUploading ? 'disabled' : '' }}>
-                            Batal
-                        </button>
-                        <button type="submit"
-                                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                {{ $isUploading ? 'disabled' : '' }}>
-                            @if($isUploading)
-                                <span class="inline-block animate-spin mr-2">⏳</span> Uploading...
-                            @else
-                                Upload
-                            @endif
+                                @click="window.location.reload()"
+                                class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer">
+                            Tutup
                         </button>
                     </div>
-                </form>
+                @endif
+            </div>
+        </div>
+    @endif
+
+    <!-- Membership History Section -->
+    @if($membershipHistory && $membershipHistory->count() > 0)
+        <div class="mt-8">
+            <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Riwayat Premium Member
+            </h2>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <!-- Desktop Table -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Tanggal
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Harga
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Metode
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Periode
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($membershipHistory as $membership)
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $membership->created_at->format('d M Y') }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        Rp {{ number_format($membership->price, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        @if($membership->payment_method === 'midtrans')
+                                            <span class="inline-flex items-center gap-1">
+                                                Midtrans
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1">
+                                                Manual
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @php
+                                            $badgeClasses = match($membership->status) {
+                                                'active' => 'bg-green-100 text-green-800',
+                                                'pending' => 'bg-yellow-100 text-yellow-800',
+                                                'expired' => 'bg-gray-100 text-gray-800',
+                                                'cancelled' => 'bg-red-100 text-red-800',
+                                                default => 'bg-gray-100 text-gray-800',
+                                            };
+                                            $statusLabels = [
+                                                'active' => 'Aktif',
+                                                'pending' => 'Pending',
+                                                'expired' => 'Expired',
+                                                'cancelled' => 'Dibatalkan',
+                                            ];
+                                        @endphp
+                                        <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium {{ $badgeClasses }}">
+                                            {{ $statusLabels[$membership->status] ?? ucfirst($membership->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        @if($membership->started_at && $membership->expires_at)
+                                            <div class="text-xs">
+                                                <div>{{ $membership->started_at->format('d M Y') }}</div>
+                                                <div class="text-gray-500">s/d {{ $membership->expires_at->format('d M Y') }}</div>
+                                            </div>
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Cards -->
+                <div class="md:hidden divide-y divide-gray-200">
+                    @foreach($membershipHistory as $membership)
+                        <div class="p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{ $membership->created_at->format('d M Y') }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Rp {{ number_format($membership->price, 0, ',', '.') }}
+                                    </p>
+                                </div>
+                                @php
+                                    $badgeClasses = match($membership->status) {
+                                        'active' => 'bg-green-100 text-green-800',
+                                        'pending' => 'bg-yellow-100 text-yellow-800',
+                                        'expired' => 'bg-gray-100 text-gray-800',
+                                        'cancelled' => 'bg-red-100 text-red-800',
+                                        default => 'bg-gray-100 text-gray-800',
+                                    };
+                                    $statusLabels = [
+                                        'active' => 'Aktif',
+                                        'pending' => 'Pending',
+                                        'expired' => 'Expired',
+                                        'cancelled' => 'Dibatalkan',
+                                    ];
+                                @endphp
+                                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium {{ $badgeClasses }}">
+                                    {{ $statusLabels[$membership->status] ?? ucfirst($membership->status) }}
+                                </span>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-2 text-xs text-gray-700">
+                                    @if($membership->payment_method === 'midtrans')
+                                        <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                                            <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span>Midtrans</span>
+                                    @else
+                                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        <span>Manual Transfer</span>
+                                    @endif
+                                </div>
+                                
+                                @if($membership->started_at && $membership->expires_at)
+                                    <div class="text-xs text-gray-600">
+                                        <span class="font-medium">Periode:</span><br>
+                                        {{ $membership->started_at->format('d M Y') }} - {{ $membership->expires_at->format('d M Y') }}
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
     @endif

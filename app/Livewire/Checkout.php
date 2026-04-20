@@ -73,40 +73,51 @@ class Checkout extends Component
     public function paymentMethods()
     {
         $methods = [
+            // Virtual Account Section
             // [
             //     'id' => 'bank-transfer-bca',
             //     'name' => 'BCA Virtual Account',
-            //     'description' => 'Transfer ke rekening virtual BCA',
+            //     'description' => 'Bayar via ATM/Mobile Banking',
             //     'icon' => 'bank',
             // ],
             [
-                'id' => 'bank-transfer-mandiri',
-                'name' => 'Mandiri Virtual Account',
-                'description' => 'Transfer ke rekening virtual Mandiri',
-                'icon' => 'bank',
-            ],
-            [
                 'id' => 'bank-transfer-bni',
                 'name' => 'BNI Virtual Account',
-                'description' => 'Transfer ke rekening virtual BNI',
+                'description' => 'Bayar via ATM/Mobile Banking',
                 'icon' => 'bank',
             ],
             [
                 'id' => 'bank-transfer-bri',
                 'name' => 'BRI Virtual Account',
-                'description' => 'Transfer ke rekening virtual BRI',
+                'description' => 'Bayar via ATM/Mobile Banking',
                 'icon' => 'bank',
             ],
-            // [
-            //     'id' => 'bank-transfer-permata',
-            //     'name' => 'Permata Virtual Account',
-            //     'description' => 'Transfer ke rekening virtual Permata',
-            //     'icon' => 'bank',
-            // ],
+            [
+                'id' => 'bank-transfer-mandiri',
+                'name' => 'Mandiri Bill Payment',
+                'description' => 'Bayar via ATM/Mobile Banking',
+                'icon' => 'bank',
+            ],
+            
+            // E-Wallet & QRIS Section
+            [
+                'id' => 'qris',
+                'name' => 'QRIS',
+                'description' => 'Scan App e-wallet & mobile banking',
+                'icon' => 'qris',
+            ],
+            [
+                'id' => 'e-wallet-gopay',
+                'name' => 'GoPay',
+                'description' => 'Bayar via aplikasi Gopay/Gojek',
+                'icon' => 'ewallet',
+            ],
+            
+            // Other Methods
             [
                 'id' => 'bank-transfer',
-                'name' => 'Bank Transfer ('.(global_config('manual_bank_name') ?? 'BCA').')',
-                'description' => 'Transfer manual ke rekening '.(global_config('manual_bank_name') ?? 'BCA'),
+                'name' => 'Transfer Bank Manual',
+                'description' => 'Transfer ke rekening & upload bukti',
                 'icon' => 'bank',
             ],
         ];
@@ -115,8 +126,8 @@ class Checkout extends Component
             $methods[] = [
                 'id' => 'member_balance',
                 'name' => 'Saldo Member (Rp ' . number_format($this->memberBalance, 0, ',', '.') . ')',
-                'description' => 'Gunakan saldo member',
-                'icon' => 'bank',
+                'description' => 'Gunakan saldo member Anda',
+                'icon' => 'wallet',
             ];
         }
 

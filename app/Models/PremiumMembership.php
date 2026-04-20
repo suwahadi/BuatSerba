@@ -17,12 +17,27 @@ class PremiumMembership extends Model
         'payment_proof_path',
         'started_at',
         'expires_at',
+        'payment_gateway',
+        'transaction_id',
+        'transaction_time',
+        'transaction_status',
+        'fraud_status',
+        'payment_type',
+        'payment_channel',
+        'midtrans_response',
+        'signature_key',
+        'status_code',
+        'status_message',
+        'paid_at',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'started_at' => 'datetime',
         'expires_at' => 'datetime',
+        'transaction_time' => 'datetime',
+        'paid_at' => 'datetime',
+        'midtrans_response' => 'array',
     ];
 
     /**
@@ -63,5 +78,71 @@ class PremiumMembership extends Model
         }
         
         return now()->diffInDays($this->expires_at, false);
+    }
+
+    /**
+     * Update membership from Midtrans notification
+     */
+    public function updateFromMidtransNotification(array $notification): void
+    {
+        $this->update([
+            'transaction_status' => $notification['transaction_status'] ?? $this->transaction_status,
+            'fraud_status' => $notification['fraud_status'] ?? $this->fraud_status,
+            'status_code' => $notification['status_code'] ?? $this->status_code,
+            'status_message' => $notification['status_message'] ?? $this->status_message,
+            'signature_key' => $notification['signature_key'] ?? $this->signature_key,
+            'midtrans_response' => $notification,
+        ]);
+
+        $this->updateStatusFromPayment();
+    }
+
+    /**
+     * Update membership status based on payment status
+     */
+    protected function updateStatusFromPayment(): void
+    {
+        if (in_array($this->transaction_status, ['settlement', 'capture']) && 
+            ($this->fraud_status === 'accept' || $this->fraud_status === null)) {
+            
+            $durationDays = config('premium_membership.duration_days', 365);
+            
+            $this->update([
+                'status' => 'active',
+                'paid_at' => now(),
+                'started_at' => $this->started_at ?? now(),
+                'expires_at' => ($this->expires_at ?? now())->addDays($durationDays),
+            ]);
+
+        } elseif (in_array($this->transaction_status, ['deny', 'cancel', 'expire', 'expired'])) {
+            $this->update([
+                'status' => 'cancelled',
+            ]);
+        }
+    }
+
+    /**
+     * Check if payment is successful
+     */
+    public function isPaymentSuccessful(): bool
+    {
+        return in_array($this->transaction_status, ['settlement', 'capture']) &&
+               ($this->fraud_status === 'accept' || $this->fraud_status === null);
+    }
+
+    /**
+     * Check if payment is pending
+     */
+    public function isPaymentPending(): bool
+    {
+        return $this->transaction_status === 'pending';
+    }
+
+    /**
+     * Check if payment is failed
+     */
+    public function isPaymentFailed(): bool
+    {
+        return in_array($this->transaction_status, ['deny', 'cancel', 'expire', 'expired']);
     }
 }

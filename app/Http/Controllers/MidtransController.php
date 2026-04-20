@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Payment as PaymentModel;
 use App\Models\PaymentNotification;
+use App\Models\PremiumMembership;
 use Illuminate\Http\Request;
 
 class MidtransController extends Controller
@@ -41,6 +42,11 @@ class MidtransController extends Controller
                     'status' => 'ok',
                     'message' => 'Test notification handled successfully',
                 ]);
+            }
+
+            // Check if this is a premium membership payment
+            if (strpos($orderId, 'PREM-') === 0) {
+                return $this->handlePremiumMembershipNotification($orderId, $notif, $transactionStatus);
             }
 
             // Find order by order number
@@ -94,7 +100,6 @@ class MidtransController extends Controller
             // Mark notification as processed
             $paymentNotification->update(['processed' => true, 'processed_at' => now()]);
 
-            // Always return OK to Midtrans (we processed it successfully)
             return response()->json(['status' => 'ok']);
 
         } catch (\Exception $e) {
@@ -103,7 +108,6 @@ class MidtransController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            // Still return OK to Midtrans to prevent retry loops for invalid data
             return response()->json([
                 'status' => 'ok',
                 'message' => 'Notification processed with error logged',
@@ -160,6 +164,53 @@ class MidtransController extends Controller
         }
 
         return redirect()->route('home')->with('error', 'Order not found');
+    }
+
+    /**
+     * Handle premium membership payment notification
+     */
+    protected function handlePremiumMembershipNotification(string $orderId, array $notif, string $transactionStatus)
+    {
+        // Extract membership ID from custom field
+        $membershipId = $notif['custom_field2'] ?? null;
+
+        if (!$membershipId) {
+            \Log::warning('Premium membership ID not found in notification', ['order_id' => $orderId]);
+            return response()->json(['status' => 'ok', 'message' => 'Membership ID not found']);
+        }
+
+        $membership = PremiumMembership::find($membershipId);
+
+        if (!$membership) {
+            \Log::warning('Premium membership not found', ['membership_id' => $membershipId, 'order_id' => $orderId]);
+            return response()->json(['status' => 'ok', 'message' => 'Membership not found']);
+        }
+
+        // Create payment notification audit record
+        PaymentNotification::create([
+            'payment_id' => null,
+            'order_id' => $orderId,
+            'transaction_status' => $transactionStatus,
+            'notification_body' => $notif,
+            'processed' => false,
+        ]);
+
+        // Update membership payment status
+        $membership->updateFromMidtransNotification($notif);
+
+        // Mark notification as processed
+        PaymentNotification::where('order_id', $orderId)
+            ->whereNull('payment_id')
+            ->latest()
+            ->first()?->update(['processed' => true, 'processed_at' => now()]);
+
+        \Log::info('Premium membership payment updated', [
+            'membership_id' => $membershipId,
+            'order_id' => $orderId,
+            'status' => $transactionStatus,
+        ]);
+
+        return response()->json(['status' => 'ok']);
     }
 
     /**

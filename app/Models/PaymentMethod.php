@@ -23,7 +23,6 @@ class PaymentMethod
             case 'bank-transfer':
                 $bank = $this->subMethod ?? 'bca';
 
-                // Mandiri uses echannel (Bill Payment) instead of bank_transfer
                 if ($bank === 'mandiri') {
                     return [
                         'payment_type' => 'echannel',
@@ -38,10 +37,32 @@ class PaymentMethod
 
             case 'e-wallet':
                 $wallet = $this->subMethod ?? 'gopay';
-
-                return [
+                $config = [
                     'payment_type' => $wallet,
                 ];
+
+                switch ($wallet) {
+                    case 'gopay':
+                        $config['gopay'] = [
+                            'enable_callback' => true,
+                            'callback_url' => config('midtrans.redirect_urls.finish'),
+                        ];
+                        break;
+                    case 'shopeepay':
+                        $config['shopeepay'] = [
+                            'callback_url' => config('midtrans.redirect_urls.finish'),
+                        ];
+                        break;
+                    case 'dana':
+                    case 'ovo':
+                    case 'linkaja':
+                        $config[$wallet] = [
+                            'callback_url' => config('midtrans.redirect_urls.finish'),
+                        ];
+                        break;
+                }
+
+                return $config;
 
             case 'credit-card':
                 return [

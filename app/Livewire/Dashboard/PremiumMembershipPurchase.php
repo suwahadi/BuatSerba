@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use App\Models\GlobalConfig;
 use App\Models\PremiumMembership;
+use App\Services\PremiumMembershipPaymentService;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\Laravel\Facades\Image;
@@ -13,7 +14,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.dashboard')]
-#[Title('Beli Premium Membership - BuatSerba')]
+#[Title('Premium Membership - BuatSerba')]
 class PremiumMembershipPurchase extends Component
 {
     use WithFileUploads;
@@ -23,10 +24,19 @@ class PremiumMembershipPurchase extends Component
     public $showPurchaseModal = false;
     public $showRenewalConfirmModal = false;
     public $showUploadModal = false;
+    public $showPaymentMethodModal = false;
     public $currentMembershipId;
+    public $selectedPaymentMethod = null;
+    public $paymentInstructions = null;
+    public $paymentOrderId = null;
 
     public $uploadedFile;
     public $isUploading = false;
+    public $isProcessingPayment = false;
+    public $selectedMethodLoading = null;
+    
+    public $membershipHistory;
+    public $qrCodeImage = null;
     
     public const MEMBERSHIP_DURATION_DAYS = 365;
 
@@ -37,6 +47,7 @@ class PremiumMembershipPurchase extends Component
         }
 
         $this->loadMembershipData();
+        $this->loadMembershipHistory();
     }
 
     public function loadMembershipData()
@@ -55,31 +66,171 @@ class PremiumMembershipPurchase extends Component
         }
     }
 
+    public function loadMembershipHistory()
+    {
+        $user = auth()->user();
+        
+        $this->membershipHistory = $user->premiumMemberships()
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+    }
+
     public function purchasePremium()
     {
         $user = auth()->user();
 
         $existingPending = $user->premiumMemberships()
             ->where('status', 'pending')
+            ->where(function($query) {
+                $query->whereNull('transaction_status')
+                    ->orWhere('transaction_status', 'pending');
+            })
             ->first();
 
         if ($existingPending) {
-            $this->dispatch('error', message: 'Anda sudah memiliki pembelian premium yang menunggu verifikasi.');
+            $this->dispatch('error', message: 'Anda sudah memiliki pembelian premium yang menunggu pembayaran.');
             return;
         }
 
-        $membership = $user->premiumMemberships()->create([
-            'price' => GlobalConfig::getPremiumMembershipPrice(),
-            'status' => 'pending',
-            'payment_method' => 'bank_transfer',
-        ]);
-
-        $this->currentMembershipId = $membership->id;
         $this->showPurchaseModal = false;
+        $this->showPaymentMethodModal = true;
+        
+        $this->dispatch('success', message: 'Silakan pilih metode pembayaran.');
+    }
+
+    public function selectPaymentMethod($method)
+    {
+        try {
+            $user = auth()->user();
+
+            if (!$user) {
+                $this->dispatch('error', message: 'Anda harus login terlebih dahulu.');
+                return;
+            }
+
+            // Check for existing pending membership
+            $existingPending = $user->premiumMemberships()
+                ->where('status', 'pending')
+                ->where(function($query) {
+                    $query->whereNull('transaction_status')
+                        ->orWhere('transaction_status', 'pending');
+                })
+                ->first();
+
+            if ($existingPending) {
+                $this->dispatch('error', message: 'Anda sudah memiliki pembelian premium yang menunggu pembayaran.');
+                return;
+            }
+
+            // Set loading state for this method
+            $this->selectedMethodLoading = $method;
+
+            // Create membership record first
+            $membership = $user->premiumMemberships()->create([
+                'price' => GlobalConfig::getPremiumMembershipPrice(),
+                'status' => 'pending',
+                'payment_method' => $method === 'manual-transfer' ? 'bank_transfer' : 'midtrans',
+            ]);
+
+            $this->currentMembershipId = $membership->id;
+            $this->selectedPaymentMethod = $method;
+            $this->showPaymentMethodModal = false;
+            
+            if ($method === 'manual-transfer') {
+                $this->createManualTransferMembership();
+            } else {
+                $this->processPaymentWithMidtrans();
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error in selectPaymentMethod: ' . $e->getMessage(), [
+                'method' => $method,
+                'trace' => $e->getTraceAsString()
+            ]);
+            $this->dispatch('error', message: 'Terjadi kesalahan: ' . $e->getMessage());
+        } finally {
+            // Clear loading state
+            $this->selectedMethodLoading = null;
+        }
+    }
+
+    protected function createManualTransferMembership()
+    {
+        // Membership already created in selectPaymentMethod
         $this->showUploadModal = true;
         $this->loadMembershipData();
         
         $this->dispatch('success', message: 'Pembelian premium dibuat. Silakan upload bukti transfer.');
+    }
+
+    public function processPaymentWithMidtrans()
+    {
+        try {
+            if (!$this->currentMembershipId || !$this->selectedPaymentMethod) {
+                \Log::error('Missing payment data', [
+                    'membership_id' => $this->currentMembershipId,
+                    'payment_method' => $this->selectedPaymentMethod
+                ]);
+                $this->dispatch('error', message: 'Data pembayaran tidak lengkap.');
+                return;
+            }
+
+            $this->isProcessingPayment = true;
+
+            // \Log::info('Processing Midtrans payment', [
+            //     'membership_id' => $this->currentMembershipId,
+            //     'payment_method' => $this->selectedPaymentMethod
+            // ]);
+
+            $membership = PremiumMembership::findOrFail($this->currentMembershipId);
+
+            if ($membership->user_id !== auth()->id()) {
+                \Log::warning('Unauthorized payment attempt', [
+                    'membership_id' => $this->currentMembershipId,
+                    'user_id' => auth()->id()
+                ]);
+                $this->dispatch('error', message: 'Unauthorized');
+                $this->isProcessingPayment = false;
+                return;
+            }
+
+            $paymentService = new PremiumMembershipPaymentService();
+            $result = $paymentService->createTransaction($membership, $this->selectedPaymentMethod);
+
+            if ($result['success']) {
+                $this->paymentInstructions = $result['payment_instructions'];
+                $this->paymentOrderId = $result['order_id'];
+                $this->showPaymentMethodModal = false;
+                $this->showUploadModal = true;
+                $this->loadMembershipData();
+                
+                // \Log::info('Payment transaction created successfully', [
+                //     'order_id' => $result['order_id'],
+                //     'payment_instructions' => $result['payment_instructions']
+                // ]);
+                
+                if (isset($result['payment_instructions']['type']) && $result['payment_instructions']['type'] === 'qris') {
+                    $this->generateQrCode($result['payment_instructions']['qr_string'] ?? null);
+                }
+                
+                $this->dispatch('success', message: 'Transaksi berhasil dibuat. Silakan selesaikan pembayaran.');
+            } else {
+                \Log::error('Payment transaction failed', [
+                    'message' => $result['message'] ?? 'Unknown error'
+                ]);
+                $this->dispatch('error', message: $result['message'] ?? 'Gagal memproses pembayaran.');
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Premium membership payment error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'membership_id' => $this->currentMembershipId,
+                'payment_method' => $this->selectedPaymentMethod
+            ]);
+            $this->dispatch('error', message: 'Terjadi kesalahan saat memproses pembayaran: ' . $e->getMessage());
+        } finally {
+            $this->isProcessingPayment = false;
+        }
     }
 
     public function saveUploadedFile()
@@ -162,6 +313,9 @@ class PremiumMembershipPurchase extends Component
             $this->showUploadModal = false;
             $this->uploadedFile = null;
             $this->currentMembershipId = null;
+            $this->paymentInstructions = null;
+            $this->paymentOrderId = null;
+            $this->selectedPaymentMethod = null;
             $this->loadMembershipData();
             
             $this->dispatch('success', message: 'Bukti transfer berhasil diupload. Admin akan segera memverifikasi.');
@@ -191,17 +345,10 @@ class PremiumMembershipPurchase extends Component
             return;
         }
 
-        $membership = $user->premiumMemberships()->create([
-            'price' => GlobalConfig::getPremiumMembershipPrice(),
-            'status' => 'pending',
-            'payment_method' => 'bank_transfer',
-        ]);
-
-        $this->currentMembershipId = $membership->id;
         $this->showRenewalConfirmModal = false;
-        $this->showUploadModal = true;
+        $this->showPaymentMethodModal = true;
         
-        $this->dispatch('success', message: 'Perpanjangan membership dibuat. Silakan upload bukti transfer.');
+        $this->dispatch('success', message: 'Silakan pilih metode pembayaran untuk perpanjangan.');
     }
 
     public function cancelUpload()
@@ -209,6 +356,45 @@ class PremiumMembershipPurchase extends Component
         $this->showUploadModal = false;
         $this->uploadedFile = null;
         $this->currentMembershipId = null;
+        $this->paymentInstructions = null;
+        $this->paymentOrderId = null;
+        $this->selectedPaymentMethod = null;
+        $this->qrCodeImage = null;
+    }
+
+    /**
+     * Generate QR code image from QR string
+     */
+    public function generateQrCode(?string $qrString)
+    {
+        if (!$qrString) {
+            $this->qrCodeImage = null;
+            \Log::warning('QR string is empty');
+            return;
+        }
+
+        try {
+            // \Log::info('Generating QR code', ['qr_string_length' => strlen($qrString)]);
+            
+            $options = new \chillerlan\QRCode\QROptions([
+                'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
+                'scale' => 8,
+                'imageBase64' => true,
+                'imageTransparent' => false,
+            ]);
+            
+            $qrcode = new \chillerlan\QRCode\QRCode($options);
+            $this->qrCodeImage = $qrcode->render($qrString);
+            
+            // \Log::info('QR code generated successfully', [
+            //     'image_length' => strlen($this->qrCodeImage)
+            // ]);
+        } catch (\Exception $e) {
+            \Log::error('QR code generation failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            $this->qrCodeImage = null;
+        }
     }
 
     public function render()
