@@ -37,6 +37,8 @@ class PremiumMembershipPurchase extends Component
     
     public $membershipHistory;
     public $qrCodeImage = null;
+    public $showDetailModal = false;
+    public $selectedMembership = null;
     
     public const MEMBERSHIP_DURATION_DAYS = 365;
 
@@ -143,10 +145,10 @@ class PremiumMembershipPurchase extends Component
                 $this->processPaymentWithMidtrans();
             }
         } catch (\Exception $e) {
-            \Log::error('Error in selectPaymentMethod: ' . $e->getMessage(), [
-                'method' => $method,
-                'trace' => $e->getTraceAsString()
-            ]);
+            // \Log::error('Error in selectPaymentMethod: ' . $e->getMessage(), [
+            //     'method' => $method,
+            //     'trace' => $e->getTraceAsString()
+            // ]);
             $this->dispatch('error', message: 'Terjadi kesalahan: ' . $e->getMessage());
         } finally {
             // Clear loading state
@@ -167,10 +169,10 @@ class PremiumMembershipPurchase extends Component
     {
         try {
             if (!$this->currentMembershipId || !$this->selectedPaymentMethod) {
-                \Log::error('Missing payment data', [
-                    'membership_id' => $this->currentMembershipId,
-                    'payment_method' => $this->selectedPaymentMethod
-                ]);
+                // \Log::error('Missing payment data', [
+                //     'membership_id' => $this->currentMembershipId,
+                //     'payment_method' => $this->selectedPaymentMethod
+                // ]);
                 $this->dispatch('error', message: 'Data pembayaran tidak lengkap.');
                 return;
             }
@@ -185,10 +187,10 @@ class PremiumMembershipPurchase extends Component
             $membership = PremiumMembership::findOrFail($this->currentMembershipId);
 
             if ($membership->user_id !== auth()->id()) {
-                \Log::warning('Unauthorized payment attempt', [
-                    'membership_id' => $this->currentMembershipId,
-                    'user_id' => auth()->id()
-                ]);
+                // \Log::warning('Unauthorized payment attempt', [
+                //     'membership_id' => $this->currentMembershipId,
+                //     'user_id' => auth()->id()
+                // ]);
                 $this->dispatch('error', message: 'Unauthorized');
                 $this->isProcessingPayment = false;
                 return;
@@ -215,18 +217,18 @@ class PremiumMembershipPurchase extends Component
                 
                 $this->dispatch('success', message: 'Transaksi berhasil dibuat. Silakan selesaikan pembayaran.');
             } else {
-                \Log::error('Payment transaction failed', [
-                    'message' => $result['message'] ?? 'Unknown error'
-                ]);
+                // \Log::error('Payment transaction failed', [
+                //     'message' => $result['message'] ?? 'Unknown error'
+                // ]);
                 $this->dispatch('error', message: $result['message'] ?? 'Gagal memproses pembayaran.');
             }
 
         } catch (\Exception $e) {
-            \Log::error('Premium membership payment error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'membership_id' => $this->currentMembershipId,
-                'payment_method' => $this->selectedPaymentMethod
-            ]);
+            // \Log::error('Premium membership payment error: ' . $e->getMessage(), [
+            //     'trace' => $e->getTraceAsString(),
+            //     'membership_id' => $this->currentMembershipId,
+            //     'payment_method' => $this->selectedPaymentMethod
+            // ]);
             $this->dispatch('error', message: 'Terjadi kesalahan saat memproses pembayaran: ' . $e->getMessage());
         } finally {
             $this->isProcessingPayment = false;
@@ -369,7 +371,7 @@ class PremiumMembershipPurchase extends Component
     {
         if (!$qrString) {
             $this->qrCodeImage = null;
-            \Log::warning('QR string is empty');
+            //\Log::warning('QR string is empty');
             return;
         }
 
@@ -390,11 +392,42 @@ class PremiumMembershipPurchase extends Component
             //     'image_length' => strlen($this->qrCodeImage)
             // ]);
         } catch (\Exception $e) {
-            \Log::error('QR code generation failed: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
+            // \Log::error('QR code generation failed: ' . $e->getMessage(), [
+            //     'trace' => $e->getTraceAsString()
+            // ]);
             $this->qrCodeImage = null;
         }
+    }
+
+    public function showMembershipDetail($membershipId)
+    {
+        $membership = PremiumMembership::find($membershipId);
+        
+        if (!$membership || $membership->user_id !== auth()->id()) {
+            $this->dispatch('error', message: 'Membership tidak ditemukan.');
+            return;
+        }
+        
+        $this->selectedMembership = $membership;
+        $this->showDetailModal = true;
+        
+        if ($membership->status === 'pending' && $membership->payment_method === 'midtrans') {
+            $this->paymentInstructions = $membership->payment_instructions;
+            $this->paymentOrderId = $membership->order_id;
+            
+            if (isset($this->paymentInstructions['type']) && $this->paymentInstructions['type'] === 'qris') {
+                $this->generateQrCode($this->paymentInstructions['qr_string'] ?? null);
+            }
+        }
+    }
+    
+    public function closeDetailModal()
+    {
+        $this->showDetailModal = false;
+        $this->selectedMembership = null;
+        $this->paymentInstructions = null;
+        $this->paymentOrderId = null;
+        $this->qrCodeImage = null;
     }
 
     public function render()

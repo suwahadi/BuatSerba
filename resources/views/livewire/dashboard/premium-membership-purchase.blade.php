@@ -659,8 +659,8 @@
                 @else
                     <!-- Manual Bank Transfer (Fallback) -->
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                        <p class="text-xs text-blue-800 font-medium mb-2">Informasi Pembayaran:</p>
-                        <div class="space-y-1 text-xs text-blue-800">
+                        <p class="text-xs text-gray-800 font-medium mb-2">Informasi Pembayaran:</p>
+                        <div class="space-y-1 text-xs text-gray-800">
                             <div><strong>Bank:</strong> {{ global_config('manual_bank_name') ?? 'BCA' }}</div>
                             <div><strong>No. Rek:</strong> {{ global_config('manual_bank_account_number') ?? '-' }}</div>
                             <div><strong>A/N:</strong> {{ global_config('manual_bank_account_name') ?? '-' }}</div>
@@ -774,6 +774,9 @@
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Periode
                                 </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Aksi
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -786,15 +789,7 @@
                                         Rp {{ number_format($membership->price, 0, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        @if($membership->payment_method === 'midtrans')
-                                            <span class="inline-flex items-center gap-1">
-                                                Midtrans
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-1">
-                                                Manual
-                                            </span>
-                                        @endif
+                                        {{ Str::upper($membership->payment_channel ?? 'Transfer Bank') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @php
@@ -825,6 +820,12 @@
                                         @else
                                             <span class="text-gray-400">-</span>
                                         @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <button wire:click="showMembershipDetail({{ $membership->id }})"
+                                                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded text-xs transition-colors cursor-pointer">
+                                            Detail
+                                        </button>
                                     </td>
                                 </tr>
                             @endforeach
@@ -867,18 +868,7 @@
                             
                             <div class="space-y-2">
                                 <div class="flex items-center gap-2 text-xs text-gray-700">
-                                    @if($membership->payment_method === 'midtrans')
-                                        <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
-                                            <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
-                                        </svg>
-                                        <span>Midtrans</span>
-                                    @else
-                                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                        </svg>
-                                        <span>Manual Transfer</span>
-                                    @endif
+                                    <span>{{ $membership->payment_channel ?? 'Transfer Bank' }}</span>
                                 </div>
                                 
                                 @if($membership->started_at && $membership->expires_at)
@@ -887,9 +877,206 @@
                                         {{ $membership->started_at->format('d M Y') }} - {{ $membership->expires_at->format('d M Y') }}
                                     </div>
                                 @endif
+                                
+                                <button wire:click="showMembershipDetail({{ $membership->id }})"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded text-xs transition-colors cursor-pointer mt-2">
+                                    Detail
+                                </button>
                             </div>
                         </div>
                     @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Membership Detail Modal -->
+    @if($showDetailModal && $selectedMembership)
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="closeDetailModal">
+            <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" wire:click.stop>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-gray-900">Detail Membership</h2>
+                        <button wire:click="closeDetailModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Membership Info -->
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                            <span class="text-sm text-gray-600">Order ID</span>
+                            <span class="text-sm font-medium text-gray-900">{{ $selectedMembership->transaction_id ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                            <span class="text-sm text-gray-600">Tanggal Pembelian</span>
+                            <span class="text-sm font-medium text-gray-900">{{ $selectedMembership->created_at->format('d M Y H:i') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                            <span class="text-sm text-gray-600">Total Pembayaran</span>
+                            <span class="text-lg font-bold text-green-600">Rp {{ number_format($selectedMembership->price, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                            <span class="text-sm text-gray-600">Metode Pembayaran</span>
+                            <span class="text-sm font-medium text-gray-900 uppercase">{{ $selectedMembership->payment_channel ?? 'Transfer Bank' }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                            <span class="text-sm text-gray-600">Status</span>
+                            @php
+                                $badgeClasses = match($selectedMembership->status) {
+                                    'active' => 'bg-green-100 text-green-800',
+                                    'pending' => 'bg-yellow-100 text-yellow-800',
+                                    'expired' => 'bg-gray-100 text-gray-800',
+                                    'cancelled' => 'bg-red-100 text-red-800',
+                                    default => 'bg-gray-100 text-gray-800',
+                                };
+                                $statusLabels = [
+                                    'active' => 'Aktif',
+                                    'pending' => 'Pending',
+                                    'expired' => 'Expired',
+                                    'cancelled' => 'Dibatalkan',
+                                ];
+                            @endphp
+                            <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium {{ $badgeClasses }}">
+                                {{ $statusLabels[$selectedMembership->status] ?? ucfirst($selectedMembership->status) }}
+                            </span>
+                        </div>
+                        @if($selectedMembership->started_at && $selectedMembership->expires_at)
+                            <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                                <span class="text-sm text-gray-600">Periode Aktif</span>
+                                <span class="text-sm font-medium text-gray-900">{{ $selectedMembership->started_at->format('d M Y') }} s/d {{ $selectedMembership->expires_at->format('d M Y') }}</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Payment Instructions (for pending status) -->
+                    @if($selectedMembership->status === 'pending')
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <h3 class="font-700 text-md text-gray-800 mb-3 flex">
+                                Informasi Pembayaran
+                            </h3>
+
+                            @php
+                                $midtransResponse = $selectedMembership->midtrans_response ?? [];
+                            @endphp
+                            @if($selectedMembership->payment_method === 'midtrans' && !empty($midtransResponse))
+                                {{-- QRIS Payment --}}
+                                @if($selectedMembership->payment_type === 'qris' || ($midtransResponse['payment_type'] ?? '') === 'qris')
+                                    <div class="mb-4">
+                                        <p class="text-sm font-medium text-blue-800 mb-2">Scan QR Code:</p>
+                                        @php
+                                            // Try multiple possible QR string locations in Midtrans response
+                                            $qrString = $midtransResponse['qr_string']
+                                                ?? ($midtransResponse['actions'][0]['url'] ?? null)
+                                                ?? ($midtransResponse['actions'][1]['url'] ?? null)
+                                                ?? $midtransResponse['payment_code']
+                                                ?? $midtransResponse['qr_code_url']
+                                                ?? null;
+                                        @endphp
+                                        @if($qrString)
+                                            <div class="">
+                                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($qrString) }}" alt="QRIS Code" class="w-48 h-48">
+                                            </div>
+                                            <p class="text-xs text-gray-600 mt-2">Scan dengan aplikasi e-wallet atau mobile banking Anda</p>
+                                        @else
+                                            <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-xs text-yellow-700">
+                                                QR Code tidak tersedia. Silakan cek email Anda atau hubungi admin.
+                                            </div>
+                                        @endif
+                                    </div>
+                                {{-- Bank Transfer / Virtual Account --}}
+                                @elseif(isset($midtransResponse['va_numbers']) && is_array($midtransResponse['va_numbers']))
+                                    <div class="space-y-3">
+                                        @foreach($midtransResponse['va_numbers'] as $va)
+                                            <div class="">
+                                                <p class="text-sm font-bold text-gray-900 uppercase">{{ $va['bank'] ?? 'Bank Transfer' }}</p>
+                                                <p class="text-[12px] text-gray-600 mt-1">No. Virtual Account:</p>
+                                                <p class="text-md font-bold text-blue-700">{{ $va['va_number'] ?? '-' }}</p>
+                                                <button type="button"
+                                                        x-data="{ copied: false }"
+                                                        @click="navigator.clipboard.writeText('{{ $va['va_number'] ?? '-' }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                                        class="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-600 hover:bg-gray-700 text-white transition-colors cursor-pointer"
+                                                        title="Copy">
+                                                    <svg x-show="!copied" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                    </svg>
+                                                    <svg x-show="copied" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                {{-- Bill Payment / Mandiri --}}
+                                @elseif(isset($midtransResponse['biller_code']) && isset($midtransResponse['bill_key']))
+                                    <div class="">
+                                        <p class="text-sm font-bold text-gray-900">Mandiri Bill Payment</p>
+                                        <p class="text-sm text-gray-600 mt-1">Kode Perusahaan:</p>
+                                        <p class="text-lg font-bold text-blue-700">{{ $midtransResponse['biller_code'] }}</p>
+                                        <p class="text-sm text-gray-600 mt-2">Kode Pembayaran:</p>
+                                        <p class="text-lg font-bold text-blue-700">{{ $midtransResponse['bill_key'] }}</p>
+                                    </div>
+                                {{-- Convenience Store --}}
+                                @elseif(isset($midtransResponse['payment_code']) && ($midtransResponse['store'] ?? $midtransResponse['payment_type'] ?? '') === 'cstore')
+                                    <div class="">
+                                        <p class="text-sm font-bold text-gray-900">{{ $midtransResponse['store'] ?? 'Convenience Store' }}</p>
+                                        <p class="text-sm text-gray-600 mt-1">Kode Pembayaran:</p>
+                                        <p class="text-lg font-bold text-blue-700">{{ $midtransResponse['payment_code'] }}</p>
+                                    </div>
+                                @else
+                                    <p class="text-sm text-blue-800">Silakan selesaikan pembayaran sesuai instruksi yang dikirim ke email Anda.</p>
+                                    @if(isset($midtransResponse['redirect_url']))
+                                        <a href="{{ $midtransResponse['redirect_url'] }}" target="_blank" class="text-sm text-blue-600 underline mt-2 inline-block">Klik di sini untuk pembayaran</a>
+                                    @endif
+                                @endif
+
+                                @if($selectedMembership->transaction_id)
+                                    <div class="mt-3 pt-3 border-t border-blue-200">
+                                        <p class="text-xs text-gray-600">Transaction ID: {{ $selectedMembership->transaction_id }}</p>
+                                    </div>
+                                @endif
+                            @elseif($selectedMembership->payment_method === 'bank_transfer')
+                                <div class="space-y-3">
+                                    <p class="text-sm text-blue-800">Silakan transfer ke rekening berikut:</p>
+                                    <div class="">
+                                        @php
+                                            $bankAccounts = \App\Models\GlobalConfig::getBankAccounts();
+                                        @endphp
+                                        @if(!empty($bankAccounts))
+                                            @foreach($bankAccounts as $account)
+                                                <div class="mb-2 pb-2 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0">
+                                                    <p class="text-sm font-bold text-gray-900">{{ $account['bank_name'] ?? 'Bank' }}</p>
+                                                    <p class="text-sm text-gray-600">No. Rekening: <span class="font-medium text-gray-900">{{ $account['account_number'] ?? '-' }}</span></p>
+                                                    <p class="text-sm text-gray-600">Atas Nama: <span class="font-medium text-gray-900">{{ $account['account_name'] ?? '-' }}</span></p>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <p class="text-sm text-gray-600">Silakan hubungi admin untuk informasi rekening transfer.</p>
+                                        @endif
+                                    </div>
+                                    @if($selectedMembership->payment_proof_path)
+                                        <div class="bg-green-100 border border-green-200 rounded-lg p-3 mt-3">
+                                            <p class="text-sm text-green-800 flex items-center gap-2">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Bukti transfer sudah diupload
+                                            </p>
+                                        </div>
+                                    @else
+                                        <p class="text-sm text-yellow-700 mt-2">Belum upload bukti transfer</p>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    <button wire:click="closeDetailModal"
+                            class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer">
+                        Tutup
+                    </button>
                 </div>
             </div>
         </div>
