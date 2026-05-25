@@ -1,4 +1,4 @@
-<div x-data="{ showToast: false, toastMessage: '' }">
+<div x-data="{ showToast: false, toastMessage: '' }" @if($order->payment_status === 'pending') wire:poll.15s="pollStatus" @endif>
     <div class="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div class="bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden">
             <!-- Header -->
@@ -381,6 +381,15 @@
                         <p class="text-sm sm:text-base font-semibold text-gray-800 mb-3">Scan Kode QR</p>
                         <div class="mb-3">
                             <img src="{{ $qrCodeImage }}" alt="QR Code" class="mx-auto" style="max-width: 250px; height: auto;">
+                        </div>
+                        <p class="text-xs text-gray-600">Scan QR code ini dengan aplikasi e-wallet atau mobile banking Anda</p>
+                        @if(isset($paymentInstructions['expiry_time']))
+                            <p class="text-xs text-red-600 mt-2 font-medium">Berlaku hingga: {{ $paymentInstructions['expiry_time'] }}</p>
+                        @endif
+                    @elseif(!empty($paymentInstructions['qr_url']))
+                        <p class="text-sm sm:text-base font-semibold text-gray-800 mb-3">Scan Kode QR</p>
+                        <div class="mb-3">
+                            <img src="{{ $paymentInstructions['qr_url'] }}" alt="QR Code" class="mx-auto" style="max-width: 250px; height: auto;">
                         </div>
                         <p class="text-xs text-gray-600">Scan QR code ini dengan aplikasi e-wallet atau mobile banking Anda</p>
                         @if(isset($paymentInstructions['expiry_time']))

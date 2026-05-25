@@ -1,77 +1,100 @@
-<footer class="bg-gray-900 text-white py-8 sm:py-10 md:py-12 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            
-            <!-- About -->
-            <div>
-                <a href="/" class="flex items-start leading-none group font-['Poppins']">
-                    <span class="text-xl sm:text-3xl font-bold text-green-600 tracking-tighter hover:text-green-700 transition-colors">buatserba</span>
-                    <span class="text-[0.6rem] sm:text-xs text-green-600 ml-0.5 group-hover:text-green-700 transition-colors">®</span>
+@php
+    $whatsapp = global_config('whatsapp');
+    if($whatsapp && \Illuminate\Support\Str::startsWith($whatsapp, '08')) {
+        $whatsapp = '62' . substr($whatsapp, 1);
+    }
+@endphp
+<footer class="mt-14 md:mt-24 bg-paper border-t border-black/5">
+    <div class="container-x py-10 md:py-14">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
+
+            {{-- Brand + socials + about --}}
+            <div class="col-span-2 md:col-span-2">
+                <a href="{{ route('home') }}" class="flex items-center gap-2">
+                    <img src="{{ asset('storage/static/logo_new.webp') }}" alt="{{ global_config('site_name') ?? 'buatserba' }}" class="w-9 h-9 object-contain shrink-0" width="36" height="36" />
+                    <span class="font-display font-extrabold text-[20px] text-emerald20-700">buatserba<span class="text-tan5-400 align-super text-[12px] ml-0.5">®</span></span>
                 </a>
-                <p class="text-xs sm:text-sm mt-2 text-gray-400 leading-relaxed">{{ \App\Models\Page::getAboutDescription() }}</p>
+                <p class="text-[13px] text-black/65 mt-3 max-w-xs leading-relaxed">{{ \App\Models\Page::getAboutDescription() }}</p>
+                <div class="mt-4 flex items-center gap-2">
+                    <a href="#" class="social-pill" style="--c:#1B6B43" aria-label="Instagram">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+                    </a>
+                    <a href="#" class="social-pill" style="--c:#5C3F88" aria-label="TikTok">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.1z"/></svg>
+                    </a>
+                    <a href="#" class="social-pill" style="--c:#A3835F" aria-label="Facebook">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13 22v-8h3l1-4h-4V7.5c0-1.2.4-2 2.1-2H17V2.2C16.6 2.1 15.5 2 14.4 2 12 2 10 3.5 10 6.8V10H7v4h3v8h3Z"/></svg>
+                    </a>
+                    <a href="#" class="social-pill" style="--c:#1B6B43" aria-label="YouTube">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12s0-3.3-.4-4.9a2.6 2.6 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.3A2.6 2.6 0 0 0 2.4 7.1C2 8.7 2 12 2 12s0 3.3.4 4.9c.2 1 .9 1.6 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.3a2.6 2.6 0 0 0 1.8-1.8c.4-1.6.4-4.9.4-4.9Zm-12 3.5v-7l5.5 3.5L10 15.5Z"/></svg>
+                    </a>
+                </div>
             </div>
-            
-            <!-- Kategori -->
-            @if(isset($categories) && $categories)
+
+            {{-- About --}}
             <div>
-                <h5 class="text-sm sm:text-base font-semibold mb-3 sm:mb-4">Kategori</h5>
-                <ul class="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
-                    @foreach($categories->take(4) as $category)
-                    <li><a href="/{{ $category->slug }}" class="hover:text-white transition-colors">{{ $category->name }}</a></li>
-                    @endforeach
+                <h4 class="font-display font-bold text-[14px] mb-3 text-ink">Tentang Kami</h4>
+                <ul class="space-y-2 text-[13px] text-black/65">
+                    <li><a href="/about" class="hover:text-ink">Tentang</a></li>
+                    <li><a href="/blog" class="hover:text-ink">Blog</a></li>
+                    <li><a href="/faq" class="hover:text-ink">FAQ</a></li>
                 </ul>
             </div>
-            @endif
-            
-            <!-- Informasi -->
+
+            {{-- Categories --}}
             <div>
-                <h5 class="text-sm sm:text-base font-semibold mb-3 sm:mb-4">Informasi</h5>
-                <ul class="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
-                    <li><a href="/about" class="hover:text-white transition-colors">Tentang Kami</a></li>
-                    <li><a href="/faq" class="hover:text-white transition-colors">FAQ</a></li>
-                    <li><a href="/blog" class="hover:text-white transition-colors">Blog</a></li>
-                    <li><a href="/terms-conditions" class="hover:text-white transition-colors">Syarat & Ketentuan</a></li>
-                    <li><a href="/privacy-policy" class="hover:text-white transition-colors">Kebijakan Privasi</a></li>
-                    <li><a href="/return-refund-policy" class="hover:text-white transition-colors">Kebijakan Retur & Refund</a></li>
+                <h4 class="font-display font-bold text-[14px] mb-3 text-ink">Kategori</h4>
+                <ul class="space-y-2 text-[13px] text-black/65">
+                    @if(isset($categories) && $categories && $categories->count())
+                        @foreach($categories->take(5) as $category)
+                            <li><a href="/{{ $category->slug }}" class="hover:text-ink">{{ $category->name }}</a></li>
+                        @endforeach
+                    @else
+                        <li><a href="{{ route('catalog') }}" class="hover:text-ink">Semua Produk</a></li>
+                    @endif
                 </ul>
             </div>
-            
-            <!-- Hubungi Kami -->
+
+            {{-- Help & Contact --}}
             <div>
-                <h5 class="text-sm sm:text-base font-semibold mb-3 sm:mb-4">Hubungi Kami</h5>
-                <ul class="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
-                    <li class="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span>{{ global_config('address') }}</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span>{{ global_config('email') }}</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        <span>{{ global_config('phone') }}</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                        </svg>
-                        <span>{{ global_config('whatsapp') }}</span>
-                    </li>
+                <h4 class="font-display font-bold text-[14px] mb-3 text-ink">Informasi</h4>
+                <ul class="space-y-2 text-[13px] text-black/65">
+                    <li><a href="/faq" class="hover:text-ink">Pusat Bantuan</a></li>
+                    <li><a href="/return-refund-policy" class="hover:text-ink">Pengembalian</a></li>
+                    <li><a href="/terms-conditions" class="hover:text-ink">Syarat &amp; Ketentuan</a></li>
+                    <li><a href="/privacy-policy" class="hover:text-ink">Privasi</a></li>
                 </ul>
+                @if(global_config('email') || global_config('phone') || global_config('whatsapp'))
+                    <div class="mt-4 space-y-1.5 text-[12px] text-black/60">
+                        @if(global_config('email'))
+                            <div class="flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                <span>{{ global_config('email') }}</span>
+                            </div>
+                        @endif
+                        @if(global_config('whatsapp'))
+                            <div class="flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.42A9.956 9.956 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2Zm4.93 13.697c-.207.583-1.215 1.109-1.67 1.147-.455.038-.467.36-2.942-.715-2.475-1.074-3.96-3.706-4.079-3.874-.119-.168-.974-1.404-.924-2.647.05-1.242.72-1.835.96-2.083.24-.247.518-.304.69-.304.173 0 .345.002.496.01.16.008.373-.061.584.489.21.55.714 1.847.776 1.981.063.135.104.291.02.47-.083.177-.125.287-.248.44-.122.154-.257.345-.366.463-.123.13-.25.272-.107.533.143.26.636 1.145 1.366 1.855.938.903 1.726 1.181 1.973 1.314.247.133.39.112.534-.067.144-.179.618-.783.783-1.052.165-.268.33-.224.557-.134.227.09 1.44.744 1.687.88.248.133.413.2.474.31.062.11.062.636-.145 1.22Z"/></svg>
+                                <a href="https://wa.me/{{ $whatsapp }}" class="hover:text-ink">{{ global_config('whatsapp') }}</a>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
+
         </div>
-        
-        <!-- Copyright -->
-        <div class="border-t border-gray-800 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center">
-            <p class="text-xs sm:text-sm text-gray-400">&copy; {{ date('Y') }} {{ global_config('company_name') }}. All Rights Reserved.</p>
+    </div>
+
+    <div class="border-t border-black/5">
+        <div class="container-x py-5 flex flex-col md:flex-row items-center gap-3 justify-between">
+            <p class="text-[12px] text-black/55">&copy; {{ date('Y') }} {{ global_config('company_name') ?? 'buatserba.com' }}. All Rights Reserved.</p>
+            <div class="flex items-center gap-3 text-[12px] text-black/55">
+                <a href="/privacy-policy" class="hover:text-ink">Privasi</a>
+                <span class="opacity-50">·</span>
+                <a href="/terms-conditions" class="hover:text-ink">Syarat &amp; Ketentuan</a>
+                <span class="opacity-50">·</span>
+                <a href="/return-refund-policy" class="hover:text-ink">Kebijakan Retur</a>
+            </div>
         </div>
     </div>
 </footer>

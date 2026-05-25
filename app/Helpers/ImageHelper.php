@@ -106,6 +106,29 @@ if (! function_exists('user_avatar')) {
             return asset('images/default-avatar.png');
         }
 
+        return image_url($user->avatar);
+    }
+}
+
+if (! function_exists('format_tanggal_id')) {
+    /**
+     * Format Carbon|DateTime|string ke format Indonesia singkat (mis. "21 Mei 2027").
+     *
+     * @param  \Carbon\Carbon|\DateTimeInterface|string|null  $date
+     */
+    function format_tanggal_id($date, bool $withTime = false): string
+    {
+        if (empty($date)) {
+            return '';
+        }
+
+        $carbon = $date instanceof \Carbon\Carbon
+            ? $date
+            : \Carbon\Carbon::parse($date);
+
+        $format = $withTime ? 'D MMM YYYY HH.mm' : 'D MMM YYYY';
+
+        return $carbon->locale('id')->isoFormat($format);
     }
 }
 

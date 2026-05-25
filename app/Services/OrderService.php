@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CartItem;
+use App\Models\FlashSaleItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sku;
@@ -23,7 +24,7 @@ class OrderService
             $branchId = (int) ($data['branch_id'] ?? 1);
 
             $sessionId = Session::get('cart_session_id');
-            $cartItems = CartItem::with(['product', 'sku'])
+            $cartItems = CartItem::with(['product', 'sku', 'flashSaleItem.flashSale'])
                 ->where('session_id', $sessionId)
                 ->when(auth()->check(), function ($query) {
                     $query->orWhere('user_id', auth()->id());
@@ -46,6 +47,19 @@ class OrderService
                 $availableQty = $inventoryService->getAvailableQuantity($branchId, (int) $sku->id);
                 if ($availableQty < $item->quantity) {
                     throw new Exception("Stok {$item->product->name} tidak mencukupi di cabang terpilih. Tersedia: {$availableQty}");
+                }
+
+                if ($item->flash_sale_item_id) {
+                    $flashItem = FlashSaleItem::lockForUpdate()->find($item->flash_sale_item_id);
+
+                    if (! $flashItem || ! $flashItem->flashSale || ! $flashItem->flashSale->isLive()) {
+                        throw new Exception("Sesi Flash Sale untuk {$item->product->name} sudah berakhir. Silakan refresh keranjang.");
+                    }
+
+                    $available = (int) $flashItem->stock_limit - (int) $flashItem->sold_count;
+                    if ($available < $item->quantity) {
+                        throw new Exception("Kuota Flash Sale {$item->product->name} tidak mencukupi. Sisa: {$available}");
+                    }
                 }
             }
 
@@ -92,6 +106,7 @@ class OrderService
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
                     'sku_id' => $cartItem->sku_id,
+                    'flash_sale_item_id' => $cartItem->flash_sale_item_id,
                     'product_name' => $cartItem->product->name,
                     'sku_code' => $cartItem->sku->sku,
                     'sku_attributes' => $cartItem->sku->attributes,
@@ -143,11 +158,29 @@ class OrderService
                 $inventoryService->release($branchId, (int) $item->sku_id, (int) $item->quantity);
             }
 
+            // Rollback flash sale sold_count if this paid order is being cancelled/refunded.
+            // Pending orders never incremented (listener fires only on OrderPaid), so safe-skip.
+            if ($order->payment_status === 'paid') {
+                foreach ($order->items as $item) {
+                    if (! $item->flash_sale_item_id) {
+                        continue;
+                    }
+                    $flashItem = FlashSaleItem::lockForUpdate()->find($item->flash_sale_item_id);
+                    if (! $flashItem) {
+                        continue;
+                    }
+                    $decrement = min((int) $flashItem->sold_count, (int) $item->quantity);
+                    if ($decrement > 0) {
+                        $flashItem->decrement('sold_count', $decrement);
+                    }
+                }
+            }
+
             if ($order->payment_status === 'paid' && $order->user_id) {
                 $payment = \App\Models\Payment::where('order_id', $order->id)
                     ->where('payment_gateway', 'member_balance')
                     ->first();
-                
+
                 if ($payment) {
                     $memberWalletService = new \App\Services\MemberWalletService();
                     $memberWalletService->releaseOrderLock(

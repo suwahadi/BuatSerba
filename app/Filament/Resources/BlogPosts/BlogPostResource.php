@@ -233,7 +233,8 @@ class BlogPostResource extends Resource
                 DeleteAction::make(),
             ])
             ->toolbarActions([
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getPages(): array

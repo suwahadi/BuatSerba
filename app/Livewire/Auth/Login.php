@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Services\WishlistService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Layout;
@@ -74,16 +75,22 @@ class Login extends Component
             RateLimiter::clear($throttleKey);
             request()->session()->regenerate();
 
+            $redirectUrl = route('dashboard');
+            if (session()->has('wishlist_pending_sku_id')) {
+                app(WishlistService::class)->flushPendingFromSession($user);
+                $redirectUrl = route('user.wishlist');
+            }
+
             $this->js("
                 window.dispatchEvent(new CustomEvent('notify', {
-                    detail: { 
+                    detail: {
                         message: 'Berhasil login! Mengalihkan...',
                         type: 'success'
                     }
                 }))
             ");
 
-            $this->js("setTimeout(() => window.location.href = '".route('dashboard')."', 1000)");
+            $this->js("setTimeout(() => window.location.href = '".$redirectUrl."', 1000)");
 
             return;
         }

@@ -36,13 +36,13 @@
                         <div>
                             <p class="text-xs text-green-700 font-medium">Dimulai</p>
                             <p class="text-sm font-bold text-green-900 mt-1">
-                                {{ $activeMembership->started_at?->format('d M Y') }}
+                                {{ format_tanggal_id($activeMembership->started_at) }}
                             </p>
                         </div>
                         <div>
                             <p class="text-xs text-green-700 font-medium">Berakhir</p>
                             <p class="text-sm font-bold text-green-900 mt-1">
-                                {{ $activeMembership->expires_at?->format('d M Y') }}
+                                {{ format_tanggal_id($activeMembership->expires_at) }}
                             </p>
                         </div>
                         <div class="text-right md:text-left">
@@ -183,7 +183,7 @@
     <!-- Purchase Confirmation Modal -->
     @if($showPurchaseModal)
         <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="$set('showPurchaseModal', false)">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" wire:click.stop>
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" @click.stop>
                 <div class="flex items-center gap-3 mb-4">
                     <h2 class="text-lg font-bold text-gray-900">Bergabung Premium Membership</h2>
                 </div>
@@ -228,7 +228,7 @@
     <!-- Renewal Confirmation Modal -->
     @if($showRenewalConfirmModal)
         <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="$set('showRenewalConfirmModal', false)">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" wire:click.stop>
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" @click.stop>
                 <div class="flex items-center gap-3 mb-4">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l5-5 5 5M7 11l5-5 5 5M12 2l10 6v8l-10 6-10-6V8l10-6z"/>
@@ -255,7 +255,7 @@
                         @if($activeMembership)
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-green-700 font-medium">Berakhir Saat Ini</span>
-                            <span class="text-sm font-bold text-green-900">{{ $activeMembership->expires_at?->format('d M Y') }}</span>
+                            <span class="text-sm font-bold text-green-900">{{ format_tanggal_id($activeMembership->expires_at) }}</span>
                         </div>
                         @endif
                     </div>
@@ -286,7 +286,7 @@
     <!-- Payment Method Selection Modal -->
     @if($showPaymentMethodModal)
         <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="$set('showPaymentMethodModal', false)">
-            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" wire:click.stop>
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" @click.stop>
                 <div class="flex items-center gap-3 mb-6">
                     <div>
                         <h2 class="text-md font-bold text-gray-900">Pilih Metode Pembayaran</h2>
@@ -505,7 +505,7 @@
     <!-- Upload Proof Modal -->
     @if($showUploadModal)
         <div class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="cancelUpload">
-            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" wire:click.stop>
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" @click.stop>
                 <h2 class="text-lg font-bold text-gray-900 mb-4">Selesaikan Pembayaran</h2>
                 
                 @if($paymentInstructions && $paymentOrderId)
@@ -602,6 +602,14 @@
                                 @if(isset($paymentInstructions['qr_string']) && $qrCodeImage)
                                     <div class="mb-3">
                                         <img src="{{ $qrCodeImage }}" alt="QR Code" class="mx-auto" style="max-width: 250px; height: auto;">
+                                    </div>
+                                    <p class="text-xs text-gray-600">Scan QR code ini dengan aplikasi e-wallet atau mobile banking Anda</p>
+                                    @if(isset($paymentInstructions['expiry_time']))
+                                        <p class="text-xs text-red-600 mt-2 font-medium">Berlaku hingga: {{ $paymentInstructions['expiry_time'] }}</p>
+                                    @endif
+                                @elseif(!empty($paymentInstructions['qr_url']))
+                                    <div class="mb-3">
+                                        <img src="{{ $paymentInstructions['qr_url'] }}" alt="QR Code" class="mx-auto" style="max-width: 250px; height: auto;">
                                     </div>
                                     <p class="text-xs text-gray-600">Scan QR code ini dengan aplikasi e-wallet atau mobile banking Anda</p>
                                     @if(isset($paymentInstructions['expiry_time']))
@@ -783,7 +791,7 @@
                             @foreach($membershipHistory as $membership)
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $membership->created_at->format('d M Y') }}
+                                        {{ format_tanggal_id($membership->created_at) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         Rp {{ number_format($membership->price, 0, ',', '.') }}
@@ -814,8 +822,8 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                         @if($membership->started_at && $membership->expires_at)
                                             <div class="text-xs">
-                                                <div>{{ $membership->started_at->format('d M Y') }}</div>
-                                                <div class="text-gray-500">s/d {{ $membership->expires_at->format('d M Y') }}</div>
+                                                <div>{{ format_tanggal_id($membership->started_at) }}</div>
+                                                <div class="text-gray-500">s/d {{ format_tanggal_id($membership->expires_at) }}</div>
                                             </div>
                                         @else
                                             <span class="text-gray-400">-</span>
@@ -840,7 +848,7 @@
                             <div class="flex items-start justify-between mb-3">
                                 <div>
                                     <p class="text-sm font-medium text-gray-900">
-                                        {{ $membership->created_at->format('d M Y') }}
+                                        {{ format_tanggal_id($membership->created_at) }}
                                     </p>
                                     <p class="text-xs text-gray-500 mt-1">
                                         Rp {{ number_format($membership->price, 0, ',', '.') }}
@@ -874,7 +882,7 @@
                                 @if($membership->started_at && $membership->expires_at)
                                     <div class="text-xs text-gray-600">
                                         <span class="font-medium">Periode:</span><br>
-                                        {{ $membership->started_at->format('d M Y') }} - {{ $membership->expires_at->format('d M Y') }}
+                                        {{ format_tanggal_id($membership->started_at) }} - {{ format_tanggal_id($membership->expires_at) }}
                                     </div>
                                 @endif
                                 
@@ -893,7 +901,7 @@
     <!-- Membership Detail Modal -->
     @if($showDetailModal && $selectedMembership)
         <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:click="closeDetailModal">
-            <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" wire:click.stop>
+            <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" @click.stop>
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-bold text-gray-900">Detail Membership</h2>
@@ -912,7 +920,7 @@
                         </div>
                         <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                             <span class="text-sm text-gray-600">Tanggal Pembelian</span>
-                            <span class="text-sm font-medium text-gray-900">{{ $selectedMembership->created_at->format('d M Y H:i') }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ format_tanggal_id($selectedMembership->created_at, true) }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                             <span class="text-sm text-gray-600">Total Pembayaran</span>
@@ -946,7 +954,7 @@
                         @if($selectedMembership->started_at && $selectedMembership->expires_at)
                             <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                                 <span class="text-sm text-gray-600">Periode Aktif</span>
-                                <span class="text-sm font-medium text-gray-900">{{ $selectedMembership->started_at->format('d M Y') }} s/d {{ $selectedMembership->expires_at->format('d M Y') }}</span>
+                                <span class="text-sm font-medium text-gray-900">{{ format_tanggal_id($selectedMembership->started_at) }} s/d {{ format_tanggal_id($selectedMembership->expires_at) }}</span>
                             </div>
                         @endif
                     </div>

@@ -58,17 +58,33 @@ class Payment extends Model
     }
 
     /**
-     * Update payment from Midtrans notification
+     * Update payment from Midtrans notification.
+     *
+     * IMPORTANT: midtrans_response is MERGED, not replaced. Webhook notifications
+     * do not include qr_string / actions[] (set only on the initial /charge response).
+     * Replacing the column would erase the QR data needed by the payment page when
+     * the user reopens it after a notification has arrived.
      */
     public function updateFromMidtransNotification(array $notification)
     {
+        $existingResponse = is_array($this->midtrans_response) ? $this->midtrans_response : [];
+        $mergedResponse = array_merge($existingResponse, $notification);
+
+        \Log::info('Payment::updateFromMidtransNotification', [
+            'payment_id' => $this->id,
+            'order_id' => $this->order_id,
+            'existing_has_qr_string' => isset($existingResponse['qr_string']),
+            'notif_has_qr_string' => isset($notification['qr_string']),
+            'merged_has_qr_string' => isset($mergedResponse['qr_string']),
+        ]);
+
         $this->update([
             'transaction_status' => $notification['transaction_status'] ?? $this->transaction_status,
             'fraud_status' => $notification['fraud_status'] ?? $this->fraud_status,
             'status_code' => $notification['status_code'] ?? $this->status_code,
             'status_message' => $notification['status_message'] ?? $this->status_message,
             'signature_key' => $notification['signature_key'] ?? $this->signature_key,
-            'midtrans_response' => $notification,
+            'midtrans_response' => $mergedResponse,
         ]);
 
         // Update order status based on payment status

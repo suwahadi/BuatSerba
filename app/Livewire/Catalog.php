@@ -3,8 +3,11 @@
 namespace App\Livewire;
 
 use App\Models\Category;
+use App\Models\FlashSale;
+use App\Models\FlashSaleItem;
 use App\Models\Product;
 use App\Models\Sku;
+use App\Services\WishlistService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -34,16 +37,26 @@ class Catalog extends Component
 
     public $showMobileFilters = false;
 
+    public $flashOnly = false;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'selectedCategories' => ['except' => []],
         'selectedBrands' => ['except' => []],
         'sortBy' => ['except' => 'popularity'],
+        'flashOnly' => ['except' => false, 'as' => 'flash'],
     ];
 
     public function mount()
     {
-        // Initialize default values
+        // Accept boolean-ish values from query string (?flash=1, ?flash=true)
+        $this->flashOnly = filter_var($this->flashOnly, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    public function clearFlashFilter(): void
+    {
+        $this->flashOnly = false;
+        $this->resetPage();
     }
 
     public function updatingSearch()
@@ -151,6 +164,21 @@ class Catalog extends Component
             $query->whereIn('products.category_id', $this->selectedCategories);
         }
 
+        // Flash sale filter — restrict to products that have an item in the active sale
+        if ($this->flashOnly) {
+            $activeSale = FlashSale::active()->orderBy('sort')->orderBy('id')->first();
+            if ($activeSale) {
+                $query->whereIn('products.id', function ($sub) use ($activeSale) {
+                    $sub->select('skus.product_id')
+                        ->from('flash_sale_items')
+                        ->join('skus', 'skus.id', '=', 'flash_sale_items.sku_id')
+                        ->where('flash_sale_items.flash_sale_id', $activeSale->id);
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
         // Price filter (via SKU)
         if ($this->minPrice > 0 || $this->maxPrice < 50000000) {
             $query->whereHas('skus', function ($skuQuery) {
@@ -198,6 +226,11 @@ class Catalog extends Component
         return $query->paginate($this->perPage);
     }
 
+    public function updatedFlashOnly()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $products = $this->getProducts();
@@ -206,9 +239,20 @@ class Catalog extends Component
             ->orderBy('sort_order')
             ->get();
 
+        $flashMap = FlashSaleItem::activeMapByProduct($products->pluck('id')->all());
+
+        $wishlistedSkuIds = [];
+        if (auth()->check()) {
+            $skuIds = $products->flatMap(fn ($p) => $p->skus->pluck('id'))->all();
+            $wishlistedSkuIds = app(WishlistService::class)
+                ->getWishlistedSkuIds(auth()->user(), $skuIds);
+        }
+
         return view('livewire.catalog', [
             'products' => $products,
             'categories' => $categories,
+            'flashMap' => $flashMap,
+            'wishlistedSkuIds' => $wishlistedSkuIds,
         ])->layout('components.layouts.guest');
     }
 }

@@ -81,37 +81,78 @@ class PremiumMembership extends Model
     }
 
     /**
-     * Update membership from Midtrans notification
+     * Update membership from Midtrans notification.
+     *
+     * midtrans_response is MERGED, not replaced — webhook payloads omit qr_string
+     * / actions[] from the initial /charge response, which the QRIS view needs.
      */
     public function updateFromMidtransNotification(array $notification): void
     {
+        $existingResponse = is_array($this->midtrans_response) ? $this->midtrans_response : [];
+        $mergedResponse = array_merge($existingResponse, $notification);
+
+        \Log::info('PremiumMembership::updateFromMidtransNotification', [
+            'membership_id' => $this->id,
+            'existing_has_qr_string' => isset($existingResponse['qr_string']),
+            'notif_has_qr_string' => isset($notification['qr_string']),
+            'merged_has_qr_string' => isset($mergedResponse['qr_string']),
+        ]);
+
         $this->update([
             'transaction_status' => $notification['transaction_status'] ?? $this->transaction_status,
             'fraud_status' => $notification['fraud_status'] ?? $this->fraud_status,
             'status_code' => $notification['status_code'] ?? $this->status_code,
             'status_message' => $notification['status_message'] ?? $this->status_message,
             'signature_key' => $notification['signature_key'] ?? $this->signature_key,
-            'midtrans_response' => $notification,
+            'midtrans_response' => $mergedResponse,
         ]);
 
         $this->updateStatusFromPayment();
     }
 
     /**
-     * Update membership status based on payment status
+     * Update membership status based on payment status.
+     *
+     * For renewals: the new row's expires_at is stacked on top of the user's
+     * latest still-valid membership. Previously the calculation fell back to
+     * now() because the new row's own expires_at was null, which silently reset
+     * the renewal duration instead of extending it.
      */
     protected function updateStatusFromPayment(): void
     {
-        if (in_array($this->transaction_status, ['settlement', 'capture']) && 
+        if (in_array($this->transaction_status, ['settlement', 'capture']) &&
             ($this->fraud_status === 'accept' || $this->fraud_status === null)) {
-            
+
             $durationDays = config('premium_membership.duration_days', 365);
-            
+
+            $base = $this->expires_at;
+            if (!$base) {
+                $latestActiveExpiry = static::query()
+                    ->where('user_id', $this->user_id)
+                    ->where('id', '!=', $this->id)
+                    ->where('status', 'active')
+                    ->whereNotNull('expires_at')
+                    ->where('expires_at', '>', now())
+                    ->max('expires_at');
+
+                $base = $latestActiveExpiry
+                    ? \Carbon\Carbon::parse($latestActiveExpiry)
+                    : now();
+            }
+
             $this->update([
                 'status' => 'active',
                 'paid_at' => now(),
                 'started_at' => $this->started_at ?? now(),
-                'expires_at' => ($this->expires_at ?? now())->addDays($durationDays),
+                'expires_at' => $base->copy()->addDays($durationDays),
+            ]);
+
+            \Log::info('PremiumMembership activated', [
+                'membership_id' => $this->id,
+                'user_id' => $this->user_id,
+                'base_expiry' => $base->toDateString(),
+                'new_expires_at' => $this->fresh()->expires_at?->toDateString(),
+                'duration_days' => $durationDays,
             ]);
 
         } elseif (in_array($this->transaction_status, ['deny', 'cancel', 'expire', 'expired'])) {

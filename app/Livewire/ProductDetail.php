@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Branch;
 use App\Models\BranchInventory;
+use App\Models\FlashSaleItem;
 use App\Models\Product;
 use App\Models\Sku;
 use Livewire\Component;
@@ -197,6 +198,21 @@ class ProductDetail extends Component
             return;
         }
 
+        // Re-resolve fresh — don't trust cached property after request boundary
+        $flashItem = FlashSaleItem::activeForSku((int) $this->selectedSku->id);
+        $flashSaleItemId = null;
+        $unitPrice = $this->selectedSku->getPriceForQuantity($this->quantity);
+
+        if ($flashItem && ! $flashItem->is_sold_out) {
+            if ($flashItem->remaining_stock < $this->quantity) {
+                session()->flash('error', 'Kuota Flash Sale tidak mencukupi. Sisa: '.$flashItem->remaining_stock);
+
+                return;
+            }
+            $flashSaleItemId = $flashItem->id;
+            $unitPrice = (float) $flashItem->flash_price;
+        }
+
         if (! session()->has('cart_session_id')) {
             session()->put('cart_session_id', session()->getId());
         }
@@ -221,8 +237,17 @@ class ProductDetail extends Component
                 return;
             }
 
+            if ($flashItem && $flashItem->remaining_stock < $newQuantity) {
+                session()->flash('error', 'Kuota Flash Sale tidak mencukupi. Sisa: '.$flashItem->remaining_stock);
+
+                return;
+            }
+
             $existingItem->quantity = $newQuantity;
-            $existingItem->price = $this->selectedSku->getPriceForQuantity($newQuantity);
+            $existingItem->flash_sale_item_id = $flashSaleItemId;
+            $existingItem->price = $flashSaleItemId
+                ? (float) $flashItem->flash_price
+                : $this->selectedSku->getPriceForQuantity($newQuantity);
             $existingItem->save();
         } else {
             \App\Models\CartItem::create([
@@ -230,8 +255,9 @@ class ProductDetail extends Component
                 'user_id' => auth()->id(),
                 'product_id' => $this->product->id,
                 'sku_id' => $this->selectedSku->id,
+                'flash_sale_item_id' => $flashSaleItemId,
                 'quantity' => $this->quantity,
-                'price' => $this->selectedSku->getPriceForQuantity($this->quantity),
+                'price' => $unitPrice,
             ]);
         }
 
@@ -239,7 +265,7 @@ class ProductDetail extends Component
         $this->dispatch('show-cart-notification', [
             'productName' => $this->product->name,
             'quantity' => $this->quantity,
-            'price' => $this->selectedSku->getPriceForQuantity($this->quantity),
+            'price' => $unitPrice,
         ]);
     }
 
@@ -304,6 +330,30 @@ class ProductDetail extends Component
             ->orderBy('branches.priority')
             ->select('branch_inventory.*')
             ->get();
+    }
+
+    public function getFlashItemProperty(): ?FlashSaleItem
+    {
+        if (! $this->selectedSku) {
+            return null;
+        }
+
+        $item = FlashSaleItem::activeForSku((int) $this->selectedSku->id);
+        if (! $item || $item->is_sold_out) {
+            return null;
+        }
+
+        return $item;
+    }
+
+    public function getEffectivePriceProperty(): float
+    {
+        $flash = $this->flashItem;
+        if ($flash) {
+            return (float) $flash->flash_price;
+        }
+
+        return (float) ($this->selectedSku?->getPriceForQuantity($this->quantity) ?? 0);
     }
 
     public function getAverageRatingProperty()
@@ -379,6 +429,8 @@ class ProductDetail extends Component
             'branchInventory' => $this->branchInventory,
             'carouselImages' => $this->carouselImages,
             'variantImageIndex' => $this->variantImageIndex,
+            'flashItem' => $this->flashItem,
+            'effectivePrice' => $this->effectivePrice,
         ])->layout('components.layouts.guest');
     }
 }

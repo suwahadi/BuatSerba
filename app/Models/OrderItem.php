@@ -13,6 +13,7 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'sku_id',
+        'flash_sale_item_id',
         'product_name',
         'sku_code',
         'sku_attributes',
@@ -47,5 +48,10 @@ class OrderItem extends Model
     public function sku()
     {
         return $this->belongsTo(Sku::class);
+    }
+
+    public function flashSaleItem()
+    {
+        return $this->belongsTo(FlashSaleItem::class);
     }
 }

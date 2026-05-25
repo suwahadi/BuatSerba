@@ -2,7 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Models\FlashSaleItem;
 use App\Models\Product;
+use App\Services\WishlistService;
 use Livewire\Component;
 
 class ProductList extends Component
@@ -34,9 +36,20 @@ class ProductList extends Component
 
         $totalProducts = Product::where('is_active', true)->count();
 
+        $flashMap = FlashSaleItem::activeMapByProduct($products->pluck('id')->all());
+
+        $wishlistedSkuIds = [];
+        if (auth()->check()) {
+            $skuIds = $products->flatMap(fn ($p) => $p->skus->pluck('id'))->all();
+            $wishlistedSkuIds = app(WishlistService::class)
+                ->getWishlistedSkuIds(auth()->user(), $skuIds);
+        }
+
         return view('livewire.product-list', [
             'products' => $products,
             'total' => $totalProducts,
+            'flashMap' => $flashMap,
+            'wishlistedSkuIds' => $wishlistedSkuIds,
         ]);
     }
 }

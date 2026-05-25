@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Events\OrderPaid;
 use App\Listeners\GrantPremiumCashback;
+use App\Listeners\UpdateFlashSaleSoldCount;
 use App\Listeners\UpgradeUserGrade;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -18,6 +19,7 @@ class EventServiceProvider extends ServiceProvider
         OrderPaid::class => [
             UpgradeUserGrade::class,
             GrantPremiumCashback::class,
+            UpdateFlashSaleSoldCount::class,
         ],
     ];
 }

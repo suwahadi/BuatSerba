@@ -148,7 +148,8 @@ class User extends Authenticatable implements FilamentUser
             ->where(function ($query) {
                 $query->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
-            });
+            })
+            ->orderByDesc('expires_at');
     }
 
     /**
@@ -157,6 +158,14 @@ class User extends Authenticatable implements FilamentUser
     public function returnRequests(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ReturnRequest::class);
+    }
+
+    /**
+     * Get user's wishlist entries
+     */
+    public function wishlists(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Wishlist::class);
     }
 
     /**

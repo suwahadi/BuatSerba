@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\WishlistService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -34,8 +35,16 @@ class CategoryProduct extends Component
             ->withCount('reviews')
             ->paginate(40);
 
+        $wishlistedSkuIds = [];
+        if (auth()->check()) {
+            $skuIds = $products->getCollection()->flatMap(fn ($p) => $p->skus->pluck('id'))->all();
+            $wishlistedSkuIds = app(WishlistService::class)
+                ->getWishlistedSkuIds(auth()->user(), $skuIds);
+        }
+
         return view('livewire.category-product', [
             'products' => $products,
+            'wishlistedSkuIds' => $wishlistedSkuIds,
         ])
             ->layout('components.layouts.guest')
             ->title($this->category->name.' - BuatSerba');

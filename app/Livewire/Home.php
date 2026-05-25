@@ -3,8 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Banner;
+use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\Page;
+use App\Models\Voucher;
 use Livewire\Component;
 
 class Home extends Component
@@ -34,10 +36,25 @@ class Home extends Component
             }
         }
 
+        $blogPosts = BlogPost::with('category')
+            ->where('is_active', true)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->orderByDesc('published_at')
+            ->limit(6)
+            ->get();
+
+        $vouchers = Voucher::where('is_active', true)
+            ->whereNotNull('image')
+            ->orderBy('sort')
+            ->get();
+
         return view('livewire.home', [
             'banners' => $banners,
             'categories' => $categories,
             'aboutSummary' => $aboutSummary,
+            'blogPosts' => $blogPosts,
+            'vouchers' => $vouchers,
         ])->layout('components.layouts.guest');
     }
 }

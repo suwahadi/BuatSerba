@@ -53,6 +53,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/profile', App\Livewire\Dashboard\Profile::class)->name('user.profile');
     Route::get('/address', App\Livewire\Dashboard\Address::class)->name('user.address');
     Route::get('/balance', App\Livewire\Dashboard\MemberBalance::class)->name('user.balance');
+    Route::get('/wishlist', App\Livewire\Dashboard\Wishlist::class)->name('user.wishlist');
 
     Route::get('/premium', App\Livewire\Dashboard\PremiumMembershipPurchase::class)->name('premium.purchase');
     Route::get('/premium/memberships', App\Livewire\Dashboard\PremiumMemberships::class)->name('premium.memberships');

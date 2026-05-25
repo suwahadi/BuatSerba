@@ -17,15 +17,23 @@
         @if($products->count() > 0)
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
                 @foreach($products as $product)
-                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                @php $sku = $product->skus->first(); @endphp
+                <div wire:key="cp-{{ $product->id }}" class="relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                    @if($sku)
+                        <livewire:components.wishlist-button
+                            :sku-id="$sku->id"
+                            variant="card"
+                            :is-active-initial="in_array($sku->id, $wishlistedSkuIds ?? [])"
+                            :key="'wb-cp-'.$product->id" />
+                    @endif
                     <a href="{{ route('product.detail', $product->slug) }}" class="block">
                         <div class="relative pb-[100%] bg-gray-100">
-                            <img src="{{ image_url($product->main_image) }}" 
-                                 alt="{{ $product->name }}" 
+                            <img src="{{ image_url($product->main_image) }}"
+                                 alt="{{ $product->name }}"
                                  class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27400%27 height=%27400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%23f3f4f6%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2726px%27 fill=%27%239ca3af%27%3ENo Image%3C/text%3E%3C/svg%3E'">
                             @if($product->is_featured)
-                            <span class="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full z-10">
+                            <span class="absolute top-11 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full z-10">
                                 Featured
                             </span>
                             @endif
@@ -33,11 +41,7 @@
                         <div class="p-3 sm:p-4">
                             <p class="text-xs text-gray-500 mb-1 truncate">{{ $category->name }}</p>
                             <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 h-10">{{ $product->name }}</h3>
-                            
-                            @php
-                                $sku = $product->skus->first();
-                            @endphp
-                            
+
                             @if($sku)
                             <div class="mt-2">
                                 <div class="flex flex-col sm:flex-row sm:items-baseline sm:space-x-1">

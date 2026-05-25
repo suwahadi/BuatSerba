@@ -14,6 +14,7 @@ class CartItem extends Model
         'user_id',
         'product_id',
         'sku_id',
+        'flash_sale_item_id',
         'quantity',
         'price',
     ];
@@ -39,6 +40,11 @@ class CartItem extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function flashSaleItem()
+    {
+        return $this->belongsTo(FlashSaleItem::class);
     }
 
     // Calculate subtotal for this cart item

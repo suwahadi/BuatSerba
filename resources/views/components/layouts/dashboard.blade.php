@@ -53,13 +53,20 @@
                                     </svg>
                                     Profil
                                 </a>
-                                <a href="{{ route('user.address') }}" 
+                                <a href="{{ route('user.address') }}"
                                    class="flex items-center px-4 py-3 text-sm font-medium transition-colors {{ request()->routeIs('user.address') ? 'text-green-600 bg-green-50 border-l-4 border-green-600' : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent' }}">
                                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
                                     Alamat
+                                </a>
+                                <a href="{{ route('user.wishlist') }}"
+                                   class="flex items-center px-4 py-3 text-sm font-medium transition-colors {{ request()->routeIs('user.wishlist') ? 'text-green-600 bg-green-50 border-l-4 border-green-600' : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent' }}">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/>
+                                    </svg>
+                                    Wishlist
                                 </a>
                                 <a href="{{ route('premium.purchase') }}" 
                                    class="flex items-center px-4 py-3 text-sm font-medium transition-colors {{ request()->routeIs('premium.purchase', 'premium.memberships') ? 'text-green-600 bg-green-50 border-l-4 border-green-600' : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent' }}">

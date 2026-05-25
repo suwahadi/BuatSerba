@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\CartItem;
+use App\Models\FlashSaleItem;
 use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
@@ -24,6 +25,8 @@ class Cart extends Component
         if (! Session::has('cart_session_id')) {
             Session::put('cart_session_id', Session::getId());
         }
+
+        $this->pruneExpiredFlashItems();
 
         // Restore voucher on initial load / reload
         if (Session::has('applied_voucher')) {
@@ -56,7 +59,7 @@ class Cart extends Component
     {
         $sessionId = Session::get('cart_session_id');
 
-        return CartItem::with(['product', 'sku'])
+        return CartItem::with(['product', 'sku', 'flashSaleItem.flashSale'])
             ->where(function ($query) use ($sessionId) {
                 $query->where('session_id', $sessionId);
                 if (auth()->check()) {
@@ -64,6 +67,46 @@ class Cart extends Component
                 }
             })
             ->get();
+    }
+
+    /**
+     * Drop cart rows whose flash entry is no longer valid (session ended,
+     * sold out, or item removed). Per product spec: auto-remove + notify.
+     */
+    protected function pruneExpiredFlashItems(): void
+    {
+        $sessionId = Session::get('cart_session_id');
+
+        $flashRows = CartItem::with('flashSaleItem.flashSale')
+            ->whereNotNull('flash_sale_item_id')
+            ->where(function ($q) use ($sessionId) {
+                $q->where('session_id', $sessionId);
+                if (auth()->check()) {
+                    $q->orWhere('user_id', auth()->id());
+                }
+            })
+            ->get();
+
+        $removed = [];
+
+        foreach ($flashRows as $row) {
+            $flashItem = $row->flashSaleItem;
+            $invalid = ! $flashItem
+                || ! $flashItem->flashSale
+                || ! $flashItem->flashSale->isLive()
+                || ($flashItem->stock_limit - $flashItem->sold_count) < $row->quantity;
+
+            if ($invalid) {
+                $removed[] = $row->product?->name ?? 'item';
+                $row->delete();
+            }
+        }
+
+        if (! empty($removed)) {
+            $names = implode(', ', array_unique($removed));
+            session()->flash('error', 'Flash Sale berakhir / stok habis. Item dihapus dari keranjang: '.$names);
+            $this->dispatch('cartUpdated');
+        }
     }
 
     public function getSubtotalProperty()
@@ -80,7 +123,7 @@ class Cart extends Component
 
     public function updateQuantity($cartItemId, $quantity)
     {
-        $cartItem = CartItem::find($cartItemId);
+        $cartItem = CartItem::with('flashSaleItem.flashSale')->find($cartItemId);
 
         if (! $cartItem) {
             session()->flash('error', 'Item tidak ditemukan di keranjang.');
@@ -100,9 +143,27 @@ class Cart extends Component
             return;
         }
 
-        // Update quantity and price
+        $flashItem = $cartItem->flashSaleItem;
+        if ($cartItem->flash_sale_item_id && $flashItem) {
+            if (! $flashItem->flashSale || ! $flashItem->flashSale->isLive()) {
+                session()->flash('error', 'Sesi Flash Sale berakhir.');
+                $cartItem->delete();
+                $this->dispatch('cartUpdated');
+
+                return;
+            }
+            if (($flashItem->stock_limit - $flashItem->sold_count) < $quantity) {
+                session()->flash('error', 'Kuota Flash Sale tidak mencukupi. Sisa: '.max(0, $flashItem->stock_limit - $flashItem->sold_count));
+
+                return;
+            }
+        }
+
+        // Update quantity and price (preserve flash_price when row is a flash item)
         $cartItem->quantity = $quantity;
-        $cartItem->price = $cartItem->sku->getPriceForQuantity($quantity);
+        $cartItem->price = $flashItem
+            ? (float) $flashItem->flash_price
+            : $cartItem->sku->getPriceForQuantity($quantity);
         $cartItem->save();
 
         session()->flash('message', 'Jumlah item berhasil diupdate.');
@@ -111,7 +172,7 @@ class Cart extends Component
 
     public function incrementQuantity($cartItemId)
     {
-        $cartItem = CartItem::find($cartItemId);
+        $cartItem = CartItem::with('flashSaleItem.flashSale')->find($cartItemId);
 
         if (! $cartItem) {
             return;
@@ -125,9 +186,27 @@ class Cart extends Component
             return;
         }
 
-        // Update quantity and price
+        $flashItem = $cartItem->flashSaleItem;
+        if ($cartItem->flash_sale_item_id && $flashItem) {
+            if (! $flashItem->flashSale || ! $flashItem->flashSale->isLive()) {
+                session()->flash('error', 'Sesi Flash Sale berakhir.');
+                $cartItem->delete();
+                $this->dispatch('cartUpdated');
+
+                return;
+            }
+            if (($flashItem->stock_limit - $flashItem->sold_count) < $newQuantity) {
+                session()->flash('error', 'Kuota Flash Sale tidak mencukupi.');
+
+                return;
+            }
+        }
+
+        // Update quantity and price (preserve flash_price when row is a flash item)
         $cartItem->quantity = $newQuantity;
-        $cartItem->price = $cartItem->sku->getPriceForQuantity($newQuantity);
+        $cartItem->price = $flashItem
+            ? (float) $flashItem->flash_price
+            : $cartItem->sku->getPriceForQuantity($newQuantity);
         $cartItem->save();
 
         $this->dispatch('cartUpdated');
@@ -135,7 +214,7 @@ class Cart extends Component
 
     public function decrementQuantity($cartItemId)
     {
-        $cartItem = CartItem::find($cartItemId);
+        $cartItem = CartItem::with('flashSaleItem')->find($cartItemId);
 
         if (! $cartItem) {
             return;
@@ -147,9 +226,11 @@ class Cart extends Component
             return;
         }
 
-        // Update quantity and price
+        // Update quantity and price (preserve flash_price when row is a flash item)
         $cartItem->quantity = $newQuantity;
-        $cartItem->price = $cartItem->sku->getPriceForQuantity($newQuantity);
+        $cartItem->price = $cartItem->flashSaleItem
+            ? (float) $cartItem->flashSaleItem->flash_price
+            : $cartItem->sku->getPriceForQuantity($newQuantity);
         $cartItem->save();
 
         $this->dispatch('cartUpdated');
@@ -223,6 +304,9 @@ class Cart extends Component
     // Recalculate voucher logic AFTER actions (like update qty) are performed
     public function dehydrate()
     {
+        // Re-prune flash-sale rows after any in-page action (qty change, etc.)
+        $this->pruneExpiredFlashItems();
+
         if (Session::has('applied_voucher')) {
             $voucherData = Session::get('applied_voucher');
 

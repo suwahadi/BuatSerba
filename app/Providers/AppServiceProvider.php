@@ -36,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\Banner::class,
             \App\Models\Branch::class,
             \App\Models\Category::class,
+            \App\Models\FlashSale::class,
             \App\Models\GlobalConfig::class,
             \App\Models\Page::class,
             \App\Models\Sku::class,
@@ -75,6 +76,11 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Event::listen(
             \App\Events\OrderPaid::class,
             \App\Listeners\GrantPremiumCashback::class
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\OrderPaid::class,
+            \App\Listeners\UpdateFlashSaleSoldCount::class
         );
     }
 

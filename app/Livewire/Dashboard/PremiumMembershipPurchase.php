@@ -206,29 +206,30 @@ class PremiumMembershipPurchase extends Component
                 $this->showUploadModal = true;
                 $this->loadMembershipData();
                 
-                // \Log::info('Payment transaction created successfully', [
-                //     'order_id' => $result['order_id'],
-                //     'payment_instructions' => $result['payment_instructions']
-                // ]);
-                
+                \Log::info('Payment transaction created successfully', [
+                    'order_id' => $result['order_id'],
+                    'payment_instructions_type' => $result['payment_instructions']['type'] ?? null,
+                    'has_qr_string' => !empty($result['payment_instructions']['qr_string']),
+                ]);
+
                 if (isset($result['payment_instructions']['type']) && $result['payment_instructions']['type'] === 'qris') {
                     $this->generateQrCode($result['payment_instructions']['qr_string'] ?? null);
                 }
-                
+
                 $this->dispatch('success', message: 'Transaksi berhasil dibuat. Silakan selesaikan pembayaran.');
             } else {
-                // \Log::error('Payment transaction failed', [
-                //     'message' => $result['message'] ?? 'Unknown error'
-                // ]);
+                \Log::error('Payment transaction failed', [
+                    'message' => $result['message'] ?? 'Unknown error'
+                ]);
                 $this->dispatch('error', message: $result['message'] ?? 'Gagal memproses pembayaran.');
             }
 
         } catch (\Exception $e) {
-            // \Log::error('Premium membership payment error: ' . $e->getMessage(), [
-            //     'trace' => $e->getTraceAsString(),
-            //     'membership_id' => $this->currentMembershipId,
-            //     'payment_method' => $this->selectedPaymentMethod
-            // ]);
+            \Log::error('Premium membership payment error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'membership_id' => $this->currentMembershipId,
+                'payment_method' => $this->selectedPaymentMethod
+            ]);
             $this->dispatch('error', message: 'Terjadi kesalahan saat memproses pembayaran: ' . $e->getMessage());
         } finally {
             $this->isProcessingPayment = false;
